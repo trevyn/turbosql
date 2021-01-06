@@ -1,0 +1,5 @@
+[workspace]
+members = [
+  "turbosql",
+  "turbosql_macros",
+]
