@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      
+
 env:
   CARGO_TERM_COLOR: always
 
@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rust: [stable, beta, nightly]
+        rust: [1.44, 1.45, stable, beta, nightly]
 
     steps:
       - uses: actions/checkout@v2
