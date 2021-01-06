@@ -1,0 +1,36 @@
+name: test_turbosql
+
+on:
+  push:
+    branches:
+      - main
+      
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+
+  test:
+    name: test rust ${{ matrix.rust }}
+    runs-on: ubuntu-18.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        rust: [stable, beta, nightly]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: hecrj/setup-rust-action@v1
+        with:
+          rust-version: ${{ matrix.rust }}
+      
+      - name: cargo test turbosql_macros
+        run: cargo test --features "test" -- --nocapture
+        working-directory: 'turbosql_macros'
+
+      - name: cargo test turbosql
+        run: cargo test --features "test" -- --nocapture
+        working-directory: 'turbosql'
+
