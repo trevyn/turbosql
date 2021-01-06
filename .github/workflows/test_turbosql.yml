@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rust: [1.44, 1.45, stable, beta, nightly]
+        rust: [1.45, stable, beta, nightly]
 
     steps:
       - uses: actions/checkout@v2
