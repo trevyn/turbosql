@@ -32,6 +32,9 @@ struct PersonDocTest {
 
 #![allow(unused_imports)]
 
+#[cfg(all(test, not(feature = "test")))]
+compile_error!("this crate must be tested with '--features test'");
+
 use itertools::EitherOrBoth::{Both, Left, Right};
 use itertools::Itertools;
 use log::{debug, error, info, trace, warn};
