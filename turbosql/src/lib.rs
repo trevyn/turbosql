@@ -103,8 +103,9 @@ static __DB_PATH: Lazy<Mutex<DbPath>> = Lazy::new(|| {
 #[doc(hidden)]
 pub static __TURBOSQL_DB: Lazy<Mutex<Connection>> = Lazy::new(|| {
  #[cfg(not(feature = "test"))]
- let toml_decoded: MigrationsToml = toml::from_str(include_str!("../../migrations.toml"))
-  .expect("Unable to decode embedded migrations.toml");
+ let toml_decoded: MigrationsToml =
+  toml::from_str(include_str!(concat!(env!("OUT_DIR"), "/../../../../../migrations.toml")))
+   .expect("Unable to decode embedded migrations.toml");
  #[cfg(feature = "test")]
  let toml_decoded: MigrationsToml =
   toml::from_str(include_str!("../../test.migrations.toml")).unwrap();
