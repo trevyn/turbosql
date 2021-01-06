@@ -61,9 +61,3 @@ fn it_works() {
  // assert!(select!(Option<i64> "age FROM personintegrationtest").unwrap() == row.age);
  // assert!(select!(String "name FROM personintegrationtest").unwrap() == row.name.unwrap());
 }
-
-#[test]
-#[should_panic]
-fn it_panics() {
- panic!("panic");
-}
