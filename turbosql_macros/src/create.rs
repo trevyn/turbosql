@@ -78,7 +78,7 @@ pub(super) fn create(table: &Table) -> proc_macro2::TokenStream {
 # It should be checked into source control.
 # Modifying it by hand may be dangerous; see the docs.
 
- {}",
+{}",
   &new_toml_str
  );
 

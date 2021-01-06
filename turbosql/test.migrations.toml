@@ -3,7 +3,7 @@
 # It should be checked into source control.
 # Modifying it by hand may be dangerous; see the docs.
 
- migrations_append_only = [
+migrations_append_only = [
   'CREATE TABLE persondoctest (rowid INTEGER PRIMARY KEY)',
   'ALTER TABLE persondoctest ADD COLUMN name TEXT',
   'ALTER TABLE persondoctest ADD COLUMN age INTEGER',
