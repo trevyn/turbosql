@@ -4,6 +4,7 @@ use self::turbosql::{FromSql, FromSqlResult, ToSql, ValueRef};
 
 use juniper::{ParseScalarResult, ParseScalarValue, Value};
 use serde::{Deserialize, Serialize};
+use std::convert::{TryFrom, TryInto};
 use ux::i53 as ux_i53;
 
 impl std::str::FromStr for i53 {
@@ -70,6 +71,13 @@ where
 impl From<i64> for i53 {
  fn from(item: i64) -> Self {
   i53(ux_i53::new(item))
+ }
+}
+
+impl TryFrom<usize> for i53 {
+ type Error = std::num::TryFromIntError;
+ fn try_from(item: usize) -> Result<Self, Self::Error> {
+  Ok(i53(ux_i53::new(item.try_into()?)))
  }
 }
 
