@@ -85,23 +85,17 @@ struct DbPath {
 }
 
 static __DB_PATH: Lazy<Mutex<DbPath>> = Lazy::new(|| {
- let cur_exe = match std::env::current_exe() {
-  Ok(path) => match path.file_stem() {
-   Some(stem) => Some(stem.to_str().unwrap().to_string()), // TODO: remove unwrap
-   None => None,
-  },
-  Err(_) => None,
- };
+ #[cfg(not(feature = "test"))]
+ let path = directories_next::BaseDirs::new()
+  .unwrap()
+  .home_dir()
+  .join(std::env::current_exe().unwrap().file_stem().unwrap())
+  .with_extension("sqlite");
 
  #[cfg(feature = "test")]
- let path_str = ":memory:".to_owned();
- #[cfg(not(feature = "test"))]
- let path_str = match cur_exe {
-  Some(name) => format!("{}.sqlite", name),
-  None => "turbosql.sqlite".to_owned(),
- };
+ let path = Path::new(":memory:").to_owned();
 
- Mutex::new(DbPath { path: Path::new(&path_str).to_owned(), opened: false })
+ Mutex::new(DbPath { path, opened: false })
 });
 
 #[doc(hidden)]
