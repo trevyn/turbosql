@@ -25,6 +25,13 @@ impl std::fmt::Display for i53 {
 #[allow(non_camel_case_types)]
 pub struct i53(ux_i53);
 
+impl PartialEq for i53 {
+ fn eq(&self, other: &Self) -> bool {
+  self.0 == other.0
+ }
+}
+impl Eq for i53 {}
+
 #[juniper::graphql_scalar(
  description = "i53: 53-bit signed integer; represented as `i53`/`i64` in Rust, `Float` in GraphQL, `number` in TypeScript."
 )]

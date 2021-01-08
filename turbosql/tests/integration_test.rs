@@ -1,8 +1,16 @@
-use turbosql::{execute, select, Blob, Turbosql};
+use turbosql::{execute, i53, select, Blob, Turbosql};
 
-#[derive(Turbosql, Default, Debug, PartialEq, Clone)]
+#[derive(Turbosql, Default, Debug, Eq, PartialEq, Clone)]
 struct PersonIntegrationTest {
  rowid: Option<i64>,
+ name: Option<String>,
+ age: Option<i64>,
+ image_jpg: Option<Blob>,
+}
+
+#[derive(Turbosql, Default, Debug, Eq, PartialEq, Clone)]
+struct PersonIntegrationTest_i53 {
+ rowid: Option<i53>,
  name: Option<String>,
  age: Option<i64>,
  image_jpg: Option<Blob>,
