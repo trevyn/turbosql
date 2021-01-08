@@ -47,7 +47,7 @@ where
 
  // Define how to parse a primitive type into your custom scalar.
  fn from_input_value(v: &InputValue) -> Option<i53> {
-  v.as_scalar_value().and_then(|v| v.as_str()).and_then(|s| s.parse().ok())
+  v.as_float_value()?.try_into().ok()
  }
 
  // Define how to parse a string value.
@@ -75,9 +75,21 @@ where
 //     }
 // }
 
+impl From<i32> for i53 {
+ fn from(item: i32) -> Self {
+  i53(ux_i53::new(item as i64))
+ }
+}
+
 impl From<i64> for i53 {
  fn from(item: i64) -> Self {
   i53(ux_i53::new(item))
+ }
+}
+
+impl From<f64> for i53 {
+ fn from(item: f64) -> Self {
+  i53(ux_i53::new(item as i64))
  }
 }
 
