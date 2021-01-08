@@ -2,10 +2,14 @@ use crate as turbosql;
 
 use self::turbosql::{FromSql, FromSqlResult, ToSql, ValueRef};
 
+use anyhow::anyhow;
 use juniper::{ParseScalarResult, ParseScalarValue, Value};
 use serde::{Deserialize, Serialize};
 use std::convert::{TryFrom, TryInto};
 use ux::i53 as ux_i53;
+
+const _MAX_SAFE_INTEGER: i64 = 9007199254740991;
+const _MIN_SAFE_INTEGER: i64 = -9007199254740991;
 
 impl std::str::FromStr for i53 {
  type Err = String;
@@ -56,47 +60,48 @@ where
  }
 }
 
-// impl Deref for i53 {
-//  type Target = ux_i53;
-//  fn deref(&self) -> &Self::Target {
-//   &self.0
+// impl From<i32> for i53 {
+//  fn from(item: i32) -> Self {
+//   i53(ux_i53::new(item as i64))
 //  }
 // }
 
-// struct DerefExample<T> {
-//     value: T
-// }
+impl TryFrom<i64> for i53 {
+ type Error = anyhow::Error;
+ fn try_from(item: i64) -> Result<Self, Self::Error> {
+  let item_i64 = item as i64;
+  let item_i53 = i53(ux_i53::new(item_i64));
+  if item_i53.as_i64() as i64 != item {
+   return Err(anyhow!("i53 conversion failed: {:#?}", item));
+  }
 
-// impl<T> Deref for DerefExample<T> {
-//     type Target = T;
-
-//     fn deref(&self) -> &Self::Target {
-//         &self.value
-//     }
-// }
-
-impl From<i32> for i53 {
- fn from(item: i32) -> Self {
-  i53(ux_i53::new(item as i64))
- }
-}
-
-impl From<i64> for i53 {
- fn from(item: i64) -> Self {
-  i53(ux_i53::new(item))
- }
-}
-
-impl From<f64> for i53 {
- fn from(item: f64) -> Self {
-  i53(ux_i53::new(item as i64))
+  Ok(item_i53)
  }
 }
 
 impl TryFrom<usize> for i53 {
- type Error = std::num::TryFromIntError;
+ type Error = anyhow::Error;
  fn try_from(item: usize) -> Result<Self, Self::Error> {
-  Ok(i53(ux_i53::new(item.try_into()?)))
+  let item_i64 = item as i64;
+  let item_i53 = i53(ux_i53::new(item_i64));
+  if item_i53.as_i64() as usize != item {
+   return Err(anyhow!("i53 conversion failed: {:#?}", item));
+  }
+
+  Ok(item_i53)
+ }
+}
+
+impl TryFrom<f64> for i53 {
+ type Error = anyhow::Error;
+ fn try_from(item: f64) -> Result<Self, Self::Error> {
+  let item_i64 = item as i64;
+  let item_i53 = i53(ux_i53::new(item_i64));
+  if item_i53.as_i64() as f64 != item {
+   return Err(anyhow!("i53 conversion failed: {:#?}", item));
+  }
+
+  Ok(item_i53)
  }
 }
 
@@ -108,7 +113,7 @@ impl i53 {
 
 impl FromSql for i53 {
  fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
-  Ok(value.as_i64()?.into())
+  value.as_i64()?.try_into().or_else(|_| Err(rusqlite::types::FromSqlError::InvalidType))
  }
 }
 
