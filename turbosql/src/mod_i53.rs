@@ -29,11 +29,24 @@ impl std::fmt::Display for i53 {
 #[allow(non_camel_case_types)]
 pub struct i53(ux_i53);
 
+impl<T> PartialEq<T> for i53
+where
+ T: TryInto<i53> + Copy + PartialEq + Ord,
+{
+ fn eq(&self, other: &T) -> bool {
+  match (*other).try_into() {
+   Ok(v) => v.0 == self.0,
+   Err(_) => false,
+  }
+ }
+}
+
 impl PartialEq for i53 {
- fn eq(&self, other: &Self) -> bool {
+ fn eq(&self, other: &i53) -> bool {
   self.0 == other.0
  }
 }
+
 impl Eq for i53 {}
 
 #[juniper::graphql_scalar(
@@ -60,11 +73,11 @@ where
  }
 }
 
-// impl From<i32> for i53 {
-//  fn from(item: i32) -> Self {
-//   i53(ux_i53::new(item as i64))
-//  }
-// }
+impl From<i32> for i53 {
+ fn from(item: i32) -> Self {
+  i53(ux_i53::new(item as i64))
+ }
+}
 
 impl TryFrom<i64> for i53 {
  type Error = anyhow::Error;
@@ -120,5 +133,17 @@ impl FromSql for i53 {
 impl ToSql for i53 {
  fn to_sql(&self) -> turbosql::Result<turbosql::ToSqlOutput<'_>> {
   Ok(turbosql::ToSqlOutput::Owned(turbosql::Value::Integer(self.0.into())))
+ }
+}
+
+#[cfg(test)]
+mod tests {
+ use super::*;
+
+ #[test]
+ fn test_rectangle() {
+  // let mut rectangle = Rectangle::new(4, 5);
+  let i: i53 = 20_usize.try_into().unwrap();
+  assert_eq!(i, 20_i32)
  }
 }
