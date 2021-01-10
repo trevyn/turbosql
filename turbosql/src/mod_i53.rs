@@ -6,10 +6,10 @@ use anyhow::anyhow;
 use juniper::{ParseScalarResult, ParseScalarValue, Value};
 use serde::{Deserialize, Serialize};
 use std::convert::{TryFrom, TryInto};
-use ux::i53 as ux_i53;
+use ux_serde::i53 as ux_i53;
 
-const _MAX_SAFE_INTEGER: i64 = 9007199254740991;
-const _MIN_SAFE_INTEGER: i64 = -9007199254740991;
+pub const MAX_SAFE_INTEGER: i64 = 9007199254740991;
+pub const MIN_SAFE_INTEGER: i64 = -9007199254740991;
 
 impl std::str::FromStr for i53 {
  type Err = String;
