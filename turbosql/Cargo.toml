@@ -23,7 +23,7 @@ rusqlite = {version = "0.24.2", features = ["bundled", "blob"]}
 serde = {version = "1.0.118", features = ["derive"]}
 toml = "0.5.8"
 turbosql_macros = {path = "../turbosql_macros"}
-ux_serde = {git = "https://github.com/trevyn/uX_serde", features = ["serde"]}
+ux_serde = {version = "0.2.0", features = ["serde"]}
 
 [features]
 test = ["turbosql_macros/test"]
