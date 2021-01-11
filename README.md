@@ -151,13 +151,13 @@ The SQLite database is created in the directory returned by [`directories_next`]
 
 SQLite is an extremely reliable database engine, but it helps to understand how it interfaces with the filesystem. The main `.sqlite` file contains the bulk of the database. During database writes, SQLite also creates `.sqlite-wal` and `.sqlite-shm` files. If the host process is terminated without flushing writes, you may end up with these three files when you expected to have a single file. This is always fine; on next launch, SQLite knows how to resolve any interrupted writes and make sense of the world. However, if the `-wal` and/or `-shm` files are present, they **must be considered essential to database integrity**. Deleting them may result in a corrupted database. See https://sqlite.org/tempfiles.html .
 
-## Example Query Forms
+## ⚠️&nbsp;Example Query Forms
 
-**NOTE: This table is somewhat speculative and not completely aligned with the code yet. Check [`integration_tests.rs`](https://github.com/trevyn/turbosql/blob/main/turbosql/tests/integration_test.rs) for examples of what works today and is tested in CI.**
+**⚠️&nbsp;NOTE: This table is somewhat speculative and not completely aligned with the code yet. Check [`integration_tests.rs`](https://github.com/trevyn/turbosql/blob/main/turbosql/tests/integration_test.rs) for examples of what works today and is tested in CI.&nbsp;⚠️**
 
 <table>
 
-<tr><td><b>Primitive type</b></td><td><br>
+<tr><td><b>⚠️&nbsp;Primitive&nbsp;type</b></td><td><br>
 
 ```rust-no-test
 let result = select!(String "SELECT name FROM person")?;
@@ -173,7 +173,7 @@ let result = select!(String "name FROM person WHERE rowid = ?", rowid)?;
 
 </td></tr>
 
-<tr><td><b>Tuple</b></td><td><br>
+<tr><td><b>⚠️&nbsp;Tuple</b></td><td><br>
 
 ```rust-no-test
 let result = select!((String, i64) "name, age FROM person")?;
@@ -183,7 +183,7 @@ Use tuple types for multiple manually declared columns.
 
 </td></tr>
 
-<tr><td><b>Anonymous struct</b></td><td><br>
+<tr><td><b>⚠️&nbsp;Anonymous struct</b></td><td><br>
 
 ```rust-no-test
 let result = select!("name_String, age_i64 FROM person")?;
@@ -194,7 +194,7 @@ Types must be specified in column names to generate an anonymous struct.
 
 </td></tr>
 
-<tr><td><b><code>Vec&lt;_&gt;</code></b></td><td><br>
+<tr><td>⚠️&nbsp;<b><code>Vec&lt;_&gt;</code></b></td><td><br>
 
 ```rust-no-test
 let result = select!(Vec<String> "name FROM person")?;
@@ -210,7 +210,7 @@ Anonymous structs work, too.
 
 </td></tr>
 
-<tr><td><b><code>Option&lt;_&gt;</code></b></td><td><br>
+<tr><td>⚠️&nbsp;<b><code>Option&lt;_&gt;</code></b></td><td><br>
 
 ```rust-no-test
 let result = select!(Option<String> "name FROM person")?;
@@ -220,7 +220,7 @@ Returns `Ok(None)` if no rows, `Error(Turbosql::Error)` on error.
 
 </td></tr>
 
-<tr><td><b>Your struct</b></td><td><br>
+<tr><td><b>⚠️&nbsp;Your struct</b></td><td><br>
 
 ```rust-no-test
 let result = select!(Person "WHERE name = ?", name)?;
@@ -242,7 +242,7 @@ Sometimes everything is optional; this example will retrieve all `Person` rows.
 
 </td></tr>
 
-<tr><td><b>Transactions</b></td><td><br>
+<tr><td>⚠️&nbsp;<b>Transactions</b></td><td><br>
 
 ```rust-no-test
 transaction! {
