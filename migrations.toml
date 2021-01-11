@@ -1,0 +1,3 @@
+# This file represents your application's auto-generated SQLite schema.
+# Normally it would be auto-populated from your struct definitions.
+# But in the turbosql crate, it just exists so that include_str! doesn't error in the IDE.

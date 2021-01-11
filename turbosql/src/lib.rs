@@ -1,50 +1,19 @@
-/*! # Turbosql: Easy Data Persistence Layer, backed by SQLite
+#[cfg(all(not(feature = "test"), any(test, doctest)))]
+compile_error!("turbosql must be tested with '--features test'");
 
-WORK IN PROGRESS, use at your own risk. :)
+#[cfg(all(feature = "test", doctest))]
+doc_comment::doctest!("../../README.md");
 
-Macros for easily persisting Rust `struct`s to an on-disk SQLite database and later retrieving them, optionally based on your own predicates.
-
-```rust
-# #[cfg(not(feature = "test"))]
-# panic!("rustdoc must be run with '--features test'");
-
-use turbosql::{Turbosql, Blob};
-
-#[derive(Turbosql, Default)]
-struct PersonDocTest {
- rowid: Option<i64>,  // rowid member required & enforced at compile time
- name: Option<String>,
- age: Option<i64>,
- image_jpg: Option<Blob>
-}
-```
-
-## Design Goals
-
-- API with minimal cognitive complexity and boilerplate
-- High performance
-- Reliable storage
-- Surface the power of SQL — make simple things easy, and complex things possible
-- In the spirit of Rust, move as many errors as possible to compile time
-
-### License: MIT OR Apache-2.0
-*/
-
-#![allow(unused_imports)]
-
-#[cfg(all(test, not(feature = "test")))]
-compile_error!("this crate must be tested with '--features test'");
-
-use itertools::EitherOrBoth::{Both, Left, Right};
-use itertools::Itertools;
-use log::{debug, error, info, trace, warn};
-use rusqlite::{Connection, OpenFlags, Statement};
+use itertools::{
+ EitherOrBoth::{Both, Left, Right},
+ Itertools,
+};
+use rusqlite::{Connection, OpenFlags};
 use serde::Deserialize;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 
-// re-export
+// these re-exports are used in macro expansions
 
 #[doc(hidden)]
 pub use once_cell::sync::Lazy;
@@ -57,17 +26,8 @@ pub use rusqlite::{
 pub use serde::Serialize;
 pub use turbosql_impl::{execute, select, Turbosql};
 
-/// Wrapper for `Vec<u8>` that provides `Read`, `Write` and `Seek` traits.
+/// Wrapper for `Vec<u8>` that may one day impl `Read`, `Write` and `Seek` traits.
 pub type Blob = Vec<u8>;
-
-// #[derive(Debug)]
-// pub struct Blob {
-//  table: String,
-//  column: String,
-//  rowid: i64,
-//  len: i64,
-//  bytes: Option<Vec<u8>>,
-// }
 
 #[derive(Clone, Debug, Deserialize, Default)]
 struct MigrationsToml {
@@ -82,11 +42,17 @@ struct DbPath {
 
 static __DB_PATH: Lazy<Mutex<DbPath>> = Lazy::new(|| {
  #[cfg(not(feature = "test"))]
- let path = directories_next::BaseDirs::new()
-  .unwrap()
-  .home_dir()
-  .join(std::env::current_exe().unwrap().file_stem().unwrap())
-  .with_extension("sqlite");
+ let path = {
+  let exe = std::env::current_exe().unwrap();
+  let exe_stem = exe.file_stem().unwrap();
+  let exe_stem_lossy = exe_stem.to_string_lossy();
+
+  directories_next::ProjectDirs::from("org", &exe_stem_lossy, &exe_stem_lossy)
+   .unwrap()
+   .data_dir()
+   .join(exe_stem)
+   .with_extension("sqlite")
+ };
 
  #[cfg(feature = "test")]
  let path = Path::new(":memory:").to_owned();
@@ -100,6 +66,7 @@ pub static __TURBOSQL_DB: Lazy<Mutex<Connection>> = Lazy::new(|| {
  let toml_decoded: MigrationsToml =
   toml::from_str(include_str!(concat!(env!("OUT_DIR"), "/../../../../../migrations.toml")))
    .expect("Unable to decode embedded migrations.toml");
+
  #[cfg(feature = "test")]
  let toml_decoded: MigrationsToml =
   toml::from_str(include_str!("../../test.migrations.toml")).unwrap();
@@ -202,7 +169,6 @@ pub static __TURBOSQL_DB: Lazy<Mutex<Connection>> = Lazy::new(|| {
 /// Set the local path and filename where Turbosql will store the underlying SQLite database.
 ///
 /// Must be called before any usage of Turbosql macros or will return an error.
-/// (Should actually be a std::path::Path?)
 pub fn set_db_path(path: &Path) -> Result<(), anyhow::Error> {
  let mut db_path = __DB_PATH.lock().unwrap();
 

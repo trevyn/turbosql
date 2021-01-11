@@ -17,12 +17,10 @@ struct PersonIntegrationTest_i54 {
  image_jpg: Option<Blob>,
 }
 
-/* @test integration test
-cd turbosql
-cargo test --features test -- --nocapture
-*/
+// @test integration test
+// cargo test --features test --manifest-path turbosql/Cargo.toml -- --nocapture
 #[test]
-fn it_works() {
+fn integration_test() {
  let mut row = PersonIntegrationTest {
   rowid: None,
   name: Some("Bob".to_string()),
