@@ -9,8 +9,8 @@ struct PersonIntegrationTest {
 }
 
 #[derive(Turbosql, Default, Debug, Eq, PartialEq, Clone)]
-struct PersonIntegrationTest_i53 {
- rowid: Option<i53>,
+struct PersonIntegrationTest_i54 {
+ rowid: Option<i54>,
  name: Option<String>,
  age: Option<i64>,
  image_jpg: Option<Blob>,

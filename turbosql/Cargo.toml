@@ -15,6 +15,7 @@ version = "0.0.2"
 # @deps turbosql
 anyhow = "1.0.37"
 directories-next = "2.0.0"
+i54 = {git = "https://github.com/trevyn/i54"}
 itertools = "0.10.0"
 juniper = "0.15.1"
 log = "0.4.11"

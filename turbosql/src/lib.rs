@@ -44,12 +44,10 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 
-mod mod_i53;
-
 // re-export
 
 #[doc(hidden)]
-pub use mod_i53::i53;
+pub use i54::i54;
 #[doc(hidden)]
 pub use once_cell::sync::Lazy;
 #[doc(hidden)]
