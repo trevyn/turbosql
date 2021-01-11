@@ -141,15 +141,15 @@ Unused or reverted migrations that are created during development can be manuall
 
 The SQLite database is created in the directory returned by [`directories_next`](https://crates.io/crates/directories-next)`::ProjectDirs::data_dir()` + your executable's filename stem, which resolves to something like:
 
-<table><tr><td>Linux</td><td>
+<table><tr><td>Linux</td><td><br>
 
 `$XDG_DATA_HOME`/`{exe_name}` or `$HOME`/.local/share/`{exe_name}` _/home/alice/.local/share/fooapp/fooapp.sqlite_
 
-</td></tr><tr><td>macOS</td><td>
+</td></tr><tr><td>macOS</td><td><br>
 
 `$HOME`/Library/Application&nbsp;Support/`{exe_name}` _/Users/Alice/Library/Application&nbsp;Support/org.fooapp.fooapp/fooapp.sqlite_
 
-</td></tr><tr><td>Windows</td><td>
+</td></tr><tr><td>Windows</td><td><br>
 
 `{FOLDERID_LocalAppData}`\\`{exe_name}`\\data _C:\Users\Alice\AppData\Local\fooapp\fooapp\data\fooapp.sqlite_</td></tr>
 
