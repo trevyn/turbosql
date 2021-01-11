@@ -47,14 +47,14 @@ let people: Vec<Person> = select!(Vec<Person> "WHERE age > ?", 21).unwrap();
 // SELECT a single row with a predicate
 let person: Person = select!(Person "WHERE name = ?", "Joe").unwrap();
 
-// UPDATE a row
-let mut person = execute!("UPDATE person SET age = ? WHERE name = ?", 18, "Joe").unwrap();
+// UPDATE
+execute!("UPDATE person SET age = ? WHERE name = ?", 18, "Joe").unwrap();
 
-// DELETE a row
-let mut person = execute!("DELETE FROM person WHERE rowid = ?", 1).unwrap();
+// DELETE
+execute!("DELETE FROM person WHERE rowid = ?", 1).unwrap();
 ```
 
-## Under the hood
+## Under the Hood
 
 Turbosql generates a SQLite schema and prepared queries for each struct:
 
@@ -63,7 +63,7 @@ use turbosql::{Turbosql, Blob};
 
 #[derive(Turbosql, Default)]
 struct Person {
-    rowid: Option<i64>,  // rowid member required & enforced
+    rowid: Option<i64>, // rowid member required & enforced
     name: Option<String>,
     age: Option<i64>,
     image_jpg: Option<Blob>
@@ -85,7 +85,7 @@ INSERT INTO person (rowid, name, age, image_jpg) VALUES (?, ?, ?, ?)
 SELECT rowid, name, age, image_jpg FROM person
 ```
 
-Queries with SQL predicates are also generated and validated at compile time. Note that SQL types vs Rust types for parameter bindings are not currently checked at compile time.
+Queries with SQL predicates are also assembled and validated at compile time. Note that SQL types vs Rust types for parameter bindings are not currently checked at compile time.
 
 ```rust-no-test
 let people = select!(Vec<Person> "WHERE age > ?", 21);
@@ -131,7 +131,7 @@ Unused or reverted migrations that are created during development can be manuall
 
 - Just declare and freely append fields to your `struct`s.
 - Check out the `migrations.toml` file that is generated in your project root to see what's happening.
-- If you run into any weird errors, try just re-compiling first; depending on the order the proc macros run, sometimes it needs a little push to get in sync after a schema change.
+- If you run into any weird compiler errors, try just re-compiling first; depending on the order the proc macros run, sometimes it just needs a little push to get in sync after a schema change.
 - Schema migrations are one-way, append-only. (SQLite doesn't even support `ALTER TABLE DROP {column}`, so we're not even going there for now.)
 - On launch, versions of your binary built with a newer schema will automatically apply the appropriate migrations to an older database.
 - If you're feeling adventurous, you can add your own schema migration entries to the bottom of the list. (For creating indexes, etc.)
@@ -139,17 +139,17 @@ Unused or reverted migrations that are created during development can be manuall
 
 ## Where's my data?
 
-The SQLite database is created in the directory provided by [`directories_next`](https://crates.io/crates/directories-next)`::ProjectDirs::data_dir()` + your executable stem, which resolves to something like:
+The SQLite database is created in the directory returned by [`directories_next`](https://crates.io/crates/directories-next)`::ProjectDirs::data_dir()` + your executable's filename stem, which resolves to something like:
 
-| Platform | Value                                                              | Example                                                    |
-| -------- | ------------------------------------------------------------------ | ---------------------------------------------------------- |
-| Linux    | `$XDG_DATA_HOME`/`_exe_name_` or `$HOME`/.local/share/`_exe_name_` | /home/alice/.local/share/barapp                            |
-| macOS    | `$HOME`/Library/Application Support/`_exe_name_`                   | /Users/Alice/Library/Application Support/org.barapp.barapp |
-| Windows  | `{FOLDERID_LocalAppData}`\\`_exe_name_`\\data                      | C:\Users\Alice\AppData\Local\barapp\barapp\data            |
+| Platform | Value                                                              | Example                                                                       |
+| -------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| Linux    | `$XDG_DATA_HOME`/`{exe_name}` or `$HOME`/.local/share/`{exe_name}` | /home/alice/.local/share/fooapp/fooapp.sqlite                                 |
+| macOS    | `$HOME`/Library/Application&nbsp;Support/`{exe_name}`              | /Users/Alice/Library/Application&nbsp;Support/org.fooapp.fooapp/fooapp.sqlite |
+| Windows  | `{FOLDERID_LocalAppData}`\\`{exe_name}`\\data                      | C:\Users\Alice\AppData\Local\fooapp\fooapp\data\fooapp.sqlite                 |
 
 ## `-wal` and `-shm` files
 
-SQLite is an extremely reliable database engine, but it helps to understand how it interfaces with the filesystem. The main `.sqlite` file contains the bulk of the database. During database writes, SQLite also creates `.sqlite-wal` and `.sqlite-shm` files. If the process is terminated without flushing writes, you may end up with these three files when you expected one. This is fine; on next launch, SQLite knows how to resolve interrupted writes. However, if the `-wal` and/or `-shm` files are present, they **must be considered essential parts of the database**. Deleting them may result in a corrupted database. See https://sqlite.org/tempfiles.html .
+SQLite is an extremely reliable database engine, but it helps to understand how it interfaces with the filesystem. The main `.sqlite` file contains the bulk of the database. During database writes, SQLite also creates `.sqlite-wal` and `.sqlite-shm` files. If the host process is terminated without flushing writes, you may end up with these three files when you expected to have a single file. This is fine; on next launch, SQLite knows how to resolve any interrupted writes and make sense of the world. However, if the `-wal` and/or `-shm` files are present, they **must be considered essential to database integrity**. Deleting them may result in a corrupted database. See https://sqlite.org/tempfiles.html .
 
 ## Example Query Forms
 
