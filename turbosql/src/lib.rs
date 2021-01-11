@@ -47,8 +47,6 @@ use std::sync::Mutex;
 // re-export
 
 #[doc(hidden)]
-pub use i54::i54;
-#[doc(hidden)]
 pub use once_cell::sync::Lazy;
 #[doc(hidden)]
 pub use rusqlite::{

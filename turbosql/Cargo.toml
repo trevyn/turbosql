@@ -15,7 +15,6 @@ version = "0.0.2"
 # @deps turbosql
 anyhow = "1.0.37"
 directories-next = "2.0.0"
-i54 = {git = "https://github.com/trevyn/i54"}
 itertools = "0.10.0"
 juniper = "0.15.1"
 log = "0.4.11"
@@ -25,6 +24,9 @@ serde = {version = "1.0.118", features = ["derive"]}
 toml = "0.5.8"
 turbosql_macros = {path = "../turbosql_macros"}
 ux_serde = {version = "0.2.0", features = ["serde"]}
+
+[dev-dependencies]
+i54 = {git = "https://github.com/trevyn/i54", features = ["rusqlite"]}
 
 [features]
 test = ["turbosql_macros/test"]

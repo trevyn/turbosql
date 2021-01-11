@@ -1,4 +1,5 @@
-use turbosql::{execute, i53, select, Blob, Turbosql};
+use i54::i54;
+use turbosql::{execute, select, Blob, Turbosql};
 
 #[derive(Turbosql, Default, Debug, Eq, PartialEq, Clone)]
 struct PersonIntegrationTest {
