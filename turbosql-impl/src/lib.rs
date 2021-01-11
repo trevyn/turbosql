@@ -310,7 +310,7 @@ fn validate_sql<S: AsRef<str>>(sql: S) -> Result<StatementInfo, rusqlite::Error>
 
  let stmt = tempdb.prepare(sql.as_ref());
 
- eprintln!("{:#?}", stmt);
+ // eprintln!("{:#?}", stmt);
 
  let stmt = stmt?;
 
@@ -352,7 +352,7 @@ fn do_parse_tokens(
   t => t,
  };
 
- eprintln!("{:?}, {:?}, {:?}", quote!(#result_type).to_string(), sql, stmt_info);
+ // eprintln!("{:?}, {:?}, {:?}", quote!(#result_type).to_string(), sql, stmt_info);
 
  // Extract container type (e.g. Vec, Option) if present
 
@@ -395,7 +395,7 @@ fn do_parse_tokens(
   None => None,
  };
 
- eprintln!("{:?}, {:?}, {:?}", result_type, sql, stmt_info);
+ // eprintln!("{:?}, {:?}, {:?}", result_type, sql, stmt_info);
 
  // If it didn't still validate and we have a non-inferred result type, try adding SELECT ... FROM
 
@@ -429,11 +429,11 @@ fn do_parse_tokens(
   _ => abort_call_site!("no predicate and no result type found"),
  };
 
- eprintln!("{:?} {:?}, {:?}", &result_type, sql, stmt_info);
+ // eprintln!("{:?} {:?}, {:?}", &result_type, sql, stmt_info);
 
  // try parse sql here with nom-sql
 
- eprintln!("NOM_SQL: {:#?}", nom_sql::parser::parse_query(&sql));
+ // eprintln!("NOM_SQL: {:#?}", nom_sql::parser::parse_query(&sql));
 
  // pull explicit members from statement info
 

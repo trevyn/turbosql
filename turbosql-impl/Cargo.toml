@@ -1,0 +1,26 @@
+[package]
+authors = ["Eden <rust@eden2.com>"]
+description = "Internal implementation details for Turbosql"
+edition = "2018"
+license = "MIT OR Apache-2.0"
+name = "turbosql-impl"
+version = "0.0.2"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+fs2 = "0.4"
+nom-sql = "=0.0.11"
+once_cell = "1.5"
+proc-macro-error = "1"
+proc-macro2 = "1"
+quote = "1"
+rusqlite = {version = "0.24", features = ["bundled", "blob", "column_decltype"]}
+serde = {version = "1", features = ["derive"]}
+syn = {version = "1", features = ["extra-traits", "full"]}
+toml = "0.5"
+
+[features]
+# Needs to be set during parent crate tests
+test = []

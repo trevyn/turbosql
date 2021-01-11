@@ -55,7 +55,7 @@ pub use rusqlite::{
 };
 #[doc(hidden)]
 pub use serde::Serialize;
-pub use turbosql_macros::{execute, select, Turbosql};
+pub use turbosql_impl::{execute, select, Turbosql};
 
 /// Wrapper for `Vec<u8>` that provides `Read`, `Write` and `Seek` traits.
 pub type Blob = Vec<u8>;
@@ -180,7 +180,7 @@ pub static __TURBOSQL_DB: Lazy<Mutex<Connection>> = Lazy::new(|| {
   }
   Left(_) => panic!("More migrations are applied than target"),
   Right(migration) => {
-   eprintln!("insert -> {:#?}", migration);
+   // eprintln!("insert -> {:#?}", migration);
    conn.execute(migration, params![]).unwrap();
    conn
     .execute("INSERT INTO turbosql_migrations(migration) VALUES(?)", params![migration])
