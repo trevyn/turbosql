@@ -3,10 +3,10 @@
 Easy local data persistence layer, backed by SQLite.
 
 - Schema defined by your Rust `struct`s
+- Automatic schema migrations
 - Super-simple bulk saving and loading
 - Use complicated SQL if you want
 - Validates all SQL (including user-supplied SQL) at compile time
-- Automatic schema migrations
 
 ## Status
 
@@ -53,10 +53,10 @@ let mut person = execute!("UPDATE person SET age = ? WHERE name = ?", 18, "Joe")
 
 ## How do schemas work?
 
-- Just declare and freely append fields to your `struct`s. (SQLite doesn't support `ALTER TABLE DROP column`, so we're not even going there for now.)
+- Just declare and freely append fields to your `struct`s.
 - Check out the `migrations.toml` file that is generated in your project root to see what's happening.
 - If you run into any weird errors, try just re-compiling first; depending on the order the proc macros run, sometimes it needs a little push to get in sync after a schema change.
-- Schema migrations are one-way, append-only.
+- Schema migrations are one-way, append-only. (SQLite doesn't support `ALTER TABLE DROP column`, so we're not even going there for now.)
 - Versions of your binary with a newer schema will automatically apply new schema entries.
 - If you're feeling adventurous, you can add your own schema migration entries to the bottom of the list. (For creating indexes, etc.)
 - Questions? Open a GitHub issue! -> https://github.com/trevyn/turbosql/issues/new
@@ -140,7 +140,7 @@ Unused or reverted migrations that are created during development can be manuall
 
 ## Where's my data?
 
-The SQLite database is created in the directory provided by `directories_next::ProjectDirs::data_dir()` + your executable stem, which resolves to something like:
+The SQLite database is created in the directory provided by [`directories_next`](https://crates.io/crates/directories-next)`::ProjectDirs::data_dir()` + your executable stem, which resolves to something like:
 
 | Platform | Value                                                              | Example                                                    |
 | -------- | ------------------------------------------------------------------ | ---------------------------------------------------------- |
