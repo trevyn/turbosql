@@ -4,6 +4,7 @@ description = "Internal implementation details for Turbosql"
 edition = "2018"
 license = "MIT OR Apache-2.0"
 name = "turbosql-impl"
+repository = "https://github.com/trevyn/turbosql"
 version = "0.0.2"
 
 [lib]
