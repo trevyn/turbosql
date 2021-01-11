@@ -2,29 +2,22 @@ name: ci
 
 on:
   push:
-    branches:
-      - main
-      
-  schedule:
-    - cron: '0 12 * * *'
+  pull_request:
+  schedule: [cron: '40 2 * * *']
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-
   test:
     name: test rust ${{ matrix.rust }}
-    runs-on: ubuntu-18.04
-
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         rust: [1.46, stable, beta, nightly]
-
     steps:
       - uses: actions/checkout@v2
-
       - uses: hecrj/setup-rust-action@v1
         with:
           rust-version: ${{ matrix.rust }}
@@ -36,4 +29,3 @@ jobs:
       - name: cargo test turbosql
         run: cargo test --features "test" -- --nocapture
         working-directory: 'turbosql'
-
