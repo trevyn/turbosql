@@ -135,25 +135,25 @@ Unused or reverted migrations that are created during development can be manuall
 - Schema migrations are one-way, append-only. (SQLite doesn't even support `ALTER TABLE DROP {column}`, so we're not even going there for now.)
 - On launch, versions of your binary built with a newer schema will automatically apply the appropriate migrations to an older database.
 - If you're feeling adventurous, you can add your own schema migration entries to the bottom of the list. (For creating indexes, etc.)
-- Questions? Open a GitHub issue! -> https://github.com/trevyn/turbosql/issues/new
+- Questions? Open a GitHub discussion! -> https://github.com/trevyn/turbosql/discussions
 
 ## Where's my data?
 
 The SQLite database is created in the directory returned by [`directories_next`](https://crates.io/crates/directories-next)`::ProjectDirs::data_dir()` + your executable's filename stem, which resolves to something like:
 
-| Platform | Value                                                              | Example                                                                       |
-| -------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| Linux    | `$XDG_DATA_HOME`/`{exe_name}` or `$HOME`/.local/share/`{exe_name}` | /home/alice/.local/share/fooapp/fooapp.sqlite                                 |
-| macOS    | `$HOME`/Library/Application&nbsp;Support/`{exe_name}`              | /Users/Alice/Library/Application&nbsp;Support/org.fooapp.fooapp/fooapp.sqlite |
-| Windows  | `{FOLDERID_LocalAppData}`\\`{exe_name}`\\data                      | C:\Users\Alice\AppData\Local\fooapp\fooapp\data\fooapp.sqlite                 |
+|         |                                                                                                                                       |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Linux   | `$XDG_DATA_HOME`/`{exe_name}` or `$HOME`/.local/share/`{exe_name}` _/home/alice/.local/share/fooapp/fooapp.sqlite_                    |
+| macOS   | `$HOME`/Library/Application&nbsp;Support/`{exe_name}` _/Users/Alice/Library/Application&nbsp;Support/org.fooapp.fooapp/fooapp.sqlite_ |
+| Windows | `{FOLDERID_LocalAppData}`\\`{exe_name}`\\data _C:\Users\Alice\AppData\Local\fooapp\fooapp\data\fooapp.sqlite_                         |
 
 ## `-wal` and `-shm` files
 
-SQLite is an extremely reliable database engine, but it helps to understand how it interfaces with the filesystem. The main `.sqlite` file contains the bulk of the database. During database writes, SQLite also creates `.sqlite-wal` and `.sqlite-shm` files. If the host process is terminated without flushing writes, you may end up with these three files when you expected to have a single file. This is fine; on next launch, SQLite knows how to resolve any interrupted writes and make sense of the world. However, if the `-wal` and/or `-shm` files are present, they **must be considered essential to database integrity**. Deleting them may result in a corrupted database. See https://sqlite.org/tempfiles.html .
+SQLite is an extremely reliable database engine, but it helps to understand how it interfaces with the filesystem. The main `.sqlite` file contains the bulk of the database. During database writes, SQLite also creates `.sqlite-wal` and `.sqlite-shm` files. If the host process is terminated without flushing writes, you may end up with these three files when you expected to have a single file. This is always fine; on next launch, SQLite knows how to resolve any interrupted writes and make sense of the world. However, if the `-wal` and/or `-shm` files are present, they **must be considered essential to database integrity**. Deleting them may result in a corrupted database. See https://sqlite.org/tempfiles.html .
 
 ## Example Query Forms
 
-**NOTE: This table is somewhat speculative and not completely aligned with the code yet. Check [`integration_tests.rs`](https://github.com/trevyn/turbosql/blob/main/turbosql/tests/integration_test.rs) for examples of what does work today.**
+**NOTE: This table is somewhat speculative and not completely aligned with the code yet. Check [`integration_tests.rs`](https://github.com/trevyn/turbosql/blob/main/turbosql/tests/integration_test.rs) for examples of what works today and is tested in CI.**
 
 <table>
 
@@ -253,7 +253,7 @@ transaction! {
 ```
 
 - Haha just kidding, this doesn't exist yet.
-- How does this work with threads and async?
+- How might this work with threads and async?
 - What if the transaction fails to commit?
 - Nested transactions not supported?
 - Calling other functions in a transaction? Async? This gets messy. Just say that any Turbosql calls outside of the literal text `transaction!{}` body will work fine, but _not_ be part of the transaction?
