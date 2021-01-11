@@ -1,4 +1,4 @@
-use i54::i54;
+use i54_::i54;
 use turbosql::{execute, select, Blob, Turbosql};
 
 #[derive(Turbosql, Default, Debug, Eq, PartialEq, Clone)]

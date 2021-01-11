@@ -26,7 +26,7 @@ turbosql_macros = {path = "../turbosql_macros"}
 ux_serde = {version = "0.2.0", features = ["serde"]}
 
 [dev-dependencies]
-i54 = {git = "https://github.com/trevyn/i54", features = ["rusqlite"]}
+i54_ = {version = "0.0.1", features = ["rusqlite"]}
 
 [features]
 test = ["turbosql_macros/test"]
