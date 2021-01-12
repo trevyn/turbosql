@@ -3,7 +3,7 @@
 //! Please refer to the `turbosql` crate for how to set this up.
 
 // #![allow(unused_imports)]
-const SQLITE_64BIT_ERROR: &str = r##"Sadly, SQLite cannot natively store unsigned 64-bit integers, so TurboSQL does not support u64 members. Use i64, u32, f64, or a string or binary format instead. (see https://sqlite.org/fileformat.html#record_format )"##;
+const SQLITE_64BIT_ERROR: &str = r##"Sadly, SQLite cannot natively store unsigned 64-bit integers, so Turbosql does not support u64 fields. Use i64, u32, f64, or a string or binary format instead. (see https://github.com/trevyn/turbosql/issues/3 )"##;
 
 use once_cell::sync::Lazy;
 use proc_macro2::Span;

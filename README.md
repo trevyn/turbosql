@@ -10,7 +10,7 @@ Easy local data persistence layer, backed by SQLite.
 
 ## Status
 
-Under active development, expect API changes _and_ database file format changes. It's very functional for experiments, but I wouldn't recommend it for production yet.
+Under active development as of January 2021. Expect API changes _and_ database file format changes. It's very functional for experiments, but I wouldn't recommend it for production yet.
 
 ## Usage
 
