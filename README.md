@@ -151,9 +151,9 @@ The SQLite database is created in the directory returned by [`directories_next`]
 
 </td></tr><tr><td>Windows</td><td><br>
 
-`{FOLDERID_LocalAppData}`\\`{exe_name}`\\data _C:\Users\Alice\AppData\Local\fooapp\fooapp\data\fooapp.sqlite_</td></tr>
+`{FOLDERID_LocalAppData}`\\`{exe_name}`\\data _C:\Users\Alice\AppData\Local\fooapp\fooapp\data\fooapp.sqlite_
 
-</table>
+</td></tr></table>
 
 ## `-wal` and `-shm` files
 
