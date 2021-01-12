@@ -1,4 +1,4 @@
-# turbosql [![Crates.io](https://img.shields.io/crates/v/turbosql.svg)](https://crates.io/crates/turbosql)
+# Turbosql [![Crates.io](https://img.shields.io/crates/v/turbosql.svg)](https://crates.io/crates/turbosql)
 
 Easy local data persistence layer, backed by SQLite.
 
@@ -10,7 +10,7 @@ Easy local data persistence layer, backed by SQLite.
 
 ## Status
 
-Under active development as of January 2021. Expect API changes _and_ database file format changes. It's very functional for experiments, but I wouldn't recommend it for production yet.
+Under active development as of January 2021. Expect API changes _and_ database file format changes. It's very functional for experiments, but I wouldn't recommend it for production yet. Contributions are very much welcome!
 
 ## Usage
 
