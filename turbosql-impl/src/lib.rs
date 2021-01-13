@@ -162,7 +162,7 @@ impl MembersAndCasters {
  }
 }
 
-fn extract_explicit_members(columns: &[String]) -> Option<MembersAndCasters> {
+fn _extract_explicit_members(columns: &[String]) -> Option<MembersAndCasters> {
  // let members: Vec<_> = columns
  //  .iter()
  //  .enumerate()
@@ -186,7 +186,7 @@ fn extract_explicit_members(columns: &[String]) -> Option<MembersAndCasters> {
  None
 }
 
-fn extract_stmt_members(stmt: &Statement, span: &Span) -> MembersAndCasters {
+fn _extract_stmt_members(stmt: &Statement, span: &Span) -> MembersAndCasters {
  let members: Vec<_> = stmt
   .column_names()
   .iter()
@@ -580,7 +580,8 @@ fn do_parse_tokens(
 
   // Primitive type
   Some(ResultType { container: None, contents: Some(contents) })
-   if ["i64", "bool"].contains(&&contents.to_string().as_str()) =>
+   if ["i8", "u8", "i16", "u16", "i32", "u32", "i64", "String", "bool"]
+    .contains(&&contents.to_string().as_str()) =>
   {
    quote! {
     {
@@ -621,7 +622,7 @@ fn do_parse_tokens(
   }
 
   // Inferred
-  Some(ResultType { container: Some(container), contents: None }) => abort_call_site!("INFERRED"),
+  Some(ResultType { container: Some(_container), contents: None }) => abort_call_site!("INFERRED"),
   _ => abort_call_site!("unknown result_type"),
  };
 
