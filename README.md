@@ -2,7 +2,7 @@
 
 [<img alt="github" src="https://img.shields.io/badge/github-trevyn/turbosql-663399?style=for-the-badge&labelColor=555555&logo=github" height="40">](https://github.com/trevyn/turbosql)
 [<img alt="crates.io" src="https://img.shields.io/crates/v/turbosql.svg?style=for-the-badge&color=ffc833&logo=rust" height="40">](https://crates.io/crates/turbosql)
-[<img alt="discord" src="https://img.shields.io/discord/761441128544600074?label=chat%20on%20Discord&style=for-the-badge&color=7289d9&logo=discord&logoColor=FFF" height="40">](https://discord.gg/w6dgYN2)
+[<img alt="discord" src="https://img.shields.io/discord/761441128544600074?label=chat%20on%20Discord&style=for-the-badge&color=7289d9&logo=discord&logoColor=FFF" height="40">](https://discord.gg/w9tqdgj2qg)
 
 Easy local data persistence layer, backed by SQLite.
 
@@ -139,7 +139,7 @@ Unused or reverted migrations that are created during development can be manuall
 - Schema migrations are one-way, append-only. (SQLite doesn't even support `ALTER TABLE DROP {column}`, so we're not even going there for now.)
 - On launch, versions of your binary built with a newer schema will automatically apply the appropriate migrations to an older database.
 - If you're feeling adventurous, you can add your own schema migration entries to the bottom of the list. (For creating indexes, etc.)
-- Questions? Ask on Discord (https://discord.gg/w6dgYN2) or open a GitHub discussion! -> https://github.com/trevyn/turbosql/discussions/new
+- Questions? Ask on Discord (https://discord.gg/w9tqdgj2qg) or open a GitHub discussion! -> https://github.com/trevyn/turbosql/discussions/new
 
 ## Where's my data?
 
