@@ -58,6 +58,8 @@ execute!("UPDATE person SET age = ? WHERE name = ?", 18, "Joe").unwrap();
 execute!("DELETE FROM person WHERE rowid = ?", 1).unwrap();
 ```
 
+See [`integration_test.rs`](https://github.com/trevyn/turbosql/blob/main/turbosql/tests/integration_test.rs) for more usage examples!
+
 ## Under the Hood
 
 Turbosql generates a SQLite schema and prepared queries for each struct:
@@ -165,7 +167,7 @@ SQLite is an extremely reliable database engine, but it helps to understand how 
 
 ## ⚠️&nbsp;Example Query Forms
 
-**⚠️&nbsp;NOTE: This table is somewhat speculative and not completely aligned with the code yet. Check [`integration_tests.rs`](https://github.com/trevyn/turbosql/blob/main/turbosql/tests/integration_test.rs) for examples of what works today and is tested in CI.&nbsp;⚠️**
+**⚠️&nbsp;NOTE: This table is somewhat speculative and not completely aligned with the code yet. Check [`integration_test.rs`](https://github.com/trevyn/turbosql/blob/main/turbosql/tests/integration_test.rs) for examples of what works today and is tested in CI.&nbsp;⚠️**
 
 <table>
 
@@ -276,5 +278,9 @@ Inititally, this implementation might just open a new SQLite connection, and use
 
 </table>
 <br>
+
+## turbosql or Turbosql?
+
+Your choice. Officially, the crate is `turbosql` and the project is Turbosql. You definitely do not want to capitalize any other letters in the name, because that would slow it down _and_ make it from the 80's.
 
 ### License: MIT OR Apache-2.0
