@@ -28,9 +28,9 @@ jobs:
         working-directory: 'turbosql'
 
       - name: cargo publish turbosql-impl
-        run: cargo publish --dry-run --token ${{ secrets.CARGO_TOKEN }}
+        run: cargo publish --no-verify --token ${{ secrets.CARGO_TOKEN }}
         working-directory: 'turbosql-impl'
 
       - name: cargo publish turbosql
-        run: cargo publish --dry-run --token ${{ secrets.CARGO_TOKEN }}
+        run: cargo publish --no-verify --token ${{ secrets.CARGO_TOKEN }}
         working-directory: 'turbosql'

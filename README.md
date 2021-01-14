@@ -20,7 +20,7 @@ Under active development as of January 2021. Expect API changes _and_ database f
 
 ```toml
 [dependencies]
-turbosql = "0.0.2"
+turbosql = "0.0.3"
 ```
 
 ```rust
