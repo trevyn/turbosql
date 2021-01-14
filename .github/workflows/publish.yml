@@ -1,0 +1,36 @@
+name: cargo publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      newversion:
+        description: 'new version number?'
+        required: true
+      oldversion:
+        description: 'old version number?'
+        required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: hecrj/setup-rust-action@v1
+        with:
+          rust-version: stable
+      
+      - name: cargo test turbosql-impl
+        run: cargo test --features "test" -- --nocapture
+        working-directory: 'turbosql-impl'
+
+      - name: cargo test turbosql
+        run: cargo test --features "test" -- --nocapture
+        working-directory: 'turbosql'
+
+      - name: cargo publish turbosql-impl
+        run: cargo publish --dry-run --token ${{ secrets.CARGO_TOKEN }}
+        working-directory: 'turbosql-impl'
+
+      - name: cargo publish turbosql
+        run: cargo publish --dry-run --token ${{ secrets.CARGO_TOKEN }}
+        working-directory: 'turbosql'
