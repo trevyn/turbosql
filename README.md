@@ -279,8 +279,8 @@ Inititally, this implementation might just open a new SQLite connection, and use
 </table>
 <br>
 
-## turbosql or Turbosql?
+## "turbosql" or "Turbosql"?
 
-Your choice. Officially, the crate is `turbosql` and the project is Turbosql. You definitely do not want to capitalize any other letters in the name, because that would slow it down _and_ make it from the 80's.
+Your choice, but you _definitely_ do not want to capitalize any of the _other_ letters in the name! ;)
 
 ### License: MIT OR Apache-2.0 OR CC0̸ (public domain)
