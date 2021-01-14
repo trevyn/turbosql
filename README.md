@@ -283,4 +283,4 @@ Inititally, this implementation might just open a new SQLite connection, and use
 
 Your choice. Officially, the crate is `turbosql` and the project is Turbosql. You definitely do not want to capitalize any other letters in the name, because that would slow it down _and_ make it from the 80's.
 
-### License: MIT OR Apache-2.0
+### License: MIT OR Apache-2.0 OR CC0̸ (public domain)
