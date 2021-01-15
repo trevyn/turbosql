@@ -5,9 +5,17 @@ All changes that are notable to _users_ of this crate will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased blocked pending rusqlite 0.25]
+
+- Add support for struct fields of additional type: `f32`
+  - e.g. `struct S { field_f32: Option<f32> }`
+
 ## [Unreleased]
 
 ### Added
+
+- Added support for `select!` directly into additional type: `f64`
+  - e.g. `select!(f64 "bayesian_probability FROM table")`
 
 ### Changed
 

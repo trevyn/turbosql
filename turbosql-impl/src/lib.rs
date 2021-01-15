@@ -580,7 +580,7 @@ fn do_parse_tokens(
 
   // Primitive type
   Some(ResultType { container: None, contents: Some(contents) })
-   if ["i8", "u8", "i16", "u16", "i32", "u32", "i64", "String", "bool"]
+   if ["f64", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "String", "bool"] // TODO: f32 waiting on rusqlite 0.25 release
     .contains(&&contents.to_string().as_str()) =>
   {
    quote! {
@@ -775,6 +775,7 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
     (_, "Option < u64 >") => abort!(ty, SQLITE_64BIT_ERROR),
     // (_, "f64") => "REAL NOT NULL",
     (_, "Option < f64 >") => "REAL",
+    // (_, "Option < f32 >") => "REAL",
     // (_, "bool") => "BOOLEAN NOT NULL",
     (_, "Option < bool >") => "BOOLEAN",
     // (_, "String") => "TEXT NOT NULL",

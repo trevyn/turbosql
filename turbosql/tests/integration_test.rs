@@ -1,12 +1,24 @@
+// cargo test --features test --manifest-path turbosql/Cargo.toml -- --nocapture
+
 use i54_::i54;
 use turbosql::{execute, select, Blob, Turbosql};
 
-#[derive(Turbosql, Default, Debug, Eq, PartialEq, Clone)]
+#[derive(Turbosql, Default, Debug, PartialEq, Clone)]
 struct PersonIntegrationTest {
  rowid: Option<i64>,
- name: Option<String>,
- age: Option<i64>,
- image_jpg: Option<Blob>,
+ field_string: Option<String>,
+ field_i64: Option<i64>,
+ field_i54: Option<i54>,
+ field_bool: Option<bool>,
+ field_f64: Option<f64>,
+ // field_f32: Option<f32>,
+ field_u8: Option<u8>,
+ field_i8: Option<i8>,
+ field_u16: Option<u16>,
+ field_i16: Option<i16>,
+ field_u32: Option<u32>,
+ field_i32: Option<i32>,
+ field_blob: Option<Blob>,
 }
 
 #[derive(Turbosql, Default, Debug, Eq, PartialEq, Clone)]
@@ -18,12 +30,18 @@ struct PersonIntegrationTest_i54 {
  image_jpg: Option<Blob>,
 }
 
-// @test integration test
-// cargo test --features test --manifest-path turbosql/Cargo.toml -- --nocapture
 #[test]
 fn integration_test() {
- let mut row =
-  PersonIntegrationTest { rowid: None, name: Some("Bob".into()), age: Some(42), image_jpg: None };
+ let mut row = PersonIntegrationTest {
+  rowid: None,
+  field_string: Some("Bob".into()),
+  field_u8: Some(42),
+  field_i64: Some(85262398562),
+  field_f64: Some(std::f64::consts::PI),
+  // field_f32: Some(std::f64::consts::E),
+  field_blob: None,
+  ..Default::default()
+ };
 
  row.insert().unwrap();
  row.rowid = Some(1);
@@ -43,7 +61,8 @@ fn integration_test() {
 
  assert!(select!(PersonIntegrationTest).unwrap() == row);
  assert!(
-  select!(PersonIntegrationTest "rowid, name, age, image_jpg FROM personintegrationtest").unwrap()
+  select!(PersonIntegrationTest "rowid, field_string, field_i64, field_i54, field_bool, field_f64, field_u8, field_i8, field_u16, field_i16, field_u32, field_i32, field_blob FROM personintegrationtest")
+   .unwrap()
    == row
  );
 
@@ -56,60 +75,87 @@ fn integration_test() {
  }
 
  assert!(
-  select!(NameAndAgeResult r#""Martin Luther" AS name, age FROM personintegrationtest"#).unwrap()
-   == NameAndAgeResult { name: Some("Martin Luther".into()), age: row.age }
+  select!(NameAndAgeResult r#""Martin Luther" AS name, field_u8 AS age FROM personintegrationtest"#)
+   .unwrap() == NameAndAgeResult {
+   name: Some("Martin Luther".into()),
+   age: Some(row.field_u8.unwrap().into())
+  }
  );
 
  assert!(select!(Vec<PersonIntegrationTest>).unwrap() == vec![row.clone()]);
  assert!(select!(Option<PersonIntegrationTest>).unwrap() == Some(row.clone()));
 
- assert!(select!(PersonIntegrationTest "WHERE age = ?", row.age).unwrap() == row);
+ assert!(select!(PersonIntegrationTest "WHERE field_u8 = ?", row.field_u8).unwrap() == row);
  assert!(
-  select!(Vec<PersonIntegrationTest> "WHERE age = ?", row.age).unwrap() == vec![row.clone()]
+  select!(Vec<PersonIntegrationTest> "WHERE field_u8 = ?", row.field_u8).unwrap()
+   == vec![row.clone()]
  );
  assert!(
-  select!(Option<PersonIntegrationTest> "WHERE age = ?", row.age).unwrap() == Some(row.clone())
+  select!(Option<PersonIntegrationTest> "WHERE field_u8 = ?", row.field_u8).unwrap()
+   == Some(row.clone())
  );
 
  // No rows returned
 
- assert!(select!(PersonIntegrationTest "WHERE age = 999").is_err());
- assert!(select!(Vec<PersonIntegrationTest> "WHERE age = 999").unwrap() == vec![]);
- assert!(select!(Option<PersonIntegrationTest> "WHERE age = 999").unwrap() == None);
+ assert!(select!(PersonIntegrationTest "WHERE field_u8 = 999").is_err());
+ assert!(select!(Vec<PersonIntegrationTest> "WHERE field_u8 = 999").unwrap() == vec![]);
+ assert!(select!(Option<PersonIntegrationTest> "WHERE field_u8 = 999").unwrap() == None);
 
- assert!(select!(i8 "age FROM personintegrationtest").unwrap() == row.age.unwrap() as i8);
- assert!(select!(u8 "age FROM personintegrationtest").unwrap() == row.age.unwrap() as u8);
- assert!(select!(i16 "age FROM personintegrationtest").unwrap() == row.age.unwrap() as i16);
- assert!(select!(u16 "age FROM personintegrationtest").unwrap() == row.age.unwrap() as u16);
- assert!(select!(i32 "age FROM personintegrationtest").unwrap() == row.age.unwrap() as i32);
- assert!(select!(u32 "age FROM personintegrationtest").unwrap() == row.age.unwrap() as u32);
- assert!(select!(i64 "age FROM personintegrationtest").unwrap() == row.age.unwrap());
+ // assert!(
+ //  select!(f32 "field_u8 FROM personintegrationtest").unwrap() == row.field_f64.unwrap() as f32
+ // );
+ assert!(select!(f64 "field_f64 FROM personintegrationtest").unwrap() == row.field_f64.unwrap());
+
+ assert!(select!(i8 "field_u8 FROM personintegrationtest").unwrap() == row.field_u8.unwrap() as i8);
+ assert!(select!(u8 "field_u8 FROM personintegrationtest").unwrap() == row.field_u8.unwrap() as u8);
+ assert!(
+  select!(i16 "field_u8 FROM personintegrationtest").unwrap() == row.field_u8.unwrap() as i16
+ );
+ assert!(
+  select!(u16 "field_u8 FROM personintegrationtest").unwrap() == row.field_u8.unwrap() as u16
+ );
+ assert!(
+  select!(i32 "field_u8 FROM personintegrationtest").unwrap() == row.field_u8.unwrap() as i32
+ );
+ assert!(
+  select!(u32 "field_u8 FROM personintegrationtest").unwrap() == row.field_u8.unwrap() as u32
+ );
+ assert!(
+  select!(i64 "field_u8 FROM personintegrationtest").unwrap() == row.field_u8.unwrap().into()
+ );
 
  assert!(
-  select!(bool "name = ? FROM personintegrationtest", "Arthur Schopenhauer").unwrap() == false
+  select!(bool "field_string = ? FROM personintegrationtest", "Arthur Schopenhauer").unwrap()
+   == false
  );
  let new_row = row.clone();
  assert!(
-  select!(bool "name = ? FROM personintegrationtest", new_row.name.unwrap()).unwrap() == true
+  select!(bool "field_string = ? FROM personintegrationtest", new_row.field_string.unwrap())
+   .unwrap()
+   == true
  );
  // this incorrectly consumes row:
- // assert!(select!(bool "name = ? FROM personintegrationtest", row.name.unwrap()).unwrap() == true);
+ // assert!(select!(bool "field_string = ? FROM personintegrationtest", row.field_string.unwrap()).unwrap() == true);
 
- // select!(PersonIntegrationTest "WHERE name = ?", row.name.unwrap());
+ // select!(PersonIntegrationTest "WHERE field_string = ?", row.field_string.unwrap());
 
  assert!(
-  select!(bool "name = ? FROM personintegrationtest", row.clone().name.unwrap()).unwrap() == true
+  select!(bool "field_string = ? FROM personintegrationtest", row.clone().field_string.unwrap())
+   .unwrap()
+   == true
  );
 
- assert!(select!(String "name FROM personintegrationtest").unwrap() == row.name.unwrap());
+ assert!(
+  select!(String "field_string FROM personintegrationtest").unwrap() == row.field_string.unwrap()
+ );
 
- // assert!(select!(Option<i64> "age FROM personintegrationtest").unwrap() == Some(row.age.unwrap()));
- assert!(select!(i64 "age FROM personintegrationtest WHERE FALSE").is_err());
- // assert!(select!(Option<i64> "age FROM personintegrationtest WHERE ?", false).unwrap() == None);
+ // assert!(select!(Option<i64> "field_u8 FROM personintegrationtest").unwrap() == Some(row.field_u8.unwrap()));
+ assert!(select!(i64 "field_u8 FROM personintegrationtest WHERE FALSE").is_err());
+ // assert!(select!(Option<i64> "field_u8 FROM personintegrationtest WHERE ?", false).unwrap() == None);
 
- // assert!(select!(Vec<i64> "age FROM personintegrationtest").unwrap() == row.age.unwrap());
- // assert!(select!(Option<i64> "age FROM personintegrationtest").unwrap() == row.age);
- // assert!(select!(String "name FROM personintegrationtest").unwrap() == row.name.unwrap());
+ // assert!(select!(Vec<i64> "field_u8 FROM personintegrationtest").unwrap() == row.field_u8.unwrap());
+ // assert!(select!(Option<i64> "field_u8 FROM personintegrationtest").unwrap() == row.field_u8);
+ // assert!(select!(String "field_string FROM personintegrationtest").unwrap() == row.field_string.unwrap());
 
  // DELETE
 
