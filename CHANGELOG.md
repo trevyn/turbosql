@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `.insert()` now returns correct rowid instead of number of affected rows.
+
 ### Security
 
 ## [0.0.3] - 2021-01-14

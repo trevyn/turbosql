@@ -32,6 +32,11 @@ struct PersonIntegrationTest_i54 {
 
 #[test]
 fn integration_test() {
+ // check rowid returned from insert()
+ let row = PersonIntegrationTest_i54 { ..Default::default() };
+ assert!(row.insert().unwrap() == 1);
+ assert!(row.insert().unwrap() == 2);
+
  let mut row = PersonIntegrationTest {
   rowid: None,
   field_string: Some("Bob".into()),

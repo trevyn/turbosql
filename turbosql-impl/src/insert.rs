@@ -19,12 +19,12 @@ pub(super) fn insert(table: &Table) -> proc_macro2::TokenStream {
 
  quote_spanned! { table.span =>
   #[allow(dead_code)]
-  pub fn insert(&self) -> ::turbosql::Result<usize> {
+  pub fn insert(&self) -> ::turbosql::Result<i64> {
    // #table::__turbosql_ensure_table_created();
    assert!(self.rowid.is_none());
    let db = ::turbosql::__TURBOSQL_DB.lock().unwrap();  // todo: use tokio's lock?
    let mut stmt = db.prepare_cached(#sql)?;
-   stmt.execute(&[#(#columns),*] as &[&dyn ::turbosql::ToSql])
+   stmt.insert(&[#(#columns),*] as &[&dyn ::turbosql::ToSql])
   }
 
   #[allow(dead_code)]
