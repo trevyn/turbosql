@@ -14,9 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added support for `select!` directly into additional type: `f64`
-  - e.g. `select!(f64 "bayesian_probability FROM table")`
-
 ### Changed
 
 ### Deprecated
@@ -25,9 +22,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- `.insert()` now returns correct rowid instead of number of affected rows.
-
 ### Security
+
+## [0.1.0] - 2021-02-02
+
+### Added
+
+- Added support for `select!` directly into additional type: `f64`
+  - e.g. `select!(f64 "bayesian_probability FROM table")`
+
+### Fixed
+
+- `.insert()` now returns correct `rowid` instead of count of affected rows.
 
 ## [0.0.3] - 2021-01-14
 
