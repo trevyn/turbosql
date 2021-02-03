@@ -283,4 +283,4 @@ Inititally, this implementation might just open a new SQLite connection, and use
 
 Your choice, but you _definitely_ do not want to capitalize any of the _other_ letters in the name! ;)
 
-### License: MIT OR Apache-2.0 OR CC0̸ (public domain)
+### License: MIT OR Apache-2.0 OR CC0-1.0 (public domain)
