@@ -16,6 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         rust: [1.46, stable, beta, nightly]
+             # 1.46 is minimum rustc version
     steps:
       - uses: actions/checkout@v2
       - uses: hecrj/setup-rust-action@v1
