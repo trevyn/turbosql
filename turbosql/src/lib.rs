@@ -151,7 +151,7 @@ pub static __TURBOSQL_DB: Lazy<Mutex<Connection>> = Lazy::new(|| {
  applied_migrations.iter().zip_longest(&target_migrations).for_each(|item| match item {
   Both(a, b) => {
    if a != b {
-    panic!("Mismatch in Turbosql migrations!")
+    panic!("Mismatch in Turbosql migrations! {:?} != {:?}", a, b)
    }
   }
   Left(_) => panic!("More migrations are applied than target"),
