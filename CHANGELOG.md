@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- SQL comments (lines starting with `--`) are now always ignored when applying migrations, allowing you to make comments in your `migrations.toml` and edit and move the comments around over time.
+
 ### Changed
 
 ### Improved

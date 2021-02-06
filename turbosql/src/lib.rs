@@ -75,6 +75,10 @@ pub static __TURBOSQL_DB: Lazy<Mutex<Connection>> = Lazy::new(|| {
 
  let target_migrations = toml_decoded.migrations_append_only.unwrap_or_else(Vec::new);
 
+ // filter out comments
+ let target_migrations: Vec<_> =
+  target_migrations.into_iter().filter(|m| !m.starts_with("--")).collect();
+
  let mut db_path = __DB_PATH.lock().unwrap();
 
  db_path.opened = true;
@@ -135,7 +139,8 @@ pub static __TURBOSQL_DB: Lazy<Mutex<Connection>> = Lazy::new(|| {
    Ok(row.get(0).unwrap())
   })
   .unwrap()
-  .map(|x| x.unwrap())
+  .map(|x: Result<String, _>| x.unwrap())
+  .filter(|m| !m.starts_with("--"))
   .collect::<Vec<String>>();
 
  // println!("applied_migrations is: {:#?}", applied_migrations);
