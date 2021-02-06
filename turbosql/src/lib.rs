@@ -107,6 +107,8 @@ pub static __TURBOSQL_DB: Lazy<Mutex<Connection>> = Lazy::new(|| {
 
  conn.execute("BEGIN EXCLUSIVE TRANSACTION", params![]).unwrap();
 
+ let _ = conn.execute("ALTER TABLE turbosql_migrations RENAME TO _turbosql_migrations", params![]);
+
  let result = conn.query_row(
   "SELECT sql FROM sqlite_master WHERE name = ?",
   params!["_turbosql_migrations"],
