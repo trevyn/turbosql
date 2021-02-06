@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0 OR CC0-1.0"
 name = "turbosql"
 readme = "../README.md"
 repository = "https://github.com/trevyn/turbosql"
-version = "0.1.2"
+version = "0.1.4"
 
 [dependencies]
 anyhow = "1"
@@ -19,7 +19,7 @@ once_cell = "1.5"
 rusqlite = {version = "0.24", features = ["bundled", "blob"]}
 serde = {version = "1", features = ["derive"]}
 toml = "0.5"
-turbosql-impl = {path = "../turbosql-impl", version = "=0.1.2"}
+turbosql-impl = {path = "../turbosql-impl", version = "=0.1.4"}
 
 [dev-dependencies]
 doc-comment = "0.3"

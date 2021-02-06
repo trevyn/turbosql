@@ -26,6 +26,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [0.1.4] - 2021-02-06
+
+### Internal
+
+- Renamed the internal `turbosql_migrations` table to `_turbosql_migrations`. It should be renamed automatically on existing `.sqlite` databases.
+
 ## [0.1.2] - 2021-02-06
 
 ### Added
