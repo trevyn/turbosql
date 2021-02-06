@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added ability to create a placeholder migration to "hint" Turbosql about the effect of a complex manual migration such as a column type change.
+
 ### Changed
 
 ### Improved

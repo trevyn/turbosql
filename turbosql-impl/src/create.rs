@@ -43,19 +43,15 @@ pub(super) fn create(table: &Table) -> proc_macro2::TokenStream {
 
  // add any migrations that aren't already present
 
- let mut output_migrations: Vec<String> =
-  source_migrations_toml.migrations_append_only.clone().unwrap_or_default();
+ let mut output_migrations = source_migrations_toml.migrations_append_only.unwrap_or_default();
 
- target_migrations.iter().for_each(|m1| {
-  if source_migrations_toml
-   .migrations_append_only
-   .clone()
-   .unwrap_or_default()
+ target_migrations.iter().for_each(|target_m| {
+  if output_migrations
    .iter()
-   .find(|m2| m2 == &m1)
+   .find(|source_m| (source_m == &target_m) || (source_m == &&format!("--{}", target_m)))
    .is_none()
   {
-   output_migrations.push(m1.clone());
+   output_migrations.push(target_m.clone());
   }
  });
 
@@ -84,6 +80,7 @@ pub(super) fn create(table: &Table) -> proc_macro2::TokenStream {
 
  // Only write migrations.toml file if it has actually changed;
  // this keeps file mod date clean so cargo doesn't pathologically rebuild
+
  if old_toml_str != new_toml_str {
   fs::write(&migrations_toml_path, new_toml_str)
    .unwrap_or_else(|e| abort_call_site!("Unable to write {}: {:?}", migrations_toml_path_lossy, e));

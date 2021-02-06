@@ -264,10 +264,12 @@ fn migrations_to_tempdb(migrations: &[String]) -> Connection {
   )
   .unwrap();
 
- migrations.iter().for_each(|m| match tempdb.execute(m, params![]) {
-  Ok(_) => (),
-  Err(rusqlite::Error::ExecuteReturnedResults) => (), // pragmas
-  Err(e) => abort_call_site!("Running migrations on temp db: {:?} {:?}", m, e),
+ migrations.iter().filter(|m| !m.starts_with("--")).for_each(|m| {
+  match tempdb.execute(m, params![]) {
+   Ok(_) => (),
+   Err(rusqlite::Error::ExecuteReturnedResults) => (), // pragmas
+   Err(e) => abort_call_site!("Running migrations on temp db: {:?} {:?}", m, e),
+  }
  });
 
  tempdb

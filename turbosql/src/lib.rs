@@ -150,7 +150,9 @@ pub static __TURBOSQL_DB: Lazy<Mutex<Connection>> = Lazy::new(|| {
   Left(_) => panic!("More migrations are applied than target"),
   Right(migration) => {
    // eprintln!("insert -> {:#?}", migration);
-   conn.execute(migration, params![]).unwrap();
+   if !migration.starts_with("--") {
+    conn.execute(migration, params![]).unwrap();
+   }
    conn
     .execute("INSERT INTO turbosql_migrations(migration) VALUES(?)", params![migration])
     .unwrap();
