@@ -101,6 +101,8 @@ pub static __TURBOSQL_DB: Lazy<Mutex<Connection>> = Lazy::new(|| {
   )
   .expect("Execute PRAGMAs");
 
+ conn.execute("BEGIN EXCLUSIVE TRANSACTION", params![]).unwrap();
+
  let result = conn.query_row(
   "SELECT sql FROM sqlite_master WHERE name = ?",
   params!["turbosql_migrations"],
@@ -166,6 +168,8 @@ pub static __TURBOSQL_DB: Lazy<Mutex<Connection>> = Lazy::new(|| {
  //     println!("{}", create_sql);
  //     panic!("Turbosql sqlite schema does not match! Delete database file to continue.");
  //    }
+
+ conn.execute("COMMIT", params![]).unwrap();
 
  Mutex::new(conn)
 });
