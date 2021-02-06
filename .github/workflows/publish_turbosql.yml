@@ -1,18 +1,16 @@
-name: cargo publish
+name: publish_turbosql
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
-    inputs:
-      newversion:
-        description: 'new version number?'
-        required: true
-      oldversion:
-        description: 'old version number?'
-        required: true
 
 jobs:
   publish:
     runs-on: ubuntu-18.04
+    if: "contains(github.event.head_commit.message, 'turbosql@0')"
+
     steps:
       - uses: actions/checkout@v2
       - uses: hecrj/setup-rust-action@v1
