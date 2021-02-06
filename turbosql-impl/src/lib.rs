@@ -267,7 +267,7 @@ fn migrations_to_tempdb(migrations: &[String]) -> Connection {
  migrations.iter().for_each(|m| match tempdb.execute(m, params![]) {
   Ok(_) => (),
   Err(rusqlite::Error::ExecuteReturnedResults) => (), // pragmas
-  Err(e) => abort_call_site!("Running migrations on temp db: {:?}", e),
+  Err(e) => abort_call_site!("Running migrations on temp db: {:?} {:?}", m, e),
  });
 
  tempdb

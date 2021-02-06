@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Improved
+
+- Proc-macro error message for schema migration failures now includes the specific SQL statement that failed.
+
 ### Deprecated
 
 ### Removed
