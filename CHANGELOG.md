@@ -14,13 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added ability to create a placeholder migration to "hint" Turbosql about the effect of a complex manual migration such as a column type change.
-
 ### Changed
 
 ### Improved
-
-- Proc-macro error message for schema migration failures now includes the specific SQL statement that failed.
 
 ### Deprecated
 
@@ -29,6 +25,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [0.1.1] - 2021-02-06
+
+### Added
+
+- Added ability to create a placeholder migration to "hint" Turbosql about the effect of a complex manual migration such as a column type change.
+
+### Improved
+
+- Proc-macro error message for schema migration failures now includes the specific SQL statement that failed.
 
 ## [0.1.0] - 2021-02-02
 

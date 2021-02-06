@@ -20,7 +20,7 @@ In active development, updated February 2021! Contributions are very much welcom
 
 ```toml
 [dependencies]
-turbosql = "0.1.0"
+turbosql = "0.1"
 ```
 
 ```rust
