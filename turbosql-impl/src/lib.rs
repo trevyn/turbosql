@@ -260,7 +260,7 @@ fn migrations_to_tempdb(migrations: &[String]) -> Connection {
 
  tempdb
   .execute_batch(
-   "CREATE TABLE turbosql_migrations (rowid INTEGER PRIMARY KEY, migration TEXT NOT NULL);",
+   "CREATE TABLE _turbosql_migrations (rowid INTEGER PRIMARY KEY, migration TEXT NOT NULL);",
   )
   .unwrap();
 

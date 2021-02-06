@@ -109,7 +109,7 @@ pub static __TURBOSQL_DB: Lazy<Mutex<Connection>> = Lazy::new(|| {
 
  let result = conn.query_row(
   "SELECT sql FROM sqlite_master WHERE name = ?",
-  params!["turbosql_migrations"],
+  params!["_turbosql_migrations"],
   |row| {
    let sql: String = row.get(0).unwrap();
    Ok(sql)
@@ -121,9 +121,9 @@ pub static __TURBOSQL_DB: Lazy<Mutex<Connection>> = Lazy::new(|| {
    // no migrations table exists yet, create
    conn
     .execute_batch(
-     r#"CREATE TABLE turbosql_migrations (rowid INTEGER PRIMARY KEY, migration TEXT NOT NULL)"#,
+     r#"CREATE TABLE _turbosql_migrations (rowid INTEGER PRIMARY KEY, migration TEXT NOT NULL)"#,
     )
-    .expect("CREATE TABLE turbosql_migrations");
+    .expect("CREATE TABLE _turbosql_migrations");
   }
   Err(err) => {
    panic!(err);
@@ -132,7 +132,7 @@ pub static __TURBOSQL_DB: Lazy<Mutex<Connection>> = Lazy::new(|| {
  }
 
  let applied_migrations = conn
-  .prepare("SELECT migration FROM turbosql_migrations ORDER BY rowid")
+  .prepare("SELECT migration FROM _turbosql_migrations ORDER BY rowid")
   .unwrap()
   .query_map(params![], |row| {
    // let sql: String = row.get(0).unwrap();
@@ -161,7 +161,7 @@ pub static __TURBOSQL_DB: Lazy<Mutex<Connection>> = Lazy::new(|| {
     conn.execute(migration, params![]).unwrap();
    }
    conn
-    .execute("INSERT INTO turbosql_migrations(migration) VALUES(?)", params![migration])
+    .execute("INSERT INTO _turbosql_migrations(migration) VALUES(?)", params![migration])
     .unwrap();
   }
  });
