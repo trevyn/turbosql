@@ -128,7 +128,7 @@ pub static __TURBOSQL_DB: Lazy<Mutex<Connection>> = Lazy::new(|| {
     .expect("CREATE TABLE _turbosql_migrations");
   }
   Err(err) => {
-   panic!(err);
+   panic!("Could not query sqlite_master table: {}", err);
   }
   Ok(_) => (),
  }
