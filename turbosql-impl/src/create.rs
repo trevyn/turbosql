@@ -62,9 +62,15 @@ pub(super) fn create(table: &Table) -> proc_macro2::TokenStream {
  serializer.pretty_array_indent(2);
 
  MigrationsToml {
-  output_generated_schema_for_your_information_do_not_edit: Some(
-   super::migrations_to_schema(&output_migrations).unwrap() + "\n",
-  ),
+  output_generated_schema_for_your_information_do_not_edit: Some(format!(
+   "  {}\n",
+   super::migrations_to_schema(&output_migrations)
+    .unwrap()
+    .replace("\n", "\n  ")
+    .replace("(", "(\n    ")
+    .replace(", ", ",\n    ")
+    .replace(")", ",\n  )")
+  )),
   migrations_append_only: Some(output_migrations),
  }
  .serialize(&mut serializer)
