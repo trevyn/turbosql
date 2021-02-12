@@ -125,7 +125,10 @@ migrations_append_only = [
   'ALTER TABLE person ADD COLUMN name TEXT',
 ]
 output_generated_schema_for_your_information_do_not_edit = '''
-CREATE TABLE person (rowid INTEGER PRIMARY KEY, name TEXT)
+  CREATE TABLE person (
+    rowid INTEGER PRIMARY KEY,
+    name TEXT
+  )
 '''
 ```
 
