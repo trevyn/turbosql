@@ -64,14 +64,15 @@ static __DB_PATH: Lazy<Mutex<DbPath>> = Lazy::new(|| {
 
 #[doc(hidden)]
 pub static __TURBOSQL_DB: Lazy<Mutex<Connection>> = Lazy::new(|| {
- #[cfg(not(feature = "test"))]
- let toml_decoded: MigrationsToml =
-  toml::from_str(include_str!(concat!(env!("OUT_DIR"), "/../../../../../migrations.toml")))
-   .expect("Unable to decode embedded migrations.toml");
-
- #[cfg(feature = "test")]
- let toml_decoded: MigrationsToml =
-  toml::from_str(include_str!("../../test.migrations.toml")).unwrap();
+ cfg_if::cfg_if! {
+  if #[cfg(doc)] {
+   let toml_decoded: MigrationsToml = MigrationsToml::default();
+  } else if #[cfg(feature = "test")] {
+   let toml_decoded: MigrationsToml = toml::from_str(include_str!("../../test.migrations.toml")).unwrap();
+  } else {
+   let toml_decoded: MigrationsToml = toml::from_str(include_str!(concat!(env!("OUT_DIR"), "/../../../../../migrations.toml"))).expect("Unable to decode embedded migrations.toml");
+  }
+ };
 
  let target_migrations = toml_decoded.migrations_append_only.unwrap_or_else(Vec::new);
 
