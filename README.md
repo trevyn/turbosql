@@ -93,7 +93,7 @@ SELECT rowid, name, age, image_jpg FROM person
 
 Queries with SQL predicates are also assembled and validated at compile time. Note that SQL types vs Rust types for parameter bindings are not currently checked at compile time.
 
-```rust-no-test
+```rust,ignore
 let people = select!(Vec<Person> "WHERE age > ?", 21);
 ```
 
@@ -176,13 +176,13 @@ SQLite is an extremely reliable database engine, but it helps to understand how 
 
 <tr><td><b>⚠️&nbsp;Primitive&nbsp;type</b></td><td><br>
 
-```rust-no-test
+```rust,ignore
 let result = select!(String "SELECT name FROM person")?;
 ```
 
 Returns one value cast to specified type, returns `TurboSql::Error::QueryReturnedNoRows` if no rows available.
 
-```rust-no-test
+```rust,ignore
 let result = select!(String "name FROM person WHERE rowid = ?", rowid)?;
 ```
 
@@ -192,7 +192,7 @@ let result = select!(String "name FROM person WHERE rowid = ?", rowid)?;
 
 <tr><td><b>⚠️&nbsp;Tuple</b></td><td><br>
 
-```rust-no-test
+```rust,ignore
 let result = select!((String, i64) "name, age FROM person")?;
 ```
 
@@ -202,7 +202,7 @@ Use tuple types for multiple manually declared columns.
 
 <tr><td><b>⚠️&nbsp;Anonymous struct</b></td><td><br>
 
-```rust-no-test
+```rust,ignore
 let result = select!("name_String, age_i64 FROM person")?;
 println!("{}", result.name);
 ```
@@ -213,13 +213,13 @@ Types must be specified in column names to generate an anonymous struct.
 
 <tr><td>⚠️&nbsp;<b><code>Vec&lt;_&gt;</code></b></td><td><br>
 
-```rust-no-test
+```rust,ignore
 let result = select!(Vec<String> "name FROM person")?;
 ```
 
 Returns `Vec` of another type. If no rows, returns empty `Vec`. (Tuple types work inside, as well.)
 
-```rust-no-test
+```rust,ignore
 let result = select!(Vec<_> "name_String, age_i64 FROM person")?;
 ```
 
@@ -229,7 +229,7 @@ Anonymous structs work, too.
 
 <tr><td>⚠️&nbsp;<b><code>Option&lt;_&gt;</code></b></td><td><br>
 
-```rust-no-test
+```rust,ignore
 let result = select!(Option<String> "name FROM person")?;
 ```
 
@@ -239,19 +239,19 @@ Returns `Ok(None)` if no rows, `Error(Turbosql::Error)` on error.
 
 <tr><td><b>⚠️&nbsp;Your struct</b></td><td><br>
 
-```rust-no-test
+```rust,ignore
 let result = select!(Person "WHERE name = ?", name)?;
 ```
 
 Column list and table name are optional if type is a `#[derive(Turbosql)]` struct.
 
-```rust-no-test
+```rust,ignore
 let result = select!(Vec<NameAndAdult> "name, age >= 18 AS adult FROM person")?;
 ```
 
 You can use other struct types as well; column names must match the struct.<br>Implement `Default` to avoid specifying unused column names.<br>(And, of course, you can put it all in a `Vec` or `Option` as well.)
 
-```rust-no-test
+```rust,ignore
 let result = select!(Vec<Person>)?;
 ```
 
@@ -261,7 +261,7 @@ Sometimes everything is optional; this example will retrieve all `Person` rows.
 
 <tr><td>⚠️&nbsp;<b>Transactions</b></td><td><br>
 
-```rust-no-test
+```rust,ignore
 transaction! {
   if select!(Option<Person> "WHERE name = ?", name)?.is_none() {
     Person { ... }.insert!()?;
