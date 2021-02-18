@@ -5,7 +5,7 @@ edition = "2018"
 license = "MIT OR Apache-2.0 OR CC0-1.0"
 name = "turbosql-impl"
 repository = "https://github.com/trevyn/turbosql"
-version = "0.1.4"
+version = "0.1.5"
 
 [lib]
 proc-macro = true
