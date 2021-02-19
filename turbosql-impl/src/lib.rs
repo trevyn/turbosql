@@ -643,7 +643,7 @@ impl Parse for ExecuteTokens {
  }
 }
 
-/// Executes a SQL statement.
+/// Executes a SQL statement. On success, returns the number of rows that were changed or inserted or deleted.
 #[proc_macro]
 #[proc_macro_error]
 pub fn execute(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -651,7 +651,7 @@ pub fn execute(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
  proc_macro::TokenStream::from(tokens)
 }
 
-/// Executes a SQL SELECT statement with automatic `SELECT` and `FROM` clauses.
+/// Executes a SQL SELECT statement with optionally automatic `SELECT` and `FROM` clauses.
 #[proc_macro]
 #[proc_macro_error]
 pub fn select(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
