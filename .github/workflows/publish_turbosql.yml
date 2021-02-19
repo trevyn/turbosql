@@ -25,7 +25,7 @@ jobs:
         run: cargo test --features "test" -- --nocapture
         working-directory: 'turbosql'
 
-      - run: cargo doc
+      - run: cargo doc --no-deps
 
       - name: cargo publish turbosql-impl
         run: cargo publish --no-verify --token ${{ secrets.CARGO_TOKEN }}

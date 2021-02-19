@@ -31,4 +31,4 @@ jobs:
         run: cargo test --features "test" -- --nocapture
         working-directory: 'turbosql'
 
-      - run: cargo doc
+      - run: cargo doc --no-deps
