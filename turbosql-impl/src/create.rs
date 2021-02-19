@@ -69,7 +69,7 @@ pub(super) fn create(table: &Table) -> proc_macro2::TokenStream {
     .replace("\n", "\n  ")
     .replace("(", "(\n    ")
     .replace(", ", ",\n    ")
-    .replace(")", ",\n  )")
+    .replace(")", "\n  )")
   )),
   migrations_append_only: Some(output_migrations),
  }
