@@ -1,5 +1,8 @@
 // cargo test --features test --manifest-path turbosql/Cargo.toml -- --nocapture
 
+#[cfg(not(feature = "test"))]
+compile_error!("turbosql must be tested with '--features test'");
+
 use i54_::i54;
 use turbosql::{execute, select, Blob, Turbosql};
 
