@@ -78,7 +78,7 @@ struct Person {
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;auto-generates and validates the schema
 
-```sqlite3
+```sql
 CREATE TABLE person (
     rowid INTEGER PRIMARY KEY,
     name TEXT,
@@ -99,7 +99,7 @@ let people = select!(Vec<Person> "WHERE age > ?", 21);
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓
 
-```sqlite3
+```sql
 SELECT rowid, name, age, image_jpg FROM person WHERE age > ?
 ```
 
