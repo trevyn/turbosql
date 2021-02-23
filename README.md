@@ -14,7 +14,7 @@ Easy local data persistence layer, backed by SQLite.
 
 ## Status
 
-In active development, updated February 2021! Contributions are very much welcome!
+Updated February 2021! Actively used as the database backend for [Turbo](https://github.com/trevyn/turbo). Contributions are very much welcome!
 
 ## Usage
 
