@@ -28,7 +28,6 @@ const MIGRATIONS_FILENAME: &str = "test.migrations.toml";
 
 mod create;
 mod insert;
-mod select;
 
 // trait Ok<T> {
 //  fn ok(self) -> Result<T, anyhow::Error>;
@@ -718,7 +717,6 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
 
  let fn_create = create::create(&table);
  let fn_insert = insert::insert(&table);
- // let fn_select = select::select(&table);
 
  // output tokenstream
 
