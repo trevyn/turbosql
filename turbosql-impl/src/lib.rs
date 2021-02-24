@@ -410,7 +410,7 @@ fn do_parse_tokens(
    let table = tables.get(&table_name).unwrap_or_else(|| {
     abort!(
      span,
-     "Table {:?} not found. Does struct {} exist and have #[derive(Turbosql)]?",
+     "Table {:?} not found. Does struct {} exist and have #[derive(Turbosql, Default)]?",
      table_name,
      result_type
     )

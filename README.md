@@ -262,11 +262,11 @@ Sometimes everything is optional; this example will retrieve all `Person` rows.
 <tr><td>⚠️&nbsp;<b>Transactions</b></td><td><br>
 
 ```rust,ignore
-transaction! {
+turbosql::transaction(|| {
   if select!(Option<Person> "WHERE name = ?", name)?.is_none() {
     Person { ... }.insert!()?;
   }
-}
+});
 ```
 
 - Haha just kidding, this doesn't exist yet.
