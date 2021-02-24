@@ -470,9 +470,11 @@ fn do_parse_tokens(
   return Ok(quote! {
   {
    (|| -> Result<_, _> {
-    let db = ::turbosql::__TURBOSQL_DB.lock().unwrap();
-    let mut stmt = db.prepare_cached(#sql)?;
-    stmt.execute(::turbosql::params![#params])
+    ::turbosql::__TURBOSQL_DB.with(|db| {
+     let db = db.borrow_mut();
+     let mut stmt = db.prepare_cached(#sql)?;
+     stmt.execute(::turbosql::params![#params])
+    })
    })()
   }
   });
@@ -533,18 +535,20 @@ fn do_parse_tokens(
     {
      // #struct_decl
      (|| -> Result<Vec<#contents>, ::turbosql::Error> {
-      let db = ::turbosql::__TURBOSQL_DB.lock().unwrap();
-      let mut stmt = db.prepare_cached(#sql)?;
-      let result = stmt.query_map(::turbosql::params![#params], |row| {
-       Ok(#contents {
-        #(#row_casters),*
-        // #default
-       })
-      })?.collect::<Vec<_>>();
+      ::turbosql::__TURBOSQL_DB.with(|db| {
+       let db = db.borrow_mut();
+       let mut stmt = db.prepare_cached(#sql)?;
+       let result = stmt.query_map(::turbosql::params![#params], |row| {
+        Ok(#contents {
+         #(#row_casters),*
+         // #default
+        })
+       })?.collect::<Vec<_>>();
 
-      let result = result.into_iter().flatten().collect::<Vec<_>>();
+       let result = result.into_iter().flatten().collect::<Vec<_>>();
 
-      Ok(result)
+       Ok(result)
+      })
      })()
     }
    }
@@ -564,17 +568,18 @@ fn do_parse_tokens(
      // #struct_decl
      (|| -> Result<Option<#contents>, ::turbosql::Error> {
       use ::turbosql::OptionalExtension;
+      ::turbosql::__TURBOSQL_DB.with(|db| {
+       let db = db.borrow_mut();
+       let mut stmt = db.prepare_cached(#sql)?;
+       let result = stmt.query_row(::turbosql::params![#params], |row| -> Result<#contents, _> {
+        Ok(#contents {
+         #(#row_casters),*
+         // #default
+        })
+       }).optional()?;
 
-      let db = ::turbosql::__TURBOSQL_DB.lock().unwrap();
-      let mut stmt = db.prepare_cached(#sql)?;
-      let result = stmt.query_row(::turbosql::params![#params], |row| -> Result<#contents, _> {
-       Ok(#contents {
-        #(#row_casters),*
-        // #default
-       })
-      }).optional()?;
-
-      Ok(result)
+       Ok(result)
+      })
      })()
     }
    }
@@ -588,12 +593,14 @@ fn do_parse_tokens(
    quote! {
     {
      (|| -> Result<#contents, ::turbosql::Error> {
-      let db = ::turbosql::__TURBOSQL_DB.lock().unwrap();
-      let mut stmt = db.prepare_cached(#sql)?;
-      let result = stmt.query_row(::turbosql::params![#params], |row| -> Result<#contents, _> {
-       Ok(row.get(0)?)
-      })?;
-      Ok(result)
+      ::turbosql::__TURBOSQL_DB.with(|db| {
+       let db = db.borrow_mut();
+       let mut stmt = db.prepare_cached(#sql)?;
+       let result = stmt.query_row(::turbosql::params![#params], |row| -> Result<#contents, _> {
+        Ok(row.get(0)?)
+       })?;
+       Ok(result)
+      })
      })()
     }
    }
@@ -609,15 +616,17 @@ fn do_parse_tokens(
    quote! {
     {
      (|| -> Result<#contents, ::turbosql::Error> {
-      let db = ::turbosql::__TURBOSQL_DB.lock().unwrap();
-      let mut stmt = db.prepare_cached(#sql)?;
-      let result = stmt.query_row(::turbosql::params![#params], |row| -> Result<#contents, _> {
-       Ok(#contents {
-        #(#row_casters),*
-        // #default
-       })
-      })?;
-      Ok(result)
+      ::turbosql::__TURBOSQL_DB.with(|db| {
+       let db = db.borrow_mut();
+       let mut stmt = db.prepare_cached(#sql)?;
+       let result = stmt.query_row(::turbosql::params![#params], |row| -> Result<#contents, _> {
+        Ok(#contents {
+         #(#row_casters),*
+         // #default
+        })
+       })?;
+       Ok(result)
+      })
      })()
     }
    }
@@ -709,7 +718,7 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
 
  let fn_create = create::create(&table);
  let fn_insert = insert::insert(&table);
- let fn_select = select::select(&table);
+ // let fn_select = select::select(&table);
 
  // output tokenstream
 
@@ -717,7 +726,6 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
   impl #table {
    #fn_create
    #fn_insert
-   #fn_select
   }
  })
 }
