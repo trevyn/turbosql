@@ -2,6 +2,8 @@
 
 #[cfg(not(feature = "test"))]
 compile_error!("turbosql must be tested with '--features test'");
+#[cfg(not(test))]
+compile_error!("integration_tests.rs must be run in test mode");
 
 use i54_::i54;
 use turbosql::{execute, select, Blob, Turbosql};
