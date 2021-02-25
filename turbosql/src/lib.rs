@@ -151,7 +151,7 @@ fn run_migrations(conn: &mut Connection) {
 }
 
 fn open_db() -> Connection {
- eprintln!("in open_db");
+ let start = std::time::Instant::now();
 
  let mut db_path = __DB_PATH.lock().unwrap();
 
@@ -182,6 +182,8 @@ fn open_db() -> Connection {
   run_migrations(&mut conn);
   db_path.opened = true;
  }
+
+ log::info!("db opened in {:?}", start.elapsed());
 
  conn
 }
