@@ -169,11 +169,11 @@ fn open_db() -> Connection {
  conn
   .execute_batch(
    r#"
+    PRAGMA busy_timeout=3000;
     PRAGMA auto_vacuum=INCREMENTAL;
     PRAGMA journal_mode=WAL;
     PRAGMA wal_autocheckpoint=8000;
     PRAGMA synchronous=NORMAL;
-    PRAGMA busy_timeout=3000;
    "#,
   )
   .expect("Execute PRAGMAs");
