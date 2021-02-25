@@ -173,6 +173,7 @@ fn open_db() -> Connection {
     PRAGMA journal_mode=WAL;
     PRAGMA wal_autocheckpoint=8000;
     PRAGMA synchronous=NORMAL;
+    PRAGMA busy_timeout=3000;
    "#,
   )
   .expect("Execute PRAGMAs");
