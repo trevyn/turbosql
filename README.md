@@ -148,7 +148,7 @@ Unused or reverted migrations that are created during development can be manuall
 
 ## Where's my data?
 
-The SQLite database is created in the directory returned by [`directories_next`](https://crates.io/crates/directories-next)`::ProjectDirs::data_dir()` + your executable's filename stem, which resolves to something like:
+The SQLite database file is created in the directory returned by [`directories_next`](https://crates.io/crates/directories-next)`::ProjectDirs::data_dir()` + your executable's filename stem, which resolves to something like:
 
 <table><tr><td>Linux</td><td><br>
 
