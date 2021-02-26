@@ -167,6 +167,17 @@ fn integration_test() {
  // assert!(select!(Option<i64> "field_u8 FROM personintegrationtest").unwrap() == row.field_u8);
  // assert!(select!(String "field_string FROM personintegrationtest").unwrap() == row.field_string.unwrap());
 
+ // future: tuples:
+ // let result = select!((String, i64) "name, age FROM person")?;
+ // let result = select!(Vec<(String, i64)> "name, age FROM person")?;
+ // let result = select!(Option<(String, i64)> "name, age FROM person")?;
+
+ // struct members
+ // let result = select!(Person.age)?;
+ // let result = select!((Person.name, Person.age))?;
+ // let result = select!(Vec<(Person.name, Person.age)>)?;
+ // let result = select!(Vec<(Person.name, Person.age)> "WHERE ...")?;
+
  // DELETE
 
  assert!(execute!("DELETE FROM personintegrationtest").is_ok());

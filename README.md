@@ -199,19 +199,19 @@ For further discussion, see https://github.com/trevyn/turbosql/issues/4
 
 SQLite is an extremely reliable database engine, but it helps to understand how it interfaces with the filesystem. The main `.sqlite` file contains the bulk of the database. During database writes, SQLite also creates `.sqlite-wal` and `.sqlite-shm` files. If the host process is terminated without flushing writes, you may end up with these three files when you expected to have a single file. This is always fine; on next launch, SQLite knows how to resolve any interrupted writes and make sense of the world. However, if the `-wal` and/or `-shm` files are present, they **must be considered essential to database integrity**. Deleting them may result in a corrupted database. See https://sqlite.org/tempfiles.html .
 
-## ⚠️&nbsp;Example Query Forms
+## Example Query Forms
 
-**⚠️&nbsp;NOTE: This table is somewhat speculative and not completely aligned with the code yet. Check [`integration_test.rs`](https://github.com/trevyn/turbosql/blob/main/turbosql/tests/integration_test.rs) for examples of what works today and is tested in CI.&nbsp;⚠️**
+Check [`integration_test.rs`](https://github.com/trevyn/turbosql/blob/main/turbosql/tests/integration_test.rs) for more examples of what works and is tested in CI.
 
 <table>
 
-<tr><td><b>⚠️&nbsp;Primitive&nbsp;type</b></td><td><br>
+<tr><td><b>&nbsp;Primitive&nbsp;type</b></td><td><br>
 
 ```rust,ignore
 let result = select!(String "SELECT name FROM person")?;
 ```
 
-Returns one value cast to specified type, returns `TurboSql::Error::QueryReturnedNoRows` if no rows available.
+Returns one value cast to specified type, returns `Error` if no rows available.
 
 ```rust,ignore
 let result = select!(String "name FROM person WHERE rowid = ?", rowid)?;
@@ -221,54 +221,27 @@ let result = select!(String "name FROM person WHERE rowid = ?", rowid)?;
 
 </td></tr>
 
-<tr><td><b>⚠️&nbsp;Tuple</b></td><td><br>
-
-```rust,ignore
-let result = select!((String, i64) "name, age FROM person")?;
-```
-
-Use tuple types for multiple manually declared columns.
-
-</td></tr>
-
-<tr><td><b>⚠️&nbsp;Anonymous struct</b></td><td><br>
-
-```rust,ignore
-let result = select!("name_String, age_i64 FROM person")?;
-println!("{}", result.name);
-```
-
-Types must be specified in column names to generate an anonymous struct.
-
-</td></tr>
-
-<tr><td>⚠️&nbsp;<b><code>Vec&lt;_&gt;</code></b></td><td><br>
+<tr><td>&nbsp;<b><code>Vec&lt;_&gt;</code></b></td><td><br>
 
 ```rust,ignore
 let result = select!(Vec<String> "name FROM person")?;
 ```
 
-Returns `Vec` of another type. If no rows, returns empty `Vec`. (Tuple types work inside, as well.)
-
-```rust,ignore
-let result = select!(Vec<_> "name_String, age_i64 FROM person")?;
-```
-
-Anonymous structs work, too.
+Returns `Vec` containing another type. If no rows, returns empty `Vec`.
 
 </td></tr>
 
-<tr><td>⚠️&nbsp;<b><code>Option&lt;_&gt;</code></b></td><td><br>
+<tr><td>&nbsp;<b><code>Option&lt;_&gt;</code></b></td><td><br>
 
 ```rust,ignore
 let result = select!(Option<String> "name FROM person")?;
 ```
 
-Returns `Ok(None)` if no rows, `Error(Turbosql::Error)` on error.
+Returns `Ok(None)` if no rows, `Error(_)` on error.
 
 </td></tr>
 
-<tr><td><b>⚠️&nbsp;Your struct</b></td><td><br>
+<tr><td><b>&nbsp;Your struct</b></td><td><br>
 
 ```rust,ignore
 let result = select!(Person "WHERE name = ?", name)?;
@@ -280,7 +253,7 @@ Column list and table name are optional if type is a `#[derive(Turbosql)]` struc
 let result = select!(Vec<NameAndAdult> "name, age >= 18 AS adult FROM person")?;
 ```
 
-You can use other struct types as well; column names must match the struct.<br>Implement `Default` to avoid specifying unused column names.<br>(And, of course, you can put it all in a `Vec` or `Option` as well.)
+You can use other struct types as well; column names must match the struct and you must specify the source table in the SQL.<br>Implement `Default` to avoid specifying unused column names.<br>(And, of course, you can put it all in a `Vec` or `Option` as well.)
 
 ```rust,ignore
 let result = select!(Vec<Person>)?;
