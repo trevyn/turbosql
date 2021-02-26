@@ -93,7 +93,7 @@ SELECT rowid, name, age, image_jpg FROM person
 
 Queries with SQL predicates are also assembled and validated at compile time. Note that SQL types vs Rust types for parameter bindings are not currently checked at compile time.
 
-```rust,ignore
+```rust,no-run
 let people = select!(Vec<Person> "WHERE age > ?", 21);
 ```
 
@@ -164,6 +164,36 @@ The SQLite database is created in the directory returned by [`directories_next`]
 
 </td></tr></table>
 
+## Transactions and `async`
+
+SQLite, and indeed many filesystems in general, only provide blocking (synchronous) APIs. The correct approach when using blocking APIs in a Rust `async` ecosystem is to use your executor's facility for running a closure on a thread pool in which blocking is expected. For example:
+
+```rust,no-run
+let person = tokio::task::spawn_blocking(move || {
+    select!(Person "WHERE id = ?", id)
+}).await?;
+```
+
+Under the hood, Turbosql uses persistent `thread_local` database connections, so an uninterrupted sequence of calls from the same thread are guaranteed to use the same exclusive database connection. Thus, `async` transactions can be performed as such:
+
+```rust,no-run
+tokio::task::spawn_blocking(move || {
+    execute!("BEGIN IMMEDIATE TRANSACTION")?;
+    let p = select!(Person "WHERE id = ?", id)?;
+    // [ ...do something... ]
+    execute!(
+        "UPDATE person SET value = ? WHERE id = ?",
+        p.value + 1,
+        id
+    )?;
+    execute!("COMMIT")?;
+}).await?;
+```
+
+Ideas for improvements to the ergonomics of this approach are welcome.
+
+For further discussion, see https://github.com/trevyn/turbosql/issues/4
+
 ## `-wal` and `-shm` files
 
 SQLite is an extremely reliable database engine, but it helps to understand how it interfaces with the filesystem. The main `.sqlite` file contains the bulk of the database. During database writes, SQLite also creates `.sqlite-wal` and `.sqlite-shm` files. If the host process is terminated without flushing writes, you may end up with these three files when you expected to have a single file. This is always fine; on next launch, SQLite knows how to resolve any interrupted writes and make sense of the world. However, if the `-wal` and/or `-shm` files are present, they **must be considered essential to database integrity**. Deleting them may result in a corrupted database. See https://sqlite.org/tempfiles.html .
@@ -176,13 +206,13 @@ SQLite is an extremely reliable database engine, but it helps to understand how 
 
 <tr><td><b>⚠️&nbsp;Primitive&nbsp;type</b></td><td><br>
 
-```rust,ignore
+```rust,no-run
 let result = select!(String "SELECT name FROM person")?;
 ```
 
 Returns one value cast to specified type, returns `TurboSql::Error::QueryReturnedNoRows` if no rows available.
 
-```rust,ignore
+```rust,no-run
 let result = select!(String "name FROM person WHERE rowid = ?", rowid)?;
 ```
 
@@ -192,7 +222,7 @@ let result = select!(String "name FROM person WHERE rowid = ?", rowid)?;
 
 <tr><td><b>⚠️&nbsp;Tuple</b></td><td><br>
 
-```rust,ignore
+```rust,no-run
 let result = select!((String, i64) "name, age FROM person")?;
 ```
 
@@ -202,7 +232,7 @@ Use tuple types for multiple manually declared columns.
 
 <tr><td><b>⚠️&nbsp;Anonymous struct</b></td><td><br>
 
-```rust,ignore
+```rust,no-run
 let result = select!("name_String, age_i64 FROM person")?;
 println!("{}", result.name);
 ```
@@ -213,13 +243,13 @@ Types must be specified in column names to generate an anonymous struct.
 
 <tr><td>⚠️&nbsp;<b><code>Vec&lt;_&gt;</code></b></td><td><br>
 
-```rust,ignore
+```rust,no-run
 let result = select!(Vec<String> "name FROM person")?;
 ```
 
 Returns `Vec` of another type. If no rows, returns empty `Vec`. (Tuple types work inside, as well.)
 
-```rust,ignore
+```rust,no-run
 let result = select!(Vec<_> "name_String, age_i64 FROM person")?;
 ```
 
@@ -229,7 +259,7 @@ Anonymous structs work, too.
 
 <tr><td>⚠️&nbsp;<b><code>Option&lt;_&gt;</code></b></td><td><br>
 
-```rust,ignore
+```rust,no-run
 let result = select!(Option<String> "name FROM person")?;
 ```
 
@@ -239,43 +269,23 @@ Returns `Ok(None)` if no rows, `Error(Turbosql::Error)` on error.
 
 <tr><td><b>⚠️&nbsp;Your struct</b></td><td><br>
 
-```rust,ignore
+```rust,no-run
 let result = select!(Person "WHERE name = ?", name)?;
 ```
 
 Column list and table name are optional if type is a `#[derive(Turbosql)]` struct.
 
-```rust,ignore
+```rust,no-run
 let result = select!(Vec<NameAndAdult> "name, age >= 18 AS adult FROM person")?;
 ```
 
 You can use other struct types as well; column names must match the struct.<br>Implement `Default` to avoid specifying unused column names.<br>(And, of course, you can put it all in a `Vec` or `Option` as well.)
 
-```rust,ignore
+```rust,no-run
 let result = select!(Vec<Person>)?;
 ```
 
 Sometimes everything is optional; this example will retrieve all `Person` rows.
-
-</td></tr>
-
-<tr><td>⚠️&nbsp;<b>Transactions</b></td><td><br>
-
-```rust,ignore
-turbosql::transaction(|| {
-  if select!(Option<Person> "WHERE name = ?", name)?.is_none() {
-    Person { ... }.insert!()?;
-  }
-});
-```
-
-- Haha just kidding, this doesn't exist yet.
-- How might this work with threads and async?
-- What if the transaction fails to commit?
-- Nested transactions not supported?
-- Calling other functions in a transaction? Async? This gets messy. Just say that any Turbosql calls outside of the literal text `transaction!{}` body will work fine, but _not_ be part of the transaction?
-
-Inititally, this implementation might just open a new SQLite connection, and use it for all child calls.
 
 </td></tr>
 
