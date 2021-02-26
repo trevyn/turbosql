@@ -93,7 +93,7 @@ SELECT rowid, name, age, image_jpg FROM person
 
 Queries with SQL predicates are also assembled and validated at compile time. Note that SQL types vs Rust types for parameter bindings are not currently checked at compile time.
 
-```rust,no-run
+```rust,ignore
 let people = select!(Vec<Person> "WHERE age > ?", 21);
 ```
 
@@ -168,7 +168,7 @@ The SQLite database is created in the directory returned by [`directories_next`]
 
 SQLite, and indeed many filesystems in general, only provide blocking (synchronous) APIs. The correct approach when using blocking APIs in a Rust `async` ecosystem is to use your executor's facility for running a closure on a thread pool in which blocking is expected. For example:
 
-```rust,no-run
+```rust,ignore
 let person = tokio::task::spawn_blocking(move || {
     select!(Person "WHERE id = ?", id)
 }).await?;
@@ -176,8 +176,8 @@ let person = tokio::task::spawn_blocking(move || {
 
 Under the hood, Turbosql uses persistent `thread_local` database connections, so an uninterrupted sequence of calls from the same thread are guaranteed to use the same exclusive database connection. Thus, `async` transactions can be performed as such:
 
-```rust,no-run
-tokio::task::spawn_blocking(move || {
+```rust,ignore
+tokio::task::spawn_blocking(move || -> Result<_, _> {
     execute!("BEGIN IMMEDIATE TRANSACTION")?;
     let p = select!(Person "WHERE id = ?", id)?;
     // [ ...do something... ]
@@ -187,6 +187,7 @@ tokio::task::spawn_blocking(move || {
         id
     )?;
     execute!("COMMIT")?;
+    Ok(())
 }).await?;
 ```
 
@@ -206,13 +207,13 @@ SQLite is an extremely reliable database engine, but it helps to understand how 
 
 <tr><td><b>⚠️&nbsp;Primitive&nbsp;type</b></td><td><br>
 
-```rust,no-run
+```rust,ignore
 let result = select!(String "SELECT name FROM person")?;
 ```
 
 Returns one value cast to specified type, returns `TurboSql::Error::QueryReturnedNoRows` if no rows available.
 
-```rust,no-run
+```rust,ignore
 let result = select!(String "name FROM person WHERE rowid = ?", rowid)?;
 ```
 
@@ -222,7 +223,7 @@ let result = select!(String "name FROM person WHERE rowid = ?", rowid)?;
 
 <tr><td><b>⚠️&nbsp;Tuple</b></td><td><br>
 
-```rust,no-run
+```rust,ignore
 let result = select!((String, i64) "name, age FROM person")?;
 ```
 
@@ -232,7 +233,7 @@ Use tuple types for multiple manually declared columns.
 
 <tr><td><b>⚠️&nbsp;Anonymous struct</b></td><td><br>
 
-```rust,no-run
+```rust,ignore
 let result = select!("name_String, age_i64 FROM person")?;
 println!("{}", result.name);
 ```
@@ -243,13 +244,13 @@ Types must be specified in column names to generate an anonymous struct.
 
 <tr><td>⚠️&nbsp;<b><code>Vec&lt;_&gt;</code></b></td><td><br>
 
-```rust,no-run
+```rust,ignore
 let result = select!(Vec<String> "name FROM person")?;
 ```
 
 Returns `Vec` of another type. If no rows, returns empty `Vec`. (Tuple types work inside, as well.)
 
-```rust,no-run
+```rust,ignore
 let result = select!(Vec<_> "name_String, age_i64 FROM person")?;
 ```
 
@@ -259,7 +260,7 @@ Anonymous structs work, too.
 
 <tr><td>⚠️&nbsp;<b><code>Option&lt;_&gt;</code></b></td><td><br>
 
-```rust,no-run
+```rust,ignore
 let result = select!(Option<String> "name FROM person")?;
 ```
 
@@ -269,19 +270,19 @@ Returns `Ok(None)` if no rows, `Error(Turbosql::Error)` on error.
 
 <tr><td><b>⚠️&nbsp;Your struct</b></td><td><br>
 
-```rust,no-run
+```rust,ignore
 let result = select!(Person "WHERE name = ?", name)?;
 ```
 
 Column list and table name are optional if type is a `#[derive(Turbosql)]` struct.
 
-```rust,no-run
+```rust,ignore
 let result = select!(Vec<NameAndAdult> "name, age >= 18 AS adult FROM person")?;
 ```
 
 You can use other struct types as well; column names must match the struct.<br>Implement `Default` to avoid specifying unused column names.<br>(And, of course, you can put it all in a `Vec` or `Option` as well.)
 
-```rust,no-run
+```rust,ignore
 let result = select!(Vec<Person>)?;
 ```
 
