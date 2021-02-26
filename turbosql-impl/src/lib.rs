@@ -11,7 +11,7 @@ use proc_macro_error::{abort, abort_call_site, proc_macro_error};
 use quote::{format_ident, quote, ToTokens};
 use rusqlite::{params, Connection, Statement};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::sync::Mutex;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
@@ -80,7 +80,7 @@ struct MiniColumn {
 
 static LAST_TABLE_NAME: Lazy<Mutex<String>> = Lazy::new(|| Mutex::new("none".to_string()));
 
-static TABLES: Lazy<Mutex<HashMap<String, MiniTable>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+static TABLES: Lazy<Mutex<BTreeMap<String, MiniTable>>> = Lazy::new(|| Mutex::new(BTreeMap::new()));
 
 // #[proc_macro]
 // pub fn set_db_path(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -251,7 +251,7 @@ impl StatementInfo {
 struct MigrationsToml {
  migrations_append_only: Option<Vec<String>>,
  output_generated_schema_for_your_information_do_not_edit: Option<String>,
- output_generated_tables_do_not_edit: Option<HashMap<String, MiniTable>>,
+ output_generated_tables_do_not_edit: Option<BTreeMap<String, MiniTable>>,
 }
 
 fn migrations_to_tempdb(migrations: &[String]) -> Connection {
@@ -407,14 +407,27 @@ fn do_parse_tokens(
    let result_type = contents.to_string();
    let table_name = result_type.to_lowercase();
    let tables = TABLES.lock().unwrap();
-   let table = tables.get(&table_name).unwrap_or_else(|| {
-    abort!(
-     span,
-     "Table {:?} not found. Does struct {} exist and have #[derive(Turbosql, Default)]?",
-     table_name,
-     result_type
-    )
-   });
+   let table = match tables.get(&table_name) {
+    Some(t) => t.clone(),
+    None => {
+     let t = match read_migrations_toml().output_generated_tables_do_not_edit {
+      Some(m) => m.get(&table_name).cloned(),
+      None => None,
+     };
+
+     match t {
+      Some(t) => t,
+      None => {
+       abort!(
+        span,
+        "Table {:?} not found. Does struct {} exist and have #[derive(Turbosql, Default)]?",
+        table_name,
+        result_type
+       );
+      }
+     }
+    }
+   };
 
    let column_names_str =
     table.columns.iter().map(|c| c.name.as_str()).collect::<Vec<_>>().join(", ");
@@ -864,6 +877,17 @@ fn create(table: &Table) {
   }
  });
 
+ let tables = match source_migrations_toml.output_generated_tables_do_not_edit {
+  Some(ref t) => {
+   let mut t = t.clone();
+   TABLES.lock().unwrap().iter().for_each(|(k, v)| {
+    t.insert(k.clone(), v.clone());
+   });
+   t
+  }
+  None => TABLES.lock().unwrap().clone(),
+ };
+
  // save to toml
 
  let mut new_toml_str = String::new();
@@ -881,7 +905,7 @@ fn create(table: &Table) {
     .replace(")", "\n  )")
   )),
   migrations_append_only: Some(output_migrations),
-  output_generated_tables_do_not_edit: Some(TABLES.lock().unwrap().clone()),
+  output_generated_tables_do_not_edit: Some(tables),
  }
  .serialize(&mut serializer)
  .unwrap_or_else(|e| abort_call_site!("Unable to serialize migrations toml: {:?}", e));
