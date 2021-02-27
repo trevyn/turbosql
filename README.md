@@ -34,28 +34,33 @@ struct Person {
     image_jpg: Option<Blob>
 }
 
-// INSERT a row
-let rowid = Person {
-    rowid: None,
-    name: Some("Joe".to_string()),
-    age: Some(42),
-    image_jpg: None
-}.insert().unwrap();
+fn main() -> anyhow::Result<()> {
 
-// SELECT all rows
-let people: Vec<Person> = select!(Vec<Person>).unwrap();
+    // INSERT a row
+    let rowid = Person {
+        rowid: None,
+        name: Some("Joe".to_string()),
+        age: Some(42),
+        image_jpg: None
+    }.insert()?;
 
-// SELECT multiple rows with a predicate
-let people: Vec<Person> = select!(Vec<Person> "WHERE age > ?", 21).unwrap();
+    // SELECT all rows
+    let people: Vec<Person> = select!(Vec<Person>)?;
 
-// SELECT a single row with a predicate
-let person: Person = select!(Person "WHERE name = ?", "Joe").unwrap();
+    // SELECT multiple rows with a predicate
+    let people: Vec<Person> = select!(Vec<Person> "WHERE age > ?", 21)?;
 
-// UPDATE
-execute!("UPDATE person SET age = ? WHERE name = ?", 18, "Joe").unwrap();
+    // SELECT a single row with a predicate
+    let person: Person = select!(Person "WHERE name = ?", "Joe")?;
 
-// DELETE
-execute!("DELETE FROM person WHERE rowid = ?", 1).unwrap();
+    // UPDATE
+    execute!("UPDATE person SET age = ? WHERE name = ?", 18, "Joe")?;
+
+    // DELETE
+    execute!("DELETE FROM person WHERE rowid = ?", 1)?;
+
+    Ok(())
+}
 ```
 
 See [`integration_test.rs`](https://github.com/trevyn/turbosql/blob/main/turbosql/tests/integration_test.rs) for more usage examples!
