@@ -1,0 +1,5 @@
+{
+ "scripts": {
+  "test": "cargo test --manifest-path=turbosql/Cargo.toml --features test && cargo test --manifest-path=turbosql-impl/Cargo.toml --features test"
+ }
+}
