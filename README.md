@@ -176,16 +176,18 @@ SQLite, and indeed many filesystems in general, only provide blocking (synchrono
 ```rust,ignore
 let person = tokio::task::spawn_blocking(move || {
     select!(Person "WHERE id = ?", id)
-}).await?;
+}).await??;
 ```
 
-Under the hood, Turbosql uses persistent `thread_local` database connections, so an uninterrupted sequence of calls from the same thread are guaranteed to use the same exclusive database connection. Thus, `async` transactions can be performed as such:
+(Note that `spawn_blocking` returns a `JoinHandle` that must itself be unwrapped, hence the need for `??` near the end of these examples.)
+
+Under the hood, Turbosql uses persistent [`thread_local`](https://doc.rust-lang.org/std/macro.thread_local.html) database connections, so a continuous sequence of database calls from the same thread are guaranteed to use the same exclusive database connection. Thus, `async` transactions can be performed as such:
 
 ```rust,ignore
-tokio::task::spawn_blocking(move || -> Result<_, _> {
+tokio::task::spawn_blocking(move || {
     execute!("BEGIN IMMEDIATE TRANSACTION")?;
     let p = select!(Person "WHERE id = ?", id)?;
-    // [ ...do something... ]
+    // [ ...do any other blocking things... ]
     execute!(
         "UPDATE person SET value = ? WHERE id = ?",
         p.value + 1,
@@ -193,12 +195,12 @@ tokio::task::spawn_blocking(move || -> Result<_, _> {
     )?;
     execute!("COMMIT")?;
     Ok(())
-}).await?;
+}).await??;
 ```
 
-Ideas for improvements to the ergonomics of this approach are welcome.
+Turbosql sets a SQLite [`busy_timeout`](https://sqlite.org/c3ref/busy_timeout.html) of 3 seconds, so any table lock contention is automatically re-tried up to that duration, after which the command that was unable to acquire a lock will return with an error.
 
-For further discussion, see https://github.com/trevyn/turbosql/issues/4
+For further discussion of Turbosql's approach to `async` and transactions, see https://github.com/trevyn/turbosql/issues/4. Ideas for improvements to the ergonomics of the solution are very welcome.
 
 ## `-wal` and `-shm` files
 
