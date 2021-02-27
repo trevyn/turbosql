@@ -150,6 +150,33 @@ fn run_migrations(conn: &mut Connection) {
  conn.execute("COMMIT", params![]).unwrap();
 }
 
+#[derive(Debug)]
+pub struct CheckpointResult {
+ pub busy: i64,
+ pub log: i64,
+ pub checkpointed: i64,
+}
+
+/// Checkpoint the DB.
+/// If no other threads have open connections, this will clean up the `.wal` and `.shm` files as well.
+pub fn checkpoint() -> anyhow::Result<CheckpointResult> {
+ let start = std::time::Instant::now();
+ let db_path = __DB_PATH.lock().unwrap();
+
+ let conn = Connection::open_with_flags(
+  &db_path.path,
+  OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_NO_MUTEX,
+ )?;
+
+ let result = conn.query_row("PRAGMA wal_checkpoint(PASSIVE)", params![], |row| {
+  Ok(CheckpointResult { busy: row.get(0)?, log: row.get(1)?, checkpointed: row.get(2)? })
+ })?;
+
+ log::info!("db checkpointed in {:?} {:#?}", start.elapsed(), result);
+
+ Ok(result)
+}
+
 fn open_db() -> Connection {
  let start = std::time::Instant::now();
 
@@ -206,4 +233,13 @@ pub fn set_db_path(path: &Path) -> Result<(), anyhow::Error> {
  db_path.path = path.to_owned();
 
  Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+ use super::*;
+ #[test]
+ fn test_checkpoint() {
+  checkpoint().unwrap();
+ }
 }
