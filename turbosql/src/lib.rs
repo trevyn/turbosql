@@ -158,7 +158,7 @@ pub struct CheckpointResult {
 }
 
 /// Checkpoint the DB.
-/// If no other threads have open connections, this will clean up the `.wal` and `.shm` files as well.
+/// If no other threads have open connections, this will clean up the `-wal` and `-shm` files as well.
 pub fn checkpoint() -> anyhow::Result<CheckpointResult> {
  let start = std::time::Instant::now();
  let db_path = __DB_PATH.lock().unwrap();
