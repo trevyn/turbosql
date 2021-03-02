@@ -19,10 +19,22 @@ jobs:
              # 1.46 is minimum rustc version
     steps:
       - uses: actions/checkout@v2
+
       - uses: hecrj/setup-rust-action@v1
         with:
           rust-version: ${{ matrix.rust }}
       
+      - name: Check links with lychee
+        uses: lycheeverse/lychee-action@v1
+        id: lychee
+        with:
+          args: --verbose --no-progress --exclude=crates.io --github-token
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fail if there were link-check errors
+        run: exit ${{ steps.lychee.outputs.exit_code }}
+
       - name: cargo test turbosql-impl
         run: cargo test --features "test" -- --nocapture
         working-directory: 'turbosql-impl'
