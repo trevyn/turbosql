@@ -28,7 +28,7 @@ jobs:
         uses: lycheeverse/lychee-action@v1
         id: lychee
         with:
-          args: --verbose --no-progress --exclude=crates.io --github-token
+          args: --verbose --no-progress --exclude=crates.io
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

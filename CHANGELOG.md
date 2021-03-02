@@ -26,6 +26,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [0.1.6] - 2021-03-02
+
+### Added
+
+- Added `thread_local` SQLite connections and support for transactions. [https://github.com/trevyn/turbosql#transactions-and-async](https://github.com/trevyn/turbosql#transactions-and-async)
+- Added some extra table info to `migrations.toml` to give the proc macro more information to do its job.
+- Added `turbosql::checkpoint()` to perform a SQLite WAL checkpoint operation.
+
 ## [0.1.5] - 2021-02-18
 
 ### Changed

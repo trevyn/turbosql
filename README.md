@@ -146,9 +146,10 @@ Unused or reverted migrations that are created during development can be manuall
 - Just declare and freely append fields to your `struct`s.
 - Check out the `migrations.toml` file that is generated in your project root to see what's happening.
 - If you run into any weird compiler errors, try just re-compiling first; depending on the order the proc macros run, sometimes it just needs a little push to get in sync after a schema change.
-- Schema migrations are one-way, append-only. (SQLite doesn't even support `ALTER TABLE DROP {column}`, so we're not even going there for now.)
+- Schema migrations are one-way, append-only. This is similar to the approach taken by [leafac/sqlite-migration](https://github.com/leafac/sqlite-migration#no-down-migrations); see that link for a discussion of the tradeoffs.
 - On launch, versions of your binary built with a newer schema will automatically apply the appropriate migrations to an older database.
 - If you're feeling adventurous, you can add your own schema migration entries to the bottom of the list. (For creating indexes, etc.)
+- You can hand-write complex migrations as well, see [turbo/migrations.toml](https://github.com/trevyn/turbo/blob/main/migrations.toml) for some examples.
 - Questions? Ask on Discord (https://discord.gg/RX3rTWUzUD) or open a GitHub discussion! -> https://github.com/trevyn/turbosql/discussions/new
 
 ## Where's my data?
