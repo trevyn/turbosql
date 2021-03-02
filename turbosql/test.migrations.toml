@@ -21,3 +21,25 @@ output_generated_schema_for_your_information_do_not_edit = '''
     image_jpg BLOB
   )
 '''
+[output_generated_tables_do_not_edit.person]
+name = 'person'
+
+[[output_generated_tables_do_not_edit.person.columns]]
+name = 'rowid'
+rust_type = 'Option < i64 >'
+sql_type = 'INTEGER PRIMARY KEY'
+
+[[output_generated_tables_do_not_edit.person.columns]]
+name = 'name'
+rust_type = 'Option < String >'
+sql_type = 'TEXT'
+
+[[output_generated_tables_do_not_edit.person.columns]]
+name = 'age'
+rust_type = 'Option < i64 >'
+sql_type = 'INTEGER'
+
+[[output_generated_tables_do_not_edit.person.columns]]
+name = 'image_jpg'
+rust_type = 'Option < Blob >'
+sql_type = 'BLOB'

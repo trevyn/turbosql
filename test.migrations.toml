@@ -67,3 +67,93 @@ output_generated_schema_for_your_information_do_not_edit = '''
     image_jpg BLOB
   )
 '''
+[output_generated_tables_do_not_edit.personintegrationtest]
+name = 'personintegrationtest'
+
+[[output_generated_tables_do_not_edit.personintegrationtest.columns]]
+name = 'rowid'
+rust_type = 'Option < i64 >'
+sql_type = 'INTEGER PRIMARY KEY'
+
+[[output_generated_tables_do_not_edit.personintegrationtest.columns]]
+name = 'field_string'
+rust_type = 'Option < String >'
+sql_type = 'TEXT'
+
+[[output_generated_tables_do_not_edit.personintegrationtest.columns]]
+name = 'field_i64'
+rust_type = 'Option < i64 >'
+sql_type = 'INTEGER'
+
+[[output_generated_tables_do_not_edit.personintegrationtest.columns]]
+name = 'field_i54'
+rust_type = 'Option < i54 >'
+sql_type = 'INTEGER'
+
+[[output_generated_tables_do_not_edit.personintegrationtest.columns]]
+name = 'field_bool'
+rust_type = 'Option < bool >'
+sql_type = 'BOOLEAN'
+
+[[output_generated_tables_do_not_edit.personintegrationtest.columns]]
+name = 'field_f64'
+rust_type = 'Option < f64 >'
+sql_type = 'REAL'
+
+[[output_generated_tables_do_not_edit.personintegrationtest.columns]]
+name = 'field_u8'
+rust_type = 'Option < u8 >'
+sql_type = 'INTEGER'
+
+[[output_generated_tables_do_not_edit.personintegrationtest.columns]]
+name = 'field_i8'
+rust_type = 'Option < i8 >'
+sql_type = 'INTEGER'
+
+[[output_generated_tables_do_not_edit.personintegrationtest.columns]]
+name = 'field_u16'
+rust_type = 'Option < u16 >'
+sql_type = 'INTEGER'
+
+[[output_generated_tables_do_not_edit.personintegrationtest.columns]]
+name = 'field_i16'
+rust_type = 'Option < i16 >'
+sql_type = 'INTEGER'
+
+[[output_generated_tables_do_not_edit.personintegrationtest.columns]]
+name = 'field_u32'
+rust_type = 'Option < u32 >'
+sql_type = 'INTEGER'
+
+[[output_generated_tables_do_not_edit.personintegrationtest.columns]]
+name = 'field_i32'
+rust_type = 'Option < i32 >'
+sql_type = 'INTEGER'
+
+[[output_generated_tables_do_not_edit.personintegrationtest.columns]]
+name = 'field_blob'
+rust_type = 'Option < Blob >'
+sql_type = 'BLOB'
+
+[output_generated_tables_do_not_edit.personintegrationtest_i54]
+name = 'personintegrationtest_i54'
+
+[[output_generated_tables_do_not_edit.personintegrationtest_i54.columns]]
+name = 'rowid'
+rust_type = 'Option < i54 >'
+sql_type = 'INTEGER PRIMARY KEY'
+
+[[output_generated_tables_do_not_edit.personintegrationtest_i54.columns]]
+name = 'name'
+rust_type = 'Option < String >'
+sql_type = 'TEXT'
+
+[[output_generated_tables_do_not_edit.personintegrationtest_i54.columns]]
+name = 'age'
+rust_type = 'Option < i64 >'
+sql_type = 'INTEGER'
+
+[[output_generated_tables_do_not_edit.personintegrationtest_i54.columns]]
+name = 'image_jpg'
+rust_type = 'Option < Blob >'
+sql_type = 'BLOB'
