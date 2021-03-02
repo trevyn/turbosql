@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added `thread_local` SQLite connections and support for transactions. [https://github.com/trevyn/turbosql#transactions-and-async](https://github.com/trevyn/turbosql#transactions-and-async)
+- Added `thread_local` SQLite connections and support for transactions. See [https://github.com/trevyn/turbosql#transactions-and-async](https://github.com/trevyn/turbosql#transactions-and-async)
 - Added some extra table info to `migrations.toml` to give the proc macro more information to do its job.
 - Added `turbosql::checkpoint()` to perform a SQLite WAL checkpoint operation.
 
