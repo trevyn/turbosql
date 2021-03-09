@@ -8,7 +8,7 @@ Easy local data persistence layer, backed by SQLite.
 
 - Schema auto-defined by your Rust `struct`s
 - Automatic schema migrations
-- Super-simple basic insert/select/update/delete operations
+- Super-simple basic `INSERT`/`SELECT`/`UPDATE`/`DELETE` operations
 - Use complex SQL if that's your jam
 - Validates all SQL (including user-supplied) at compile time
 
