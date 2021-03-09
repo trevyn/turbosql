@@ -2,6 +2,8 @@
 //!
 //! Please refer to the `turbosql` crate for how to set this up.
 
+#![forbid(unsafe_code)]
+
 // #![allow(unused_imports)]
 const SQLITE_64BIT_ERROR: &str = r##"SQLite cannot natively store unsigned 64-bit integers, so Turbosql does not support u64 fields. Use i64, u32, f64, or a string or binary format instead. (see https://github.com/trevyn/turbosql/issues/3 )"##;
 

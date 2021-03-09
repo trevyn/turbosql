@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 #[cfg(all(not(feature = "test"), any(test, doctest)))]
 compile_error!("turbosql must be tested with '--features test'");
 
