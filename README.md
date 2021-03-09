@@ -63,7 +63,7 @@ fn main() -> anyhow::Result<()> {
 }
 ```
 
-See [`integration_test.rs`](https://github.com/trevyn/turbosql/blob/main/turbosql/tests/integration_test.rs) for more usage examples!
+See [`integration_test.rs`](https://github.com/trevyn/turbosql/blob/main/turbosql/tests/integration_test.rs) or [trevyn/turbo](https://github.com/trevyn/turbo/blob/main/turbo_server/src/schema.rs) for more usage examples!
 
 ## Under the Hood
 
