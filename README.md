@@ -154,7 +154,7 @@ Unused or reverted migrations that are created during development can be manuall
 
 ## Where's my data?
 
-The SQLite database file is created in the directory returned by [`directories_next::ProjectDirs::data_dir()`](https://docs.rs/directories-next/2.0.0/directories_next/struct.ProjectDirs.html#method.data_dir) + your executable's filename stem, which resolves to something like:
+The SQLite database file is created in the directory returned by [`directories_next::ProjectDirs::data_dir()`](https://docs.rs/directories-next/%5E2.0.0/directories_next/struct.ProjectDirs.html#method.data_dir) + your executable's filename stem, which resolves to something like:
 
 <table><tr><td>Linux</td><td><br>
 
