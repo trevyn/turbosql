@@ -274,6 +274,10 @@ Sometimes everything is optional; this example will retrieve all `Person` rows.
 </table>
 <br>
 
+## Releases
+
+We don't follow a specific release calendar, but if you need a release, please file an issue requesting that.
+
 ## "turbosql" or "Turbosql"?
 
 Your choice, but you _definitely_ do not want to capitalize any of the _other_ letters in the name! ;)
