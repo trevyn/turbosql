@@ -19,9 +19,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          args: --verbose --no-progress --exclude=crates.io
-#                                         ^^^^^^^^^^^^^^^^^
-#                    https://github.com/rust-lang/crates.io/issues/788
+          args: --verbose --no-progress --headers "accept=text/html"
 
       - name: Fail if there were link-check errors
         run: exit ${{ steps.lychee.outputs.exit_code }}
