@@ -12,6 +12,8 @@ jobs:
   checklinks:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
+
       - uses: lycheeverse/lychee-action@v1
         id: lychee
         env:
