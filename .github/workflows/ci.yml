@@ -9,6 +9,21 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  checklinks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: lycheeverse/lychee-action@v1
+        id: lychee
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: --verbose --no-progress --exclude=crates.io
+#                                         ^^^^^^^^^^^^^^^^^
+#                    https://github.com/rust-lang/crates.io/issues/788
+
+      - name: Fail if there were link-check errors
+        run: exit ${{ steps.lychee.outputs.exit_code }}
+
   test:
     name: test rust ${{ matrix.rust }}
     runs-on: ubuntu-latest
@@ -16,7 +31,7 @@ jobs:
       fail-fast: false
       matrix:
         rust: [1.46, 1.47, stable, beta, nightly]
-             # 1.46 is minimum rustc version
+#              1.46 is minimum rustc version
     steps:
       - uses: actions/checkout@v2
 
@@ -24,17 +39,6 @@ jobs:
         with:
           rust-version: ${{ matrix.rust }}
       
-      - name: Check links with lychee
-        uses: lycheeverse/lychee-action@v1
-        id: lychee
-        with:
-          args: --verbose --no-progress --exclude=crates.io
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Fail if there were link-check errors
-        run: exit ${{ steps.lychee.outputs.exit_code }}
-
       - name: cargo test turbosql-impl
         run: cargo test --features "test" -- --nocapture
         working-directory: 'turbosql-impl'
