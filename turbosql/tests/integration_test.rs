@@ -61,7 +61,7 @@ fn integration_test() {
  assert!(
   execute!("")
    == Err(rusqlite::Error::SqliteFailure(
-    rusqlite::ffi::Error { code: rusqlite::ErrorCode::APIMisuse, extended_code: 21 },
+    rusqlite::ffi::Error { code: rusqlite::ErrorCode::ApiMisuse, extended_code: 21 },
     Some("not an error".to_string()),
    ))
  );
