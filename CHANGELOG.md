@@ -5,11 +5,6 @@ All changes that are notable to _users_ of this crate will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased blocked pending rusqlite 0.25]
-
-- Add support for struct fields of additional type: `f32`
-  - e.g. `struct S { field_f32: Option<f32> }`
-
 ## [Unreleased]
 
 ### Added
@@ -25,6 +20,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [0.2.0] - 2021-05-23
+
+### Bumped
+
+- Bumped `rusqlite` to 0.25
+
+### Added
+
+- Added support for struct fields of additional type: `f32`
+  - e.g. `struct S { field_f32: Option<f32> }`
 
 ## [0.1.7] - 2021-03-02
 
