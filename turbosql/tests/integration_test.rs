@@ -16,7 +16,7 @@ struct PersonIntegrationTest {
  field_i54: Option<i54>,
  field_bool: Option<bool>,
  field_f64: Option<f64>,
- // field_f32: Option<f32>,
+ field_f32: Option<f32>,
  field_u8: Option<u8>,
  field_i8: Option<i8>,
  field_u16: Option<u16>,
@@ -48,7 +48,7 @@ fn integration_test() {
   field_u8: Some(42),
   field_i64: Some(85262398562),
   field_f64: Some(std::f64::consts::PI),
-  // field_f32: Some(std::f64::consts::E),
+  field_f32: Some(std::f32::consts::E),
   field_blob: None,
   ..Default::default()
  };
@@ -71,7 +71,7 @@ fn integration_test() {
 
  assert!(select!(PersonIntegrationTest).unwrap() == row);
  assert!(
-  select!(PersonIntegrationTest "rowid, field_string, field_i64, field_i54, field_bool, field_f64, field_u8, field_i8, field_u16, field_i16, field_u32, field_i32, field_blob FROM personintegrationtest")
+  select!(PersonIntegrationTest "rowid, field_string, field_i64, field_i54, field_bool, field_f64, field_f32, field_u8, field_i8, field_u16, field_i16, field_u32, field_i32, field_blob FROM personintegrationtest")
    .unwrap()
    == row
  );
@@ -111,9 +111,7 @@ fn integration_test() {
  assert!(select!(Vec<PersonIntegrationTest> "WHERE field_u8 = 999").unwrap() == vec![]);
  assert!(select!(Option<PersonIntegrationTest> "WHERE field_u8 = 999").unwrap() == None);
 
- // assert!(
- //  select!(f32 "field_u8 FROM personintegrationtest").unwrap() == row.field_f64.unwrap() as f32
- // );
+ assert!(select!(f32 "field_f32 FROM personintegrationtest").unwrap() == row.field_f32.unwrap());
  assert!(select!(f64 "field_f64 FROM personintegrationtest").unwrap() == row.field_f64.unwrap());
 
  assert!(select!(i8 "field_u8 FROM personintegrationtest").unwrap() == row.field_u8.unwrap() as i8);

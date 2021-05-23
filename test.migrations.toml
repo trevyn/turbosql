@@ -101,6 +101,11 @@ rust_type = 'Option < f64 >'
 sql_type = 'REAL'
 
 [[output_generated_tables_do_not_edit.personintegrationtest.columns]]
+name = 'field_f32'
+rust_type = 'Option < f32 >'
+sql_type = 'REAL'
+
+[[output_generated_tables_do_not_edit.personintegrationtest.columns]]
 name = 'field_u8'
 rust_type = 'Option < u8 >'
 sql_type = 'INTEGER'
