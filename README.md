@@ -12,10 +12,6 @@ Easy local data persistence layer, backed by SQLite.
 - Use complex SQL if that's your jam
 - Validates all SQL (including user-supplied) at compile time
 
-## Status
-
-Updated March 2021! Actively used as the database backend for [Turbo](https://github.com/trevyn/turbo). Contributions are very much welcome!
-
 ## Usage
 
 ```toml
