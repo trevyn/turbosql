@@ -50,10 +50,9 @@ jobs:
       - run: cargo doc --no-deps
 
       - run: >
-          echo "[patch.crates-io]
+          echo "
+          [patch.crates-io]
           rusqlite = {git = \"https://github.com/rusqlite/rusqlite\", branch = \"master\"}" >> Cargo.toml
-
-      - run: cat Cargo.toml
 
       - run: cargo clean
 
