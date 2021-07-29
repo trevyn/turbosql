@@ -30,7 +30,7 @@ struct Person {
     image_jpg: Option<Blob>
 }
 
-fn main() -> Box<dyn std::error::Error> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // INSERT a row
     let rowid = Person {
