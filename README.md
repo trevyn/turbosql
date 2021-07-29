@@ -17,7 +17,6 @@ Easy local data persistence layer, backed by SQLite.
 ```toml
 [dependencies]
 turbosql = "0.2"
-anyhow = "1"
 ```
 
 ```rust
@@ -31,7 +30,7 @@ struct Person {
     image_jpg: Option<Blob>
 }
 
-fn main() -> anyhow::Result<()> {
+fn main() -> Box<dyn std::error::Error> {
 
     // INSERT a row
     let rowid = Person {
