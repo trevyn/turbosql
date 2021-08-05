@@ -30,6 +30,12 @@ pub use turbosql_impl::{execute, select, Turbosql};
 /// Wrapper for `Vec<u8>` that may one day impl `Read`, `Write` and `Seek` traits.
 pub type Blob = Vec<u8>;
 
+#[derive(thiserror::Error, Debug)]
+pub enum TurbosqlError {
+ #[error("Turbosql Error: {0}")]
+ OtherError(&'static str),
+}
+
 #[derive(Clone, Debug, Deserialize, Default)]
 struct MigrationsToml {
  migrations_append_only: Option<Vec<String>>,
@@ -162,7 +168,7 @@ pub struct CheckpointResult {
 
 /// Checkpoint the DB.
 /// If no other threads have open connections, this will clean up the `-wal` and `-shm` files as well.
-pub fn checkpoint() -> anyhow::Result<CheckpointResult> {
+pub fn checkpoint() -> Result<CheckpointResult> {
  let start = std::time::Instant::now();
  let db_path = __DB_PATH.lock().unwrap();
 
@@ -226,11 +232,11 @@ thread_local! {
 /// Set the local path and filename where Turbosql will store the underlying SQLite database.
 ///
 /// Must be called before any usage of Turbosql macros or will return an error.
-pub fn set_db_path(path: &Path) -> Result<(), anyhow::Error> {
+pub fn set_db_path(path: &Path) -> Result<(), TurbosqlError> {
  let mut db_path = __DB_PATH.lock().unwrap();
 
  if db_path.opened {
-  return Err(anyhow::anyhow!("Trying to set path when DB is already opened"));
+  return Err(TurbosqlError::OtherError("Trying to set path when DB is already opened"));
  }
 
  db_path.path = path.to_owned();
