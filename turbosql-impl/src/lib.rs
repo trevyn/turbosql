@@ -483,7 +483,7 @@ fn do_parse_tokens(
 
   return Ok(quote! {
   {
-   (|| -> Result<_, _> {
+   (|| -> ::turbosql::Result<usize> {
     ::turbosql::__TURBOSQL_DB.with(|db| {
      let db = db.borrow_mut();
      let mut stmt = db.prepare_cached(#sql)?;
@@ -548,7 +548,7 @@ fn do_parse_tokens(
    quote! {
     {
      // #struct_decl
-     (|| -> Result<Vec<#contents>, ::turbosql::Error> {
+     (|| -> ::turbosql::Result<Vec<#contents>> {
       ::turbosql::__TURBOSQL_DB.with(|db| {
        let db = db.borrow_mut();
        let mut stmt = db.prepare_cached(#sql)?;
@@ -580,12 +580,12 @@ fn do_parse_tokens(
    quote! {
     {
      // #struct_decl
-     (|| -> Result<Option<#contents>, ::turbosql::Error> {
+     (|| -> ::turbosql::Result<Option<#contents>> {
       use ::turbosql::OptionalExtension;
       ::turbosql::__TURBOSQL_DB.with(|db| {
        let db = db.borrow_mut();
        let mut stmt = db.prepare_cached(#sql)?;
-       let result = stmt.query_row(::turbosql::params![#params], |row| -> Result<#contents, _> {
+       let result = stmt.query_row(::turbosql::params![#params], |row| -> ::turbosql::Result<#contents> {
         Ok(#contents {
          #(#row_casters),*
          // #default
@@ -606,11 +606,11 @@ fn do_parse_tokens(
   {
    quote! {
     {
-     (|| -> Result<#contents, ::turbosql::Error> {
+     (|| -> ::turbosql::Result<#contents> {
       ::turbosql::__TURBOSQL_DB.with(|db| {
        let db = db.borrow_mut();
        let mut stmt = db.prepare_cached(#sql)?;
-       let result = stmt.query_row(::turbosql::params![#params], |row| -> Result<#contents, _> {
+       let result = stmt.query_row(::turbosql::params![#params], |row| -> ::turbosql::Result<#contents> {
         Ok(row.get(0)?)
        })?;
        Ok(result)
@@ -629,11 +629,11 @@ fn do_parse_tokens(
 
    quote! {
     {
-     (|| -> Result<#contents, ::turbosql::Error> {
+     (|| -> ::turbosql::Result<#contents> {
       ::turbosql::__TURBOSQL_DB.with(|db| {
        let db = db.borrow_mut();
        let mut stmt = db.prepare_cached(#sql)?;
-       let result = stmt.query_row(::turbosql::params![#params], |row| -> Result<#contents, _> {
+       let result = stmt.query_row(::turbosql::params![#params], |row| -> ::turbosql::Result<#contents> {
         Ok(#contents {
          #(#row_casters),*
          // #default

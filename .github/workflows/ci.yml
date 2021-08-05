@@ -30,8 +30,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rust: [1.46, 1.47, stable, beta, nightly]
-#              1.46 is minimum rustc version
+        rust: [1.54, stable, beta, nightly]
+#              1.54 is minimum rustc version
     steps:
       - uses: actions/checkout@v2
 

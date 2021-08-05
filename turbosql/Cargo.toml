@@ -23,8 +23,8 @@ toml = "0.5"
 turbosql-impl = {path = "../turbosql-impl", version = "=0.2.0"}
 
 [dev-dependencies]
-doc-comment = "0.3"
 i54_ = {version = "0.2", features = ["rusqlite"]}
+tokio = {version = "1", features = ["rt-multi-thread", "macros"]}
 
 [features]
 test = ["turbosql-impl/test"]

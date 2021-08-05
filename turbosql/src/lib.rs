@@ -1,10 +1,8 @@
 #![forbid(unsafe_code)]
+#![doc = include_str!("../../README.md")]
 
 #[cfg(all(not(feature = "test"), any(test, doctest)))]
 compile_error!("turbosql must be tested with '--features test'");
-
-#[cfg(all(feature = "test", doctest))]
-doc_comment::doctest!("../../README.md");
 
 use itertools::{
  EitherOrBoth::{Both, Left, Right},
@@ -154,8 +152,11 @@ fn run_migrations(conn: &mut Connection) {
 
 #[derive(Debug)]
 pub struct CheckpointResult {
+ /// Should always be 0. (Checkpoint is run in PASSIVE mode.)
  pub busy: i64,
+ /// The number of modified pages that have been written to the write-ahead log file.
  pub log: i64,
+ /// The number of pages in the write-ahead log file that have been successfully moved back into the database file at the conclusion of the checkpoint.
  pub checkpointed: i64,
 }
 
@@ -217,8 +218,8 @@ fn open_db() -> Connection {
  conn
 }
 
-#[doc(hidden)]
 thread_local! {
+ #[doc(hidden)]
  pub static __TURBOSQL_DB: RefCell<Connection> = RefCell::new(open_db());
 }
 

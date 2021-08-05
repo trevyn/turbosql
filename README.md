@@ -41,13 +41,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }.insert()?;
 
     // SELECT all rows
-    let people: Vec<Person> = select!(Vec<Person>)?;
+    let people = select!(Vec<Person>)?;
 
     // SELECT multiple rows with a predicate
-    let people: Vec<Person> = select!(Vec<Person> "WHERE age > ?", 21)?;
+    let people = select!(Vec<Person> "WHERE age > ?", 21)?;
 
     // SELECT a single row with a predicate
-    let person: Person = select!(Person "WHERE name = ?", "Joe")?;
+    let person = select!(Person "WHERE name = ?", "Joe")?;
 
     // UPDATE
     execute!("UPDATE person SET age = ? WHERE name = ?", 18, "Joe")?;
@@ -146,7 +146,7 @@ Unused or reverted migrations that are created during development can be manuall
 - On launch, versions of your binary built with a newer schema will automatically apply the appropriate migrations to an older database.
 - If you're feeling adventurous, you can add your own schema migration entries to the bottom of the list. (For creating indexes, etc.)
 - You can hand-write complex migrations as well, see [turbo/migrations.toml](https://github.com/trevyn/turbo/blob/main/migrations.toml) for some examples.
-- Questions? Ask on Discord (https://discord.gg/RX3rTWUzUD) or open a GitHub issue.
+- Questions? Ask on Discord [https://discord.gg/RX3rTWUzUD](https://discord.gg/RX3rTWUzUD) or open a GitHub issue.
 
 ## Where's my data?
 
@@ -170,38 +170,60 @@ The SQLite database file is created in the directory returned by [`directories_n
 
 SQLite, and indeed many filesystems in general, only provide blocking (synchronous) APIs. The correct approach when using blocking APIs in a Rust `async` ecosystem is to use your executor's facility for running a closure on a thread pool in which blocking is expected. For example:
 
-```rust,ignore
-let person = tokio::task::spawn_blocking(move || {
-    select!(Person "WHERE id = ?", id)
-}).await??;
+```rust,no_run
+#[derive(turbosql::Turbosql, Default)]
+struct Person {
+    rowid: Option<i64>,
+    name: Option<String>
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let person = tokio::task::spawn_blocking(|| {
+        turbosql::select!(Person "WHERE name = ?", "Joe")
+    }).await??;
+    Ok(())
+}
 ```
 
 (Note that `spawn_blocking` returns a `JoinHandle` that must itself be unwrapped, hence the need for `??` near the end of these examples.)
 
 Under the hood, Turbosql uses persistent [`thread_local`](https://doc.rust-lang.org/std/macro.thread_local.html) database connections, so a continuous sequence of database calls from the same thread are guaranteed to use the same exclusive database connection. Thus, `async` transactions can be performed as such:
 
-```rust,ignore
-tokio::task::spawn_blocking(move || {
-    execute!("BEGIN IMMEDIATE TRANSACTION")?;
-    let p = select!(Person "WHERE id = ?", id)?;
-    // [ ...do any other blocking things... ]
-    execute!(
-        "UPDATE person SET value = ? WHERE id = ?",
-        p.value + 1,
-        id
-    )?;
-    execute!("COMMIT")?;
+```rust,no_run
+use turbosql::{Turbosql, select, execute};
+
+#[derive(Turbosql, Default)]
+struct Person {
+    rowid: Option<i64>,
+    age: Option<i64>
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    tokio::task::spawn_blocking(|| -> turbosql::Result<()> {
+        execute!("BEGIN IMMEDIATE TRANSACTION")?;
+        let p = select!(Person "WHERE rowid = ?", 1)?;
+        // [ ...do any other blocking things... ]
+        execute!(
+            "UPDATE person SET age = ? WHERE rowid = ?",
+            p.age.unwrap_or_default() + 1,
+            1
+        )?;
+        execute!("COMMIT")?;
+        Ok(())
+    }).await??;
     Ok(())
-}).await??;
+}
 ```
 
 Turbosql sets a SQLite [`busy_timeout`](https://sqlite.org/c3ref/busy_timeout.html) of 3 seconds, so any table lock contention is automatically re-tried up to that duration, after which the command that was unable to acquire a lock will return with an error.
 
-For further discussion of Turbosql's approach to `async` and transactions, see https://github.com/trevyn/turbosql/issues/4. Ideas for improvements to the ergonomics of the solution are very welcome.
+For further discussion of Turbosql's approach to `async` and transactions, see [https://github.com/trevyn/turbosql/issues/4](https://github.com/trevyn/turbosql/issues/4). Ideas for improvements to the ergonomics of the solution are very welcome.
 
 ## `-wal` and `-shm` files
 
-SQLite is an extremely reliable database engine, but it helps to understand how it interfaces with the filesystem. The main `.sqlite` file contains the bulk of the database. During database writes, SQLite also creates `.sqlite-wal` and `.sqlite-shm` files. If the host process is terminated without flushing writes, you may end up with these three files when you expected to have a single file. This is always fine; on next launch, SQLite knows how to resolve any interrupted writes and make sense of the world. However, if the `-wal` and/or `-shm` files are present, they **must be considered essential to database integrity**. Deleting them may result in a corrupted database. See https://sqlite.org/tempfiles.html .
+SQLite is an extremely reliable database engine, but it helps to understand how it interfaces with the filesystem. The main `.sqlite` file contains the bulk of the database. During database writes, SQLite also creates `.sqlite-wal` and `.sqlite-shm` files. If the host process is terminated without flushing writes, you may end up with these three files when you expected to have a single file. This is always fine; on next launch, SQLite knows how to resolve any interrupted writes and make sense of the world. However, if the `-wal` and/or `-shm` files are present, they **must be considered essential to database integrity**. Deleting them may result in a corrupted database. See [https://sqlite.org/tempfiles.html](https://sqlite.org/tempfiles.html).
 
 ## Example Query Forms
 
@@ -269,10 +291,6 @@ Sometimes everything is optional; this example will retrieve all `Person` rows.
 
 </table>
 <br>
-
-## Releases
-
-We don't follow a specific release calendar, but if you need a release, please file an issue requesting that.
 
 ## "turbosql" or "Turbosql"?
 
