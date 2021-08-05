@@ -185,7 +185,7 @@ fn open_db() -> Connection {
  let mut db_path = __DB_PATH.lock().unwrap();
 
  // We are handling the mutex by being thread_local, so SQLite can be opened in no-mutex mode; see:
- // http://sqlite.1065341.n5.nabble.com/SQLITE-OPEN-FULLMUTEX-vs-SQLITE-OPEN-NOMUTEX-td104785.html
+ // https://www.mail-archive.com/sqlite-users@mailinglists.sqlite.org/msg112907.html
 
  let mut conn = Connection::open_with_flags(
   &db_path.path,
