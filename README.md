@@ -170,7 +170,7 @@ The SQLite database file is created in the directory returned by [`directories_n
 
 SQLite, and indeed many filesystems in general, only provide blocking (synchronous) APIs. The correct approach when using blocking APIs in a Rust `async` ecosystem is to use your executor's facility for running a closure on a thread pool in which blocking is expected. For example:
 
-```rust,no_run
+```rust
 #[derive(turbosql::Turbosql, Default)]
 struct Person {
     rowid: Option<i64>,
@@ -180,7 +180,7 @@ struct Person {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let person = tokio::task::spawn_blocking(|| {
-        turbosql::select!(Person "WHERE name = ?", "Joe")
+        turbosql::select!(Option<Person> "WHERE name = ?", "Joe")
     }).await??;
     Ok(())
 }
@@ -190,7 +190,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 Under the hood, Turbosql uses persistent [`thread_local`](https://doc.rust-lang.org/std/macro.thread_local.html) database connections, so a continuous sequence of database calls from the same thread are guaranteed to use the same exclusive database connection. Thus, `async` transactions can be performed as such:
 
-```rust,no_run
+```rust
 use turbosql::{Turbosql, select, execute};
 
 #[derive(Turbosql, Default)]
@@ -202,6 +202,7 @@ struct Person {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tokio::task::spawn_blocking(|| -> turbosql::Result<()> {
+        Person { rowid: None, age: Some(21) }.insert()?;
         execute!("BEGIN IMMEDIATE TRANSACTION")?;
         let p = select!(Person "WHERE rowid = ?", 1)?;
         // [ ...do any other blocking things... ]
