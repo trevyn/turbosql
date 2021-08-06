@@ -245,12 +245,3 @@ pub fn set_db_path(path: &Path) -> Result<(), TurbosqlError> {
 
  Ok(())
 }
-
-#[cfg(test)]
-mod tests {
- use super::*;
- #[test]
- fn test_checkpoint() {
-  checkpoint().unwrap();
- }
-}

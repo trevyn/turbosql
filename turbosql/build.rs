@@ -15,5 +15,5 @@ fn main() {
  path2.push(std::env::var_os("OUT_DIR").unwrap());
  path2.push("migrations.toml");
 
- std::fs::hard_link(path, path2).unwrap();
+ std::fs::hard_link(path, path2).ok();
 }
