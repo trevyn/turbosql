@@ -44,31 +44,11 @@ struct MigrationsToml {
 
 #[derive(Clone, Debug, Default)]
 struct DbPath {
- path: PathBuf,
+ path: Option<PathBuf>,
  opened: bool,
 }
 
-static __DB_PATH: Lazy<Mutex<DbPath>> = Lazy::new(|| {
- #[cfg(not(feature = "test"))]
- let path = {
-  let exe_stem = std::env::current_exe().unwrap().file_stem().unwrap().to_owned();
-  let exe_stem_lossy = exe_stem.to_string_lossy();
-
-  let path = directories_next::ProjectDirs::from("org", &exe_stem_lossy, &exe_stem_lossy)
-   .unwrap()
-   .data_dir()
-   .to_owned();
-
-  std::fs::create_dir_all(&path).unwrap();
-
-  path.join(exe_stem).with_extension("sqlite")
- };
-
- #[cfg(feature = "test")]
- let path = Path::new(":memory:").to_owned();
-
- Mutex::new(DbPath { path, ..Default::default() })
-});
+static __DB_PATH: Lazy<Mutex<DbPath>> = Lazy::new(|| Mutex::new(DbPath { ..Default::default() }));
 
 fn run_migrations(conn: &mut Connection) {
  cfg_if::cfg_if! {
@@ -78,7 +58,7 @@ fn run_migrations(conn: &mut Connection) {
   } else if #[cfg(feature = "test")] {
    let toml_decoded: MigrationsToml = toml::from_str(include_str!("../../test.migrations.toml")).unwrap();
   } else {
-   let toml_decoded: MigrationsToml = toml::from_str(include_str!(concat!(env!("OUT_DIR"), "/../../../../../migrations.toml"))).expect("Unable to decode embedded migrations.toml");
+   let toml_decoded: MigrationsToml = toml::from_str(include_str!(concat!(env!("OUT_DIR"), "/migrations.toml"))).expect("Unable to decode embedded migrations.toml");
   }
  };
 
@@ -173,7 +153,7 @@ pub fn checkpoint() -> Result<CheckpointResult> {
  let db_path = __DB_PATH.lock().unwrap();
 
  let conn = Connection::open_with_flags(
-  &db_path.path,
+  db_path.path.as_ref().unwrap(),
   OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_NO_MUTEX,
  )?;
 
@@ -187,15 +167,37 @@ pub fn checkpoint() -> Result<CheckpointResult> {
 }
 
 fn open_db() -> Connection {
- let start = std::time::Instant::now();
+ //  let start = std::time::Instant::now();
 
  let mut db_path = __DB_PATH.lock().unwrap();
+
+ if db_path.path == None {
+  #[cfg(not(feature = "test"))]
+  let path = {
+   let exe_stem = std::env::current_exe().unwrap().file_stem().unwrap().to_owned();
+   let exe_stem_lossy = exe_stem.to_string_lossy();
+
+   let path = directories_next::ProjectDirs::from("org", &exe_stem_lossy, &exe_stem_lossy)
+    .unwrap()
+    .data_dir()
+    .to_owned();
+
+   std::fs::create_dir_all(&path).unwrap();
+
+   path.join(exe_stem).with_extension("sqlite")
+  };
+
+  #[cfg(feature = "test")]
+  let path = Path::new(":memory:").to_owned();
+
+  db_path.path = Some(path);
+ }
 
  // We are handling the mutex by being thread_local, so SQLite can be opened in no-mutex mode; see:
  // https://www.mail-archive.com/sqlite-users@mailinglists.sqlite.org/msg112907.html
 
  let mut conn = Connection::open_with_flags(
-  &db_path.path,
+  db_path.path.as_ref().unwrap(),
   OpenFlags::SQLITE_OPEN_READ_WRITE
    | OpenFlags::SQLITE_OPEN_CREATE
    | OpenFlags::SQLITE_OPEN_NO_MUTEX,
@@ -219,7 +221,7 @@ fn open_db() -> Connection {
   db_path.opened = true;
  }
 
- log::info!("db opened in {:?}", start.elapsed());
+ //  log::info!("db opened in {:?}", start.elapsed());
 
  conn
 }
@@ -239,7 +241,7 @@ pub fn set_db_path(path: &Path) -> Result<(), TurbosqlError> {
   return Err(TurbosqlError::OtherError("Trying to set path when DB is already opened"));
  }
 
- db_path.path = path.to_owned();
+ db_path.path = Some(path.to_owned());
 
  Ok(())
 }
