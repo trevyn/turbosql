@@ -167,8 +167,6 @@ pub fn checkpoint() -> Result<CheckpointResult> {
 }
 
 fn open_db() -> Connection {
- //  let start = std::time::Instant::now();
-
  let mut db_path = __DB_PATH.lock().unwrap();
 
  if db_path.path == None {
@@ -221,7 +219,7 @@ fn open_db() -> Connection {
   db_path.opened = true;
  }
 
- //  log::info!("db opened in {:?}", start.elapsed());
+ log::debug!("db opened at {:?}", db_path.path.as_ref().unwrap());
 
  conn
 }

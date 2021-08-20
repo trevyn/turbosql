@@ -3,7 +3,7 @@ use quote::quote_spanned;
 
 /// INSERT INTO tablename (name1, name2...) VALUES (?1, ?2...)
 pub(super) fn insert(table: &Table) -> proc_macro2::TokenStream {
- let sql = makesql_insert(&table);
+ let sql = makesql_insert(table);
 
  super::validate_sql_or_abort(&sql);
 
