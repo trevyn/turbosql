@@ -4,7 +4,7 @@
 [<img alt="crates.io" src="https://img.shields.io/crates/v/turbosql.svg?style=for-the-badge&color=ffc833&logo=rust" height="40">](https://crates.io/crates/turbosql)
 [<img alt="discord" src="https://img.shields.io/discord/761441128544600074?label=chat%20on%20Discord&style=for-the-badge&color=7289d9&logo=discord&logoColor=FFF" height="40">](https://discord.gg/RX3rTWUzUD)
 
-Easy local data persistence layer, backed by SQLite.
+An easy local data persistence layer, backed by SQLite.
 
 - Schema auto-defined by your Rust `struct`s
 - Automatic schema migrations
