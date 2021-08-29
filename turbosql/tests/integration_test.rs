@@ -53,8 +53,10 @@ fn integration_test() {
   ..Default::default()
  };
 
- row.insert().unwrap();
+ assert!(row.insert().unwrap() == 1);
  row.rowid = Some(1);
+ row.field_u8 = Some(84);
+ assert!(row.update().unwrap() == 1);
 
  assert!(select!(i64 "1").unwrap() == 1);
  assert!(select!(i64 "SELECT 1").unwrap() == 1);

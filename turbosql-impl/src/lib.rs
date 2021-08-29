@@ -5,7 +5,7 @@
 #![forbid(unsafe_code)]
 
 // #![allow(unused_imports)]
-const SQLITE_64BIT_ERROR: &str = r##"SQLite cannot natively store unsigned 64-bit integers, so Turbosql does not support u64 fields. Use i64, u32, f64, or a string or binary format instead. (see https://github.com/trevyn/turbosql/issues/3 )"##;
+const SQLITE_U64_ERROR: &str = r##"SQLite cannot natively store unsigned 64-bit integers, so Turbosql does not support u64 fields. Use i64, u32, f64, or a string or binary format instead. (see https://github.com/trevyn/turbosql/issues/3 )"##;
 
 use once_cell::sync::Lazy;
 use proc_macro2::Span;
@@ -29,6 +29,7 @@ const MIGRATIONS_FILENAME: &str = "migrations.toml";
 const MIGRATIONS_FILENAME: &str = "test.migrations.toml";
 
 mod insert;
+mod update;
 
 // trait Ok<T> {
 //  fn ok(self) -> Result<T, anyhow::Error>;
@@ -732,12 +733,14 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
  // create trait functions
 
  let fn_insert = insert::insert(&table);
+ let fn_update = update::update(&table);
 
  // output tokenstream
 
  proc_macro::TokenStream::from(quote! {
   impl #table {
    #fn_insert
+   #fn_update
   }
  })
 }
@@ -793,8 +796,8 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
     (_, "Option < u32 >") => "INTEGER",
     (_, "Option < i54 >") => "INTEGER",
     (_, "Option < i64 >") => "INTEGER",
-    (_, "u64") => abort!(ty, SQLITE_64BIT_ERROR),
-    (_, "Option < u64 >") => abort!(ty, SQLITE_64BIT_ERROR),
+    (_, "u64") => abort!(ty, SQLITE_U64_ERROR),
+    (_, "Option < u64 >") => abort!(ty, SQLITE_U64_ERROR),
     // (_, "f64") => "REAL NOT NULL",
     (_, "Option < f64 >") => "REAL",
     (_, "Option < f32 >") => "REAL",

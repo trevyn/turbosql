@@ -7,13 +7,12 @@ pub(super) fn insert(table: &Table) -> proc_macro2::TokenStream {
 
  super::validate_sql_or_abort(&sql);
 
- // let idents = table.columns.iter().map(|c| &c.ident).collect::<Vec<_>>();
  let columns = table
   .columns
   .iter()
   .map(|c| {
    let ident = &c.ident;
-   quote_spanned!(c.span=> &self.#ident as &dyn ::turbosql::ToSql)
+   quote_spanned!(c.span => &self.#ident as &dyn ::turbosql::ToSql)
   })
   .collect::<Vec<_>>();
 
@@ -24,7 +23,7 @@ pub(super) fn insert(table: &Table) -> proc_macro2::TokenStream {
    ::turbosql::__TURBOSQL_DB.with(|db| {
     let db = db.borrow_mut();
     let mut stmt = db.prepare_cached(#sql)?;
-    stmt.insert(&[#(#columns),*] as &[&dyn ::turbosql::ToSql])
+    stmt.insert(&[#( #columns ),*] as &[&dyn ::turbosql::ToSql])
    })
   }
 
