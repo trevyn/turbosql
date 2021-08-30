@@ -683,7 +683,7 @@ pub fn select(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
  proc_macro::TokenStream::from(tokens)
 }
 
-/// Derive this on a `struct` to create a corresponding SQLite table and `insert`/`update`/`upsert` methods. (TODO: `Turbosql` trait?)
+/// Derive this on a `struct` to create a corresponding SQLite table and `Turbosql` trait methods.
 #[proc_macro_derive(Turbosql, attributes(turbosql))]
 #[proc_macro_error]
 pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::TokenStream {

@@ -30,6 +30,16 @@ pub use turbosql_impl::{execute, select, Turbosql};
 /// Wrapper for `Vec<u8>` that may one day impl `Read`, `Write` and `Seek` traits.
 pub type Blob = Vec<u8>;
 
+/// `#[derive(Turbosql)]` generates impls for this trait.
+pub trait Turbosql {
+ /// Inserts this row into the database. `rowid` must be `None`. On success, returns the new `rowid`.
+ fn insert(&self) -> Result<i64>;
+ fn insert_batch(rows: &[&Self]);
+ /// Updates this existing row in the database, based on `rowid`, which must be `Some`. All fields are overwritten in the database. On success, returns the number of rows updated, which should be 1.
+ fn update(&self) -> Result<usize>;
+ fn update_batch(rows: &[&Self]);
+}
+
 #[derive(thiserror::Error, Debug)]
 pub enum TurbosqlError {
  #[error("Turbosql Error: {0}")]
