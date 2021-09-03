@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.1] - 2021-09-03
+
+### Fixed
+
+- Symlink `README.md` so crates.io published package works.
+
 ## [0.3.0] - 2021-09-03
 
 ### Added
