@@ -16,7 +16,7 @@ An easy local data persistence layer, backed by SQLite.
 
 ```toml
 [dependencies]
-turbosql = "0.2"
+turbosql = "0.3"
 ```
 
 ```rust

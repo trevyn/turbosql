@@ -1,25 +1,20 @@
 # Changelog
 
-All changes that are notable to _users_ of this crate will be documented in this file. This specifically excludes minor internal changes (such as changes in test coverage, small documentation fixes, etc.), though major internal changes will be noted. Refer to the commit history if you need more detail.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]
+## [0.3.0] - 2021-09-03
 
 ### Added
 
+- Added `Turbosql` trait that represents the methods added by `#[derive(Turbosql)]`
+- Added `.update()` trait method. The row with the specified `rowid` is updated; all fields are updated in the database.
+
 ### Changed
 
-### Improved
-
-### Deprecated
-
-### Removed
+- MSRV is now Rust 1.54.
+- Some errors of type `anyhow::Error` have been changed to `turbosql::TurbosqlError`.
 
 ### Fixed
 
-### Security
+- If no `migrations.toml` file exists in the project, an empty one will be created to prevent a cryptic error. :)
 
 ## [0.2.0] - 2021-05-23
 
