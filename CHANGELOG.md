@@ -4,13 +4,13 @@
 
 ### Added
 
-- Added `Turbosql` trait that represents the methods added by `#[derive(Turbosql)]`
-- Added `.update()` trait method. The row with the specified `rowid` is updated; all fields are updated in the database.
+- Added `Turbosql` trait that represents the methods added by `#[derive(Turbosql)]`.
+- Added `.update()` trait method. The row matching the caller's `rowid` is updated; all fields are replaced in the database.
 
 ### Changed
 
 - MSRV is now Rust 1.54.
-- Some errors of type `anyhow::Error` have been changed to `turbosql::TurbosqlError`.
+- Some returned errors of type `anyhow::Error` have been changed to `turbosql::TurbosqlError`.
 
 ### Fixed
 
