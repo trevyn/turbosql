@@ -3,7 +3,7 @@ name: ci
 on:
   push:
   pull_request:
-  schedule: [cron: '40 2 * * *']
+  schedule: [cron: '40 8 * * *']
 
 env:
   CARGO_TERM_COLOR: always
@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: lycheeverse/lychee-action@v1
+      - uses: trevyn/lychee-action@v1
         id: lychee
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
