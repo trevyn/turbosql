@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.4.0] - Unreleased
+
+### Bumped
+
+- Bumped `rusqlite` to 0.26
+
+### Removed
+
+- Removed `i54_` support. Try the `turbocharger` crate, which supports `i64`/`BigInt` via RPC. :)
+
 ## [0.3.1] - 2021-09-03
 
 ### Fixed

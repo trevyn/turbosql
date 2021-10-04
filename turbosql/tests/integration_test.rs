@@ -5,7 +5,6 @@ compile_error!("turbosql must be tested with '--features test'");
 #[cfg(not(test))]
 compile_error!("integration_tests.rs must be run in test mode");
 
-use i54_::i54;
 use turbosql::{execute, select, Blob, Turbosql};
 
 #[derive(Turbosql, Default, Debug, PartialEq, Clone)]
@@ -13,7 +12,6 @@ struct PersonIntegrationTest {
  rowid: Option<i64>,
  field_string: Option<String>,
  field_i64: Option<i64>,
- field_i54: Option<i54>,
  field_bool: Option<bool>,
  field_f64: Option<f64>,
  field_f32: Option<f32>,
@@ -26,22 +24,8 @@ struct PersonIntegrationTest {
  field_blob: Option<Blob>,
 }
 
-#[derive(Turbosql, Default, Debug, Eq, PartialEq, Clone)]
-#[allow(non_camel_case_types)]
-struct PersonIntegrationTest_i54 {
- rowid: Option<i54>,
- name: Option<String>,
- age: Option<i64>,
- image_jpg: Option<Blob>,
-}
-
 #[test]
 fn integration_test() {
- // check rowid returned from insert()
- let row = PersonIntegrationTest_i54 { ..Default::default() };
- assert!(row.insert().unwrap() == 1);
- assert!(row.insert().unwrap() == 2);
-
  let mut row = PersonIntegrationTest {
   rowid: None,
   field_string: Some("Bob".into()),
@@ -73,7 +57,7 @@ fn integration_test() {
 
  assert!(select!(PersonIntegrationTest).unwrap() == row);
  assert!(
-  select!(PersonIntegrationTest "rowid, field_string, field_i64, field_i54, field_bool, field_f64, field_f32, field_u8, field_i8, field_u16, field_i16, field_u32, field_i32, field_blob FROM personintegrationtest")
+  select!(PersonIntegrationTest "rowid, field_string, field_i64, field_bool, field_f64, field_f32, field_u8, field_i8, field_u16, field_i16, field_u32, field_i32, field_blob FROM personintegrationtest")
    .unwrap()
    == row
  );

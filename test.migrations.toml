@@ -86,11 +86,6 @@ rust_type = 'Option < i64 >'
 sql_type = 'INTEGER'
 
 [[output_generated_tables_do_not_edit.personintegrationtest.columns]]
-name = 'field_i54'
-rust_type = 'Option < i54 >'
-sql_type = 'INTEGER'
-
-[[output_generated_tables_do_not_edit.personintegrationtest.columns]]
 name = 'field_bool'
 rust_type = 'Option < bool >'
 sql_type = 'BOOLEAN'

@@ -786,7 +786,6 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
 
    let sql_type = match (name.as_str(), ty_str.as_str()) {
     ("rowid", "Option < i64 >") => "INTEGER PRIMARY KEY",
-    ("rowid", "Option < i54 >") => "INTEGER PRIMARY KEY",
     // (_, "i64") => "INTEGER NOT NULL",
     (_, "Option < i8 >") => "INTEGER",
     (_, "Option < u8 >") => "INTEGER",
@@ -794,7 +793,6 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
     (_, "Option < u16 >") => "INTEGER",
     (_, "Option < i32 >") => "INTEGER",
     (_, "Option < u32 >") => "INTEGER",
-    (_, "Option < i54 >") => "INTEGER",
     (_, "Option < i64 >") => "INTEGER",
     (_, "u64") => abort!(ty, SQLITE_U64_ERROR),
     (_, "Option < u64 >") => abort!(ty, SQLITE_U64_ERROR),
