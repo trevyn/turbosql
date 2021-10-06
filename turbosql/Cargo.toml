@@ -2,6 +2,7 @@
 authors = ["trevyn <trevyn-git@protonmail.com>"]
 categories = ["database"]
 description = "An easy local data persistence layer, backed by SQLite."
+documentation = "https://docs.rs/turbosql"
 edition = "2018"
 keywords = ["database", "sqlite", "sql"]
 license = "MIT OR Apache-2.0 OR CC0-1.0"
