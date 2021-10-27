@@ -27,6 +27,7 @@ jobs:
   test:
     name: test rust ${{ matrix.rust }}
     runs-on: ubuntu-latest
+
     strategy:
       fail-fast: false
       matrix:
@@ -60,4 +61,24 @@ jobs:
 
       - name: rusqlite master cargo test turbosql
         run: cargo test --features "test" -- --nocapture
+        working-directory: 'turbosql'
+
+  publish:
+    needs: [checklinks, test]
+    runs-on: ubuntu-latest
+    if: ${{ contains(github.event.head_commit.message, 'turbosql@') && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: hecrj/setup-rust-action@v1
+        with:
+          rust-version: stable
+
+      - name: cargo publish turbosql-impl
+        run: cargo publish --no-verify --allow-dirty --token ${{ secrets.CARGO_TOKEN }}
+        working-directory: 'turbosql-impl'
+
+      - name: cargo publish turbosql
+        run: cargo publish --no-verify --allow-dirty --token ${{ secrets.CARGO_TOKEN }}
         working-directory: 'turbosql'
