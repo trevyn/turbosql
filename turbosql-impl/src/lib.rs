@@ -738,6 +738,7 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
  // output tokenstream
 
  proc_macro::TokenStream::from(quote! {
+  #[cfg(not(target_arch = "wasm32"))]
   impl #table {
    #fn_insert
    #fn_update
