@@ -1,10 +1,11 @@
 [package]
 authors = ["trevyn <trevyn-git@protonmail.com>"]
 description = "Internal implementation details for Turbosql."
-edition = "2018"
+edition = "2021"
 license = "MIT OR Apache-2.0 OR CC0-1.0"
 name = "turbosql-impl"
 repository = "https://github.com/trevyn/turbosql"
+rust-version = "1.56"
 version = "0.3.1"
 
 [lib]
