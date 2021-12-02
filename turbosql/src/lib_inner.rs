@@ -90,7 +90,7 @@ fn run_migrations(conn: &mut Connection) {
    // no migrations table exists yet, create
    conn
     .execute_batch(
-     r#"CREATE TABLE _turbosql_migrations (rowid INTEGER PRIMARY KEY, migration TEXT NOT NULL)"#,
+     r#"CREATE TABLE _turbosql_migrations (rowid INTEGER PRIMARY KEY, migration TEXT NOT NULL) STRICT"#,
     )
     .expect("CREATE TABLE _turbosql_migrations");
   }

@@ -85,7 +85,7 @@ CREATE TABLE person (
     name TEXT,
     age INTEGER,
     image_jpg BLOB,
-)
+) STRICT
 
 INSERT INTO person (rowid, name, age, image_jpg) VALUES (?, ?, ?, ?)
 
@@ -122,14 +122,14 @@ struct Person {
 
 ```toml
 migrations_append_only = [
-  'CREATE TABLE person(rowid INTEGER PRIMARY KEY)',
+  'CREATE TABLE person(rowid INTEGER PRIMARY KEY) STRICT',
   'ALTER TABLE person ADD COLUMN name TEXT',
 ]
 output_generated_schema_for_your_information_do_not_edit = '''
   CREATE TABLE person (
     rowid INTEGER PRIMARY KEY,
     name TEXT
-  )
+  ) STRICT
 '''
 ```
 

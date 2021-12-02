@@ -4,7 +4,7 @@
 # Modifying it by hand may be dangerous; see the docs.
 
 migrations_append_only = [
-  'CREATE TABLE person (rowid INTEGER PRIMARY KEY)',
+  'CREATE TABLE person (rowid INTEGER PRIMARY KEY) STRICT',
   'ALTER TABLE person ADD COLUMN name TEXT',
   'ALTER TABLE person ADD COLUMN age INTEGER',
   'ALTER TABLE person ADD COLUMN image_jpg BLOB',
@@ -13,13 +13,13 @@ output_generated_schema_for_your_information_do_not_edit = '''
   CREATE TABLE _turbosql_migrations (
     rowid INTEGER PRIMARY KEY,
     migration TEXT NOT NULL
-  )
+  ) STRICT
   CREATE TABLE person (
     rowid INTEGER PRIMARY KEY,
     name TEXT,
     age INTEGER,
     image_jpg BLOB
-  )
+  ) STRICT
 '''
 [output_generated_tables_do_not_edit.person]
 name = 'person'
@@ -33,3 +33,13 @@ sql_type = 'INTEGER PRIMARY KEY'
 name = 'name'
 rust_type = 'Option < String >'
 sql_type = 'TEXT'
+
+[[output_generated_tables_do_not_edit.person.columns]]
+name = 'age'
+rust_type = 'Option < i64 >'
+sql_type = 'INTEGER'
+
+[[output_generated_tables_do_not_edit.person.columns]]
+name = 'image_jpg'
+rust_type = 'Option < Blob >'
+sql_type = 'BLOB'

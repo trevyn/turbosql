@@ -262,7 +262,7 @@ fn migrations_to_tempdb(migrations: &[String]) -> Connection {
 
  tempdb
   .execute_batch(
-   "CREATE TABLE _turbosql_migrations (rowid INTEGER PRIMARY KEY, migration TEXT NOT NULL);",
+   "CREATE TABLE _turbosql_migrations (rowid INTEGER PRIMARY KEY, migration TEXT NOT NULL) STRICT;",
   )
   .unwrap();
 
@@ -801,7 +801,7 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
     (_, "Option < f64 >") => "REAL",
     (_, "Option < f32 >") => "REAL",
     // (_, "bool") => "BOOLEAN NOT NULL",
-    (_, "Option < bool >") => "BOOLEAN",
+    (_, "Option < bool >") => "INTEGER",
     // (_, "String") => "TEXT NOT NULL",
     (_, "Option < String >") => "TEXT",
     // SELECT LENGTH(blob_column) ... will be null if blob is null
@@ -933,14 +933,14 @@ fn create(table: &Table) {
 
 fn makesql_create(table: &Table) -> String {
  format!(
-  "CREATE TABLE {} ({})",
+  "CREATE TABLE {} ({}) STRICT",
   table.name,
   table.columns.iter().map(|c| format!("{} {}", c.name, c.sql_type)).collect::<Vec<_>>().join(",")
  )
 }
 
 fn make_migrations(table: &Table) -> Vec<String> {
- let mut vec = vec![format!("CREATE TABLE {} (rowid INTEGER PRIMARY KEY)", table.name)];
+ let mut vec = vec![format!("CREATE TABLE {} (rowid INTEGER PRIMARY KEY) STRICT", table.name)];
 
  let mut alters = table
   .columns
