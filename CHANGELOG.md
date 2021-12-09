@@ -1,14 +1,19 @@
 # Changelog
 
-## [0.4.0] - Unreleased
+## [0.4.0] - 2021-12-09
 
 ### Bumped
 
-- Bumped `rusqlite` to 0.26
+- Bumped `rusqlite` to 0.26.3
 
 ### Removed
 
 - Removed `i54_` support. Try the `turbocharger` crate, which supports `i64`/`BigInt` via RPC. :)
+
+### Changed
+
+- MSRV is now Rust 1.56.
+- New tables are created with SQLite 3.37's `STRICT` mode.
 
 ## [0.3.1] - 2021-09-03
 

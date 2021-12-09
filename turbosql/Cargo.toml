@@ -21,7 +21,7 @@ directories-next = "2"
 itertools = "0.10"
 log = "0.4"
 once_cell = "1.5"
-rusqlite = {version = "0.26", features = ["bundled", "blob"]}
+rusqlite = {version = "0.26.3", features = ["bundled", "blob"]}
 serde = {version = "1", features = ["derive"]}
 thiserror = "1"
 toml = "0.5"
