@@ -8,4 +8,4 @@ compile_error!("turbosql must be tested with '--features test'");
 include!("lib_inner.rs");
 
 #[cfg(target_arch = "wasm32")]
-pub use turbosql_impl::Turbosql;
+pub use turbosql_impl::{execute, select, Turbosql};
