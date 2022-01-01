@@ -1,3 +1,4 @@
 {
- "rust-analyzer.checkOnSave.features": ["test"]
+ "rust-analyzer.checkOnSave.features": ["test"],
+ "rust-analyzer.cargo.features": ["test"]
 }
