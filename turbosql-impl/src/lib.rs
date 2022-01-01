@@ -148,18 +148,18 @@ struct ResultType {
 
 #[derive(Debug)]
 struct MembersAndCasters {
- members: Vec<(Ident, Ident, usize)>,
- struct_members: Vec<proc_macro2::TokenStream>,
+ //  members: Vec<(Ident, Ident, usize)>,
+ //  struct_members: Vec<proc_macro2::TokenStream>,
  row_casters: Vec<proc_macro2::TokenStream>,
 }
 
 impl MembersAndCasters {
  fn create(members: Vec<(Ident, Ident, usize)>) -> MembersAndCasters {
-  let struct_members: Vec<_> = members.iter().map(|(name, ty, _i)| quote!(#name: #ty)).collect();
+  // let struct_members: Vec<_> = members.iter().map(|(name, ty, _i)| quote!(#name: #ty)).collect();
   let row_casters =
    members.iter().map(|(name, _ty, i)| quote!(#name: row.get(#i)?)).collect::<Vec<_>>();
 
-  Self { members, struct_members, row_casters }
+  Self { row_casters }
  }
 }
 
@@ -291,7 +291,7 @@ fn read_migrations_toml() -> MigrationsToml {
  let lockfile = std::fs::File::create(std::env::temp_dir().join("migrations.toml.lock")).unwrap();
  fs2::FileExt::lock_exclusive(&lockfile).unwrap();
 
- let migrations_toml_path = std::env::current_dir().unwrap().join(MIGRATIONS_FILENAME);
+ let migrations_toml_path = migrations_toml_path();
  let migrations_toml_path_lossy = migrations_toml_path.to_string_lossy();
 
  match migrations_toml_path.exists() {
@@ -853,7 +853,7 @@ fn create(table: &Table) {
  let lockfile = std::fs::File::create(std::env::temp_dir().join("migrations.toml.lock")).unwrap();
  fs2::FileExt::lock_exclusive(&lockfile).unwrap();
 
- let migrations_toml_path = std::env::current_dir().unwrap().join(MIGRATIONS_FILENAME);
+ let migrations_toml_path = migrations_toml_path();
  let migrations_toml_path_lossy = migrations_toml_path.to_string_lossy();
 
  let old_toml_str = if migrations_toml_path.exists() {
@@ -954,4 +954,15 @@ fn make_migrations(table: &Table) -> Vec<String> {
  vec.append(&mut alters);
 
  vec
+}
+
+fn migrations_toml_path() -> std::path::PathBuf {
+ let mut path = std::path::PathBuf::new();
+ path.push(env!("OUT_DIR"));
+ while path.file_name() != Some(std::ffi::OsStr::new("target")) {
+  path.pop();
+ }
+ path.pop();
+ path.push(MIGRATIONS_FILENAME);
+ path
 }

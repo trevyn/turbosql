@@ -40,6 +40,7 @@ pub enum TurbosqlError {
  OtherError(&'static str),
 }
 
+#[allow(dead_code)]
 #[derive(Clone, Debug, Deserialize, Default)]
 struct MigrationsToml {
  migrations_append_only: Option<Vec<String>>,
@@ -52,7 +53,7 @@ struct DbPath {
  opened: bool,
 }
 
-static __DB_PATH: Lazy<Mutex<DbPath>> = Lazy::new(|| Mutex::new(DbPath { ..Default::default() }));
+static __DB_PATH: Lazy<Mutex<DbPath>> = Lazy::new(|| Mutex::new(DbPath::default()));
 
 fn run_migrations(conn: &mut Connection) {
  cfg_if::cfg_if! {
