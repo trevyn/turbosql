@@ -85,6 +85,9 @@ static LAST_TABLE_NAME: Lazy<Mutex<String>> = Lazy::new(|| Mutex::new("none".to_
 
 static TABLES: Lazy<Mutex<BTreeMap<String, MiniTable>>> = Lazy::new(|| Mutex::new(BTreeMap::new()));
 
+static U8_ARRAY_RE: Lazy<regex::Regex> =
+ Lazy::new(|| regex::Regex::new(r"^Option < \[u8 ; \d+\] >$").unwrap());
+
 // #[proc_macro]
 // pub fn set_db_path(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 //  let input = proc_macro2::TokenStream::from(input);
@@ -785,7 +788,10 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
    // specifically, sqlite cannot represent u64 integers, would be coerced to float.
    // https://sqlite.org/fileformat.html
 
-   let sql_type = match (name.as_str(), ty_str.as_str()) {
+   let sql_type = match (
+    name.as_str(),
+    if U8_ARRAY_RE.is_match(&ty_str) { "Option < [u8; _] >" } else { ty_str.as_str() },
+   ) {
     ("rowid", "Option < i64 >") => "INTEGER PRIMARY KEY",
     // (_, "i64") => "INTEGER NOT NULL",
     (_, "Option < i8 >") => "INTEGER",
@@ -807,6 +813,8 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
     // SELECT LENGTH(blob_column) ... will be null if blob is null
     // (_, "Blob") => "BLOB NOT NULL",
     (_, "Option < Blob >") => "BLOB",
+    (_, "Option < Vec < u8 > >") => "BLOB",
+    (_, "Option < [u8; _] >") => "BLOB",
     _ => abort!(ty, "turbosql doesn't support rust type: {}", ty_str),
    };
 

@@ -3,3 +3,7 @@ members = [
   "turbosql",
   "turbosql-impl",
 ]
+
+[patch.crates-io]
+rusqlite = {git = "https://github.com/trevyn/rusqlite", branch = "const-generics-tosql"}
+# rusqlite = {path = "../rusqlite"}

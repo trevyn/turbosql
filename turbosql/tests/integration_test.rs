@@ -22,6 +22,8 @@ struct PersonIntegrationTest {
  field_u32: Option<u32>,
  field_i32: Option<i32>,
  field_blob: Option<Blob>,
+ field_vec_u8: Option<Vec<u8>>,
+ field_array_u8: Option<[u8; 99]>,
 }
 
 #[test]
@@ -34,6 +36,7 @@ fn integration_test() {
   field_f64: Some(std::f64::consts::PI),
   field_f32: Some(std::f32::consts::E),
   field_blob: None,
+  field_array_u8: Some([1u8; 99]),
   ..Default::default()
  };
 
@@ -57,7 +60,7 @@ fn integration_test() {
 
  assert!(select!(PersonIntegrationTest).unwrap() == row);
  assert!(
-  select!(PersonIntegrationTest "rowid, field_string, field_i64, field_bool, field_f64, field_f32, field_u8, field_i8, field_u16, field_i16, field_u32, field_i32, field_blob FROM personintegrationtest")
+  select!(PersonIntegrationTest "rowid, field_string, field_i64, field_bool, field_f64, field_f32, field_u8, field_i8, field_u16, field_i16, field_u32, field_i32, field_blob, field_vec_u8, field_array_u8 FROM personintegrationtest")
    .unwrap()
    == row
  );
