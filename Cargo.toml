@@ -5,5 +5,4 @@ members = [
 ]
 
 [patch.crates-io]
-rusqlite = {git = "https://github.com/trevyn/rusqlite", branch = "const-generics-tosql"}
-# rusqlite = {path = "../rusqlite"}
+rusqlite = {git = "https://github.com/rusqlite/rusqlite", branch = "master"}
