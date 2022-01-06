@@ -12,7 +12,7 @@ fn main() {
  path2.push("migrations.toml");
 
  // docs.rs is a largely read-only filesystem
- if let Ok(_) = std::env::var("DOCS_RS") {
+ if std::env::var("DOCS_RS").is_ok() {
   std::fs::write(&path2, "").unwrap();
   return;
  }

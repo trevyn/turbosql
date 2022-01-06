@@ -1,5 +1,7 @@
 // cargo test --features test --manifest-path turbosql/Cargo.toml -- --nocapture
 
+#![allow(clippy::bool_assert_comparison)]
+
 #[cfg(not(feature = "test"))]
 compile_error!("turbosql must be tested with '--features test'");
 #[cfg(not(test))]
@@ -121,25 +123,25 @@ fn integration_test() {
   select!(i64 "field_u8 FROM personintegrationtest").unwrap() == row.field_u8.unwrap().into()
  );
 
- assert!(
-  select!(bool "field_string = ? FROM personintegrationtest", "Arthur Schopenhauer").unwrap()
-   == false
+ assert_eq!(
+  select!(bool "field_string = ? FROM personintegrationtest", "Arthur Schopenhauer").unwrap(),
+  false
  );
  let new_row = row.clone();
- assert!(
+ assert_eq!(
   select!(bool "field_string = ? FROM personintegrationtest", new_row.field_string.unwrap())
-   .unwrap()
-   == true
+   .unwrap(),
+  true
  );
  // this incorrectly consumes row:
  // assert!(select!(bool "field_string = ? FROM personintegrationtest", row.field_string.unwrap()).unwrap() == true);
 
  // select!(PersonIntegrationTest "WHERE field_string = ?", row.field_string.unwrap());
 
- assert!(
+ assert_eq!(
   select!(bool "field_string = ? FROM personintegrationtest", row.clone().field_string.unwrap())
-   .unwrap()
-   == true
+   .unwrap(),
+  true
  );
 
  assert!(

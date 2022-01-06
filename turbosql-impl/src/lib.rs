@@ -284,7 +284,7 @@ fn migrations_to_schema(migrations: &[String]) -> Result<String, rusqlite::Error
  Ok(
   migrations_to_tempdb(migrations)
    .prepare("SELECT sql FROM sqlite_master WHERE type='table' ORDER BY sql")?
-   .query_map(params![], |row| Ok(row.get(0)?))?
+   .query_map(params![], |row| row.get(0))?
    .collect::<Result<Vec<String>, _>>()?
    .join("\n"),
  )
@@ -606,7 +606,7 @@ fn do_parse_tokens(
   // Primitive type
   Some(ResultType { container: None, contents: Some(contents) })
    if ["f32", "f64", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "String", "bool"]
-    .contains(&&contents.to_string().as_str()) =>
+    .contains(&contents.to_string().as_str()) =>
   {
    quote! {
     {
@@ -615,7 +615,7 @@ fn do_parse_tokens(
        let db = db.borrow_mut();
        let mut stmt = db.prepare_cached(#sql)?;
        let result = stmt.query_row(::turbosql::params![#params], |row| -> ::turbosql::Result<#contents> {
-        Ok(row.get(0)?)
+        row.get(0)
        })?;
        Ok(result)
       })
@@ -848,13 +848,13 @@ use std::fs;
 fn create(table: &Table) {
  // create the migrations
 
- let sql = makesql_create(&table);
+ let sql = makesql_create(table);
 
  rusqlite::Connection::open_in_memory().unwrap().execute(&sql, params![]).unwrap_or_else(|e| {
   abort_call_site!("Error validating auto-generated CREATE TABLE statement: {} {:#?}", sql, e)
  });
 
- let target_migrations = make_migrations(&table);
+ let target_migrations = make_migrations(table);
 
  // read in the existing migrations from toml
 
