@@ -63,8 +63,31 @@ jobs:
       #   run: cargo test --features "test" -- --nocapture
       #   working-directory: 'turbosql'
 
+  minimal-versions:
+    name: test minimal-versions
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: hecrj/setup-rust-action@v1
+        with:
+          rust-version: nightly
+      
+      - run: cargo update -Z minimal-versions
+
+      - name: cargo test turbosql-impl
+        run: cargo test --features "test" -- --nocapture
+        working-directory: 'turbosql-impl'
+
+      - name: cargo test turbosql
+        run: cargo test --features "test" -- --nocapture
+        working-directory: 'turbosql'
+
+      - run: cargo doc --no-deps
+
   publish:
-    needs: [checklinks, test]
+    needs: [checklinks, test, minimal-versions]
     runs-on: ubuntu-latest
     if: ${{ contains(github.event.head_commit.message, 'turbosql@') && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
 
