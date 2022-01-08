@@ -21,7 +21,7 @@ quote = "1"
 regex = "1"
 rusqlite = {version = "0.26.3", features = ["bundled", "blob", "column_decltype"]}
 serde = {version = "1", features = ["derive"]}
-syn = {version = "1", features = ["extra-traits", "full"]}
+syn = {version = "1.0.12", features = ["extra-traits", "full"]}
 toml = "0.5"
 
 [features]
