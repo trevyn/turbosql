@@ -59,7 +59,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-See [`integration_test.rs`](https://github.com/trevyn/turbosql/blob/main/turbosql/tests/integration_test.rs) or [trevyn/turbo](https://github.com/trevyn/turbo/blob/main/turbo_server/src/schema.rs) for more usage examples!
+See [`integration_test.rs`](https://github.com/trevyn/turbosql/blob/main/turbosql/tests/integration_test.rs) or [trevyn/turbo](https://github.com/trevyn/turbo-also-historical/blob/main/turbo_server/src/schema.rs) for more usage examples!
 
 ## Under the Hood
 
@@ -145,7 +145,7 @@ Unused or reverted migrations that are created during development can be manuall
 - Schema migrations are one-way, append-only. This is similar to the approach taken by [leafac/sqlite-migration](https://github.com/leafac/sqlite-migration#no-down-migrations) for the Node.js ecosystem; see that project for a discussion of the advantages!
 - On launch, versions of your binary built with a newer schema will automatically apply the appropriate migrations to an older database.
 - If you're feeling adventurous, you can add your own schema migration entries to the bottom of the list. (For creating indexes, etc.)
-- You can hand-write complex migrations as well, see [turbo/migrations.toml](https://github.com/trevyn/turbo/blob/main/migrations.toml) for some examples.
+- You can hand-write complex migrations as well, see [turbo/migrations.toml](https://github.com/trevyn/turbo-also-historical/blob/main/migrations.toml) for some examples.
 - Questions? Ask on Discord [https://discord.gg/RX3rTWUzUD](https://discord.gg/RX3rTWUzUD) or open a GitHub issue.
 
 ## Where's my data?
