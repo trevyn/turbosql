@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Added support for `Vec<u8>` and `[u8; N]` types. (Pending rusqlite 0.27 release)
+
+### Fixed
+
+- Dependencies can also use Turbosql, and their tables will be added to your project's master `migrations.toml`.
+
 ## [0.4.0] - 2021-12-09
 
 ### Bumped
