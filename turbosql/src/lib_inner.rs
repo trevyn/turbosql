@@ -196,6 +196,8 @@ fn open_db() -> Connection {
   db_path.path = Some(path);
  }
 
+ log::debug!("opening db at {:?}", db_path.path.as_ref().unwrap());
+
  // We are handling the mutex by being thread_local, so SQLite can be opened in no-mutex mode; see:
  // https://www.mail-archive.com/sqlite-users@mailinglists.sqlite.org/msg112907.html
 
@@ -223,8 +225,6 @@ fn open_db() -> Connection {
   run_migrations(&mut conn);
   db_path.opened = true;
  }
-
- log::debug!("db opened at {:?}", db_path.path.as_ref().unwrap());
 
  conn
 }
