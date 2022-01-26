@@ -146,7 +146,7 @@ Unused or reverted migrations that are created during development can be manuall
 - On launch, versions of your binary built with a newer schema will automatically apply the appropriate migrations to an older database.
 - If you're feeling adventurous, you can add your own schema migration entries to the bottom of the list. (For creating indexes, etc.)
 - You can hand-write complex migrations as well, see [turbo/migrations.toml](https://github.com/trevyn/turbo-also-historical/blob/main/migrations.toml) for some examples.
-- Questions? Ask on Discord [https://discord.gg/RX3rTWUzUD](https://discord.gg/RX3rTWUzUD) or open a GitHub issue.
+- Please open a GitHub issue with any questions or suggestions!
 
 ## Where's my data?
 

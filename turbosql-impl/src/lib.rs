@@ -965,8 +965,7 @@ fn make_migrations(table: &Table) -> Vec<String> {
 }
 
 fn migrations_toml_path() -> std::path::PathBuf {
- let mut path = std::path::PathBuf::new();
- path.push(env!("OUT_DIR"));
+ let mut path = std::path::PathBuf::from(env!("OUT_DIR"));
  while path.file_name() != Some(std::ffi::OsStr::new("target")) {
   path.pop();
  }
