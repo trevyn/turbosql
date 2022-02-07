@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rust: [1.56, stable, beta, nightly-2022-01-25]
+        rust: [1.56, stable, beta, nightly]
 #              1.56 is minimum rust-version
     steps:
       - uses: actions/checkout@v2
@@ -84,7 +84,7 @@ jobs:
         run: cargo test --features "test" -- --nocapture
         working-directory: 'turbosql'
 
-      # - run: cargo doc --no-deps
+      - run: cargo doc --no-deps
 
   publish:
     needs: [checklinks, test, minimal-versions]
