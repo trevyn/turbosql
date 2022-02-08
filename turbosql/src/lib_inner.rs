@@ -14,8 +14,8 @@ use std::sync::Mutex;
 pub use once_cell::sync::Lazy;
 #[doc(hidden)]
 pub use rusqlite::{
- params, types::FromSql, types::FromSqlResult, types::ToSql, types::ToSqlOutput, types::Value,
- types::ValueRef, Error, OptionalExtension, Result,
+ named_params, params, types::FromSql, types::FromSqlResult, types::ToSql, types::ToSqlOutput,
+ types::Value, types::ValueRef, Error, OptionalExtension, Result,
 };
 #[doc(hidden)]
 pub use serde::Serialize;

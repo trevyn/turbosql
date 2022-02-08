@@ -218,7 +218,8 @@ use ParseStatementType::{Execute, Select};
 
 #[derive(Debug)]
 struct StatementInfo {
- parameter_count: usize,
+ positional_parameter_count: usize,
+ named_parameters: Vec<String>,
  column_names: Vec<String>,
 }
 
@@ -297,14 +298,20 @@ fn read_migrations_toml() -> MigrationsToml {
 fn validate_sql<S: AsRef<str>>(sql: S) -> Result<StatementInfo, rusqlite::Error> {
  let tempdb = migrations_to_tempdb(&read_migrations_toml().migrations_append_only.unwrap());
 
- let stmt = tempdb.prepare(sql.as_ref());
+ let stmt = tempdb.prepare(sql.as_ref())?;
+ let mut positional_parameter_count = stmt.parameter_count();
+ let mut named_parameters = Vec::new();
 
- // eprintln!("{:#?}", stmt);
-
- let stmt = stmt?;
+ for idx in 1..=stmt.parameter_count() {
+  if let Some(parameter_name) = stmt.parameter_name(idx) {
+   named_parameters.push(parameter_name.to_string());
+   positional_parameter_count -= 1;
+  }
+ }
 
  Ok(StatementInfo {
-  parameter_count: stmt.parameter_count(),
+  positional_parameter_count,
+  named_parameters,
   column_names: stmt.column_names().into_iter().map(str::to_string).collect(),
  })
 }
@@ -448,15 +455,19 @@ fn do_parse_tokens(
  let _maybe_comma: Result<Token![,], _> = input.parse();
  let params: Punctuated<Expr, Token![,]> = input.parse_terminated(Expr::parse)?;
 
- if params.len() != stmt_info.parameter_count {
+ if stmt_info.positional_parameter_count > 0 && !stmt_info.named_parameters.is_empty() {
+  abort_call_site!("Cannot yet combine positional and named parameters in the same statement.");
+ }
+
+ if params.len() != stmt_info.positional_parameter_count {
   abort!(
    {
     todo_or_die::issue_closed!("rust-lang", "rust", 54725); // span.join()
     sql_span
    },
    "Expected {} bound parameter{}, got {}: {:?}",
-   stmt_info.parameter_count,
-   if stmt_info.parameter_count == 1 { "" } else { "s" },
+   stmt_info.positional_parameter_count,
+   if stmt_info.positional_parameter_count == 1 { "" } else { "s" },
    params.len(),
    sql
   );
@@ -465,6 +476,16 @@ fn do_parse_tokens(
  if !input.is_empty() {
   return Err(input.error("Expected parameters"));
  }
+
+ let params = if stmt_info.named_parameters.is_empty() {
+  quote! { ::turbosql::params![#params] }
+ } else {
+  let param_quotes = stmt_info.named_parameters.iter().map(|p| {
+   let var_ident = format_ident!("{}", &p[1..]);
+   quote!(#p: &#var_ident,)
+  });
+  quote! { ::turbosql::named_params![#(#param_quotes),*] }
+ };
 
  // if we return no columns, this should be an execute
 
@@ -479,7 +500,7 @@ fn do_parse_tokens(
     ::turbosql::__TURBOSQL_DB.with(|db| {
      let db = db.borrow_mut();
      let mut stmt = db.prepare_cached(#sql)?;
-     stmt.execute(::turbosql::params![#params])
+     stmt.execute(#params)
     })
    })()
   }
@@ -544,7 +565,7 @@ fn do_parse_tokens(
       ::turbosql::__TURBOSQL_DB.with(|db| {
        let db = db.borrow_mut();
        let mut stmt = db.prepare_cached(#sql)?;
-       let result = stmt.query_map(::turbosql::params![#params], |row| {
+       let result = stmt.query_map(#params, |row| {
         Ok(#contents {
          #(#row_casters),*
          // #default
@@ -577,7 +598,7 @@ fn do_parse_tokens(
       ::turbosql::__TURBOSQL_DB.with(|db| {
        let db = db.borrow_mut();
        let mut stmt = db.prepare_cached(#sql)?;
-       let result = stmt.query_row(::turbosql::params![#params], |row| -> ::turbosql::Result<#contents> {
+       let result = stmt.query_row(#params, |row| -> ::turbosql::Result<#contents> {
         Ok(#contents {
          #(#row_casters),*
          // #default
@@ -602,7 +623,7 @@ fn do_parse_tokens(
       ::turbosql::__TURBOSQL_DB.with(|db| {
        let db = db.borrow_mut();
        let mut stmt = db.prepare_cached(#sql)?;
-       let result = stmt.query_row(::turbosql::params![#params], |row| -> ::turbosql::Result<#contents> {
+       let result = stmt.query_row(#params, |row| -> ::turbosql::Result<#contents> {
         row.get(0)
        })?;
        Ok(result)
@@ -625,7 +646,7 @@ fn do_parse_tokens(
       ::turbosql::__TURBOSQL_DB.with(|db| {
        let db = db.borrow_mut();
        let mut stmt = db.prepare_cached(#sql)?;
-       let result = stmt.query_row(::turbosql::params![#params], |row| -> ::turbosql::Result<#contents> {
+       let result = stmt.query_row(#params, |row| -> ::turbosql::Result<#contents> {
         Ok(#contents {
          #(#row_casters),*
          // #default

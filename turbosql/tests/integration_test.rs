@@ -86,6 +86,19 @@ fn integration_test() {
  assert!(select!(Vec<PersonIntegrationTest>).unwrap() == vec![row.clone()]);
  assert!(select!(Option<PersonIntegrationTest>).unwrap() == Some(row.clone()));
 
+ let field_u8 = row.field_u8;
+ assert!(select!(PersonIntegrationTest r#"WHERE field_u8 = $field_u8"#).unwrap() == row);
+
+ let field_string = row.field_string.clone();
+ assert!(select!(PersonIntegrationTest r#"WHERE field_string = $field_string"#).unwrap() == row);
+ assert!(select!(PersonIntegrationTest r#"WHERE field_string = $field_string"#).unwrap() == row);
+
+ // assert!(
+ //  select!(PersonIntegrationTest "WHERE field_u8 = $field_u8 AND 1 = ?", 1, 3, 4).unwrap() == row
+ // );
+
+ // assert!(select!(PersonIntegrationTest "WHERE 1 = ? AND field_u8 = $field_u8", 1).unwrap() == row);
+
  assert!(select!(PersonIntegrationTest "WHERE field_u8 = ?", row.field_u8).unwrap() == row);
  assert!(
   select!(Vec<PersonIntegrationTest> "WHERE field_u8 = ?", row.field_u8).unwrap()
