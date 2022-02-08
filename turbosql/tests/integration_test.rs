@@ -99,6 +99,17 @@ fn integration_test() {
 
  // assert!(select!(PersonIntegrationTest "WHERE 1 = ? AND field_u8 = $field_u8", 1).unwrap() == row);
 
+ assert!(
+  select!(PersonIntegrationTest "WHERE field_string = ?", row.field_string.as_ref().unwrap())
+   .unwrap()
+   == row
+ );
+
+ assert!(
+  select!(String "field_string FROM personintegrationtest").unwrap()
+   == row.field_string.as_deref().unwrap()
+ );
+
  assert!(select!(PersonIntegrationTest "WHERE field_u8 = ?", row.field_u8).unwrap() == row);
  assert!(
   select!(Vec<PersonIntegrationTest> "WHERE field_u8 = ?", row.field_u8).unwrap()
