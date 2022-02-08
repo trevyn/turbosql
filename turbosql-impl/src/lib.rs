@@ -789,7 +789,7 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
     (_, "Option < i32 >") => "INTEGER",
     (_, "Option < u32 >") => "INTEGER",
     (_, "Option < i64 >") => "INTEGER",
-    (_, "u64") => abort!(ty, SQLITE_U64_ERROR),
+    // (_, "u64") => abort!(ty, SQLITE_U64_ERROR),
     (_, "Option < u64 >") => abort!(ty, SQLITE_U64_ERROR),
     // (_, "f64") => "REAL NOT NULL",
     (_, "Option < f64 >") => "REAL",
@@ -803,7 +803,17 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
     (_, "Option < Blob >") => "BLOB",
     (_, "Option < Vec < u8 > >") => "BLOB",
     (_, "Option < [u8; _] >") => "BLOB",
-    _ => abort!(ty, "turbosql doesn't support rust type: {}", ty_str),
+    _ => {
+     if ty_str.starts_with("Option < ") {
+      abort!(ty, "Turbosql doesn't support rust type: {}", ty_str)
+     } else {
+      abort!(
+       ty,
+       "Turbosql types must be wrapped in Option for forward/backward schema compatibility. Try: Option<{}>",
+       ty_str
+      )
+     }
+    }
    };
 
    Some(Column {
