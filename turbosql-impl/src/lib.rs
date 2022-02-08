@@ -117,24 +117,6 @@ struct ExecuteTokens {
  tokens: proc_macro2::TokenStream,
 }
 
-#[derive(Debug)]
-struct QueryParams {
- params: Punctuated<Expr, Token![,]>,
-}
-
-impl Parse for QueryParams {
- fn parse(input: ParseStream) -> syn::Result<Self> {
-  Ok(QueryParams {
-   params: if input.peek(Token![,]) {
-    input.parse::<Token![,]>().unwrap();
-    input.parse_terminated(Expr::parse)?
-   } else {
-    Punctuated::new()
-   },
-  })
- }
-}
-
 #[derive(Clone, Debug)]
 struct ResultType {
  container: Option<Ident>,
@@ -342,7 +324,9 @@ fn do_parse_tokens(
  // Get result type and SQL
 
  let result_type = input.parse::<Type>().ok();
- let sql = input.parse::<LitStr>().ok().map(|s| s.value());
+ let sql = input.parse::<LitStr>().ok();
+ let sql_span = sql.span();
+ let sql = sql.map(|s| s.value());
 
  // Try validating SQL as-is
 
@@ -461,11 +445,15 @@ fn do_parse_tokens(
 
  // get query params and validate their count against what the statement is expecting
 
- let QueryParams { params } = input.parse()?;
+ let _maybe_comma: Result<Token![,], _> = input.parse();
+ let params: Punctuated<Expr, Token![,]> = input.parse_terminated(Expr::parse)?;
 
  if params.len() != stmt_info.parameter_count {
   abort!(
-   span,
+   {
+    todo_or_die::issue_closed!("rust-lang", "rust", 54725); // span.join()
+    sql_span
+   },
    "Expected {} bound parameter{}, got {}: {:?}",
    stmt_info.parameter_count,
    if stmt_info.parameter_count == 1 { "" } else { "s" },
@@ -879,6 +867,7 @@ fn create(table: &Table) {
 
  let mut output_migrations = source_migrations_toml.migrations_append_only.unwrap_or_default();
 
+ #[allow(clippy::search_is_some)]
  target_migrations.iter().for_each(|target_m| {
   if output_migrations
    .iter()
