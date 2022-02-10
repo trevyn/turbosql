@@ -28,10 +28,10 @@ pub type Blob = Vec<u8>;
 pub trait Turbosql {
  /// Inserts this row into the database. `rowid` must be `None`. On success, returns the new `rowid`.
  fn insert(&self) -> Result<i64>;
- fn insert_batch(rows: &[&Self]);
+ fn insert_batch<T: AsRef<Self>>(rows: &[T]);
  /// Updates this existing row in the database, based on `rowid`, which must be `Some`. All fields are overwritten in the database. On success, returns the number of rows updated, which should be 1.
  fn update(&self) -> Result<usize>;
- fn update_batch(rows: &[&Self]);
+ fn update_batch<T: AsRef<Self>>(rows: &[T]);
 }
 
 #[derive(thiserror::Error, Debug)]

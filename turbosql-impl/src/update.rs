@@ -23,8 +23,7 @@ pub(super) fn update(table: &Table) -> proc_macro2::TokenStream {
   .collect::<Vec<_>>();
 
  quote_spanned! { table.span =>
-  #[allow(dead_code)]
-  pub fn update(&self) -> ::turbosql::Result<usize> {
+  fn update(&self) -> ::turbosql::Result<usize> {
    assert!(self.rowid.is_some());
    ::turbosql::__TURBOSQL_DB.with(|db| {
     let db = db.borrow_mut();
@@ -33,10 +32,9 @@ pub(super) fn update(table: &Table) -> proc_macro2::TokenStream {
    })
   }
 
-  #[allow(dead_code)]
-  pub fn update_batch(rows: &[#table]) {
+  fn update_batch<T: AsRef<#table>>(rows: &[T]) {
    for row in rows {
-    row.update().unwrap();
+    row.as_ref().update().unwrap();
    }
   }
  }

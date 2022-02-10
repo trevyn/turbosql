@@ -17,8 +17,7 @@ pub(super) fn insert(table: &Table) -> proc_macro2::TokenStream {
   .collect::<Vec<_>>();
 
  quote_spanned! { table.span =>
-  #[allow(dead_code)]
-  pub fn insert(&self) -> ::turbosql::Result<i64> {
+  fn insert(&self) -> ::turbosql::Result<i64> {
    assert!(self.rowid.is_none());
    ::turbosql::__TURBOSQL_DB.with(|db| {
     let db = db.borrow_mut();
@@ -27,10 +26,9 @@ pub(super) fn insert(table: &Table) -> proc_macro2::TokenStream {
    })
   }
 
-  #[allow(dead_code)]
-  pub fn insert_batch(rows: &[#table]) {
+  fn insert_batch<T: AsRef<#table>>(rows: &[T]) {
    for row in rows {
-    row.insert().unwrap();
+    row.as_ref().insert().unwrap();
    }
   }
  }

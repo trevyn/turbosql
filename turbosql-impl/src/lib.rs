@@ -4,7 +4,6 @@
 
 #![forbid(unsafe_code)]
 
-// #![allow(unused_imports)]
 const SQLITE_U64_ERROR: &str = r##"SQLite cannot natively store unsigned 64-bit integers, so Turbosql does not support u64 fields. Use i64, u32, f64, or a string or binary format instead. (see https://github.com/trevyn/turbosql/issues/3 )"##;
 
 use once_cell::sync::Lazy;
@@ -752,7 +751,7 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
 
  proc_macro::TokenStream::from(quote! {
   #[cfg(not(target_arch = "wasm32"))]
-  impl #table {
+  impl ::turbosql::Turbosql for #table {
    #fn_insert
    #fn_update
   }
