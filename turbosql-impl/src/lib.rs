@@ -87,6 +87,8 @@ static TABLES: Lazy<Mutex<BTreeMap<String, MiniTable>>> = Lazy::new(|| Mutex::ne
 static U8_ARRAY_RE: Lazy<regex::Regex> =
  Lazy::new(|| regex::Regex::new(r"^Option < \[u8 ; \d+\] >$").unwrap());
 
+todo_or_die::crates_io!("rusqlite", ">0.26.3"); // u8 array
+
 // #[proc_macro]
 // pub fn set_db_path(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 //  let input = proc_macro2::TokenStream::from(input);
