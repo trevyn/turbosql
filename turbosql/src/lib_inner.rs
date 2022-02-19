@@ -55,6 +55,11 @@ struct DbPath {
 
 static __DB_PATH: Lazy<Mutex<DbPath>> = Lazy::new(|| Mutex::new(DbPath::default()));
 
+/// Convenience function that returns the current time as milliseconds since UNIX epoch.
+pub fn now_ms() -> i64 {
+ std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as i64
+}
+
 fn run_migrations(conn: &mut Connection) {
  cfg_if::cfg_if! {
   if #[cfg(doc)] {
