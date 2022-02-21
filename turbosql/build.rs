@@ -21,5 +21,5 @@ fn main() {
   std::fs::write(&path, "").unwrap();
  }
 
- std::fs::hard_link(path, path2).ok();
+ std::fs::copy(path, path2).unwrap();
 }
