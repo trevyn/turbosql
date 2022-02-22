@@ -956,7 +956,9 @@ fn create(table: &Table) {
  // Only write migrations.toml file if it has actually changed;
  // this keeps file mod date clean so cargo doesn't pathologically rebuild
 
- if old_toml_str != new_toml_str {
+ if old_toml_str != new_toml_str
+  && std::env::current_exe().unwrap().file_stem().unwrap() != "rust-analyzer"
+ {
   fs::write(&migrations_toml_path, new_toml_str)
    .unwrap_or_else(|e| abort_call_site!("Unable to write {}: {:?}", migrations_toml_path_lossy, e));
  }
