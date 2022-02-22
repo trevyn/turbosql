@@ -5,7 +5,9 @@ use quote::quote_spanned;
 pub(super) fn insert(table: &Table) -> proc_macro2::TokenStream {
  let sql = makesql_insert(table);
 
- super::validate_sql_or_abort(&sql);
+ if std::env::current_exe().unwrap().file_stem().unwrap() != "rust-analyzer" {
+  super::validate_sql_or_abort(&sql);
+ }
 
  let columns = table
   .columns

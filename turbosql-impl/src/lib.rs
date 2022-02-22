@@ -82,7 +82,7 @@ struct MiniColumn {
 
 static LAST_TABLE_NAME: Lazy<Mutex<String>> = Lazy::new(|| Mutex::new("none".to_string()));
 
-static TABLES: Lazy<Mutex<BTreeMap<String, MiniTable>>> = Lazy::new(|| Mutex::new(BTreeMap::new()));
+static TABLES: Lazy<Mutex<BTreeMap<String, MiniTable>>> = Lazy::new(Default::default);
 
 static U8_ARRAY_RE: Lazy<regex::Regex> =
  Lazy::new(|| regex::Regex::new(r"^Option < \[u8 ; \d+\] >$").unwrap());
@@ -743,7 +743,9 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
  };
 
  TABLES.lock().unwrap().insert(table_name, minitable);
- create(&table);
+ if std::env::current_exe().unwrap().file_stem().unwrap() != "rust-analyzer" {
+  create(&table);
+ }
 
  // create trait functions
 
