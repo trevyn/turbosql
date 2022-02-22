@@ -72,7 +72,7 @@ fn run_migrations(conn: &mut Connection) {
   }
  };
 
- let target_migrations = toml_decoded.migrations_append_only.unwrap_or_else(Vec::new);
+ let target_migrations = toml_decoded.migrations_append_only.unwrap_or_default();
 
  // filter out comments
  let target_migrations: Vec<_> =

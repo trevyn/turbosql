@@ -934,10 +934,10 @@ fn create(table: &Table) {
    "  {}\n",
    migrations_to_schema(&output_migrations)
     .unwrap()
-    .replace("\n", "\n  ")
-    .replace("(", "(\n    ")
+    .replace('\n', "\n  ")
+    .replace('(', "(\n    ")
     .replace(", ", ",\n    ")
-    .replace(")", "\n  )")
+    .replace(')', "\n  )")
   )),
   migrations_append_only: Some(output_migrations),
   output_generated_tables_do_not_edit: Some(tables),
