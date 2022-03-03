@@ -331,6 +331,17 @@ fn do_parse_tokens(
 
  let result_type = input.parse::<Type>().ok();
  let sql = input.parse::<LitStr>().ok();
+ let _maybe_comma: Result<Token![,], _> = input.parse();
+ let params: Punctuated<Expr, Token![,]> = input.parse_terminated(Expr::parse)?;
+
+ if std::env::current_exe().unwrap().file_stem().unwrap() == "rust-analyzer" {
+  if let Some(ty) = result_type {
+   return Ok(quote!(Ok(#ty::default())));
+  } else {
+   return Ok(quote!());
+  }
+ }
+
  let sql_span = sql.span();
  let sql = sql.map(|s| s.value());
 
@@ -452,9 +463,6 @@ fn do_parse_tokens(
  // let explicit_members = extract_explicit_members(&stmt_info.column_names);
 
  // get query params and validate their count against what the statement is expecting
-
- let _maybe_comma: Result<Token![,], _> = input.parse();
- let params: Punctuated<Expr, Token![,]> = input.parse_terminated(Expr::parse)?;
 
  if stmt_info.positional_parameter_count > 0 && !stmt_info.named_parameters.is_empty() {
   abort_call_site!("Cannot yet combine positional and named parameters in the same statement.");
@@ -701,6 +709,10 @@ pub fn select(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(Turbosql, attributes(turbosql))]
 #[proc_macro_error]
 pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+ if std::env::current_exe().unwrap().file_stem().unwrap() == "rust-analyzer" {
+  return quote!().into();
+ }
+
  // parse tokenstream and set up table struct
 
  let input = parse_macro_input!(input as DeriveInput);
@@ -753,13 +765,14 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
 
  // output tokenstream
 
- proc_macro::TokenStream::from(quote! {
+ quote! {
   #[cfg(not(target_arch = "wasm32"))]
   impl ::turbosql::Turbosql for #table {
    #fn_insert
    #fn_update
   }
- })
+ }
+ .into()
 }
 
 /// Convert syn::FieldsNamed to our Column type.
