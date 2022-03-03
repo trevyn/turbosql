@@ -9,3 +9,8 @@ include!("lib_inner.rs");
 
 #[cfg(target_arch = "wasm32")]
 pub use turbosql_impl::{execute, select, Turbosql};
+
+#[cfg(target_arch = "wasm32")]
+pub fn now_ms() -> i64 {
+ panic!("now_ms() is not implemented for wasm32");
+}

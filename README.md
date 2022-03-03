@@ -14,11 +14,6 @@ An easy local data persistence layer, backed by SQLite.
 
 ## Usage
 
-```toml
-[dependencies]
-turbosql = "0.4"
-```
-
 ```rust
 use turbosql::{Turbosql, Blob, select, execute};
 

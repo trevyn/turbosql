@@ -1,0 +1,3 @@
+/// UPDATE tablename SET name1=?, name2=?... WHERE rowid=?
+/// 
+/// INSERT INTO tablename (name1, name2...) VALUES (?1, ?2...) ON CONFLICT rowid DO UPDATE SET name1=?, name2=?...
