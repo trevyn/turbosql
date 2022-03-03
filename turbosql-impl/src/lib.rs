@@ -13,7 +13,7 @@ use quote::{format_ident, quote, ToTokens};
 use rusqlite::{params, Connection, Statement};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use std::sync::Mutex;
+// use std::sync::Mutex;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
@@ -82,7 +82,7 @@ struct MiniColumn {
 
 // static LAST_TABLE_NAME: Lazy<Mutex<String>> = Lazy::new(|| Mutex::new("none".to_string()));
 
-static TABLES: Lazy<Mutex<BTreeMap<String, MiniTable>>> = Lazy::new(Default::default);
+// static TABLES: Lazy<Mutex<BTreeMap<String, MiniTable>>> = Lazy::new(Default::default);
 
 static U8_ARRAY_RE: Lazy<regex::Regex> =
  Lazy::new(|| regex::Regex::new(r"^Option < \[u8 ; \d+\] >$").unwrap());
@@ -402,28 +402,30 @@ fn do_parse_tokens(
   (Some(ResultType { contents: Some(contents), .. }), sql, None) => {
    let result_type = contents.to_string();
    let table_name = result_type.to_lowercase();
-   let tables = TABLES.lock().unwrap();
-   let table = match tables.get(&table_name) {
-    Some(t) => t.clone(),
-    None => {
-     let t = match read_migrations_toml().output_generated_tables_do_not_edit {
-      Some(m) => m.get(&table_name).cloned(),
-      None => None,
-     };
+   // let tables = TABLES.lock().unwrap();
+   // let table = match tables.get(&table_name) {
+   //  Some(t) => t.clone(),
+   //  None =>
 
-     match t {
-      Some(t) => t,
-      None => {
-       abort!(
-        span,
-        "Table {:?} not found. Does struct {} exist and have #[derive(Turbosql, Default)]?",
-        table_name,
-        result_type
-       );
-      }
+   let table = {
+    let t = match read_migrations_toml().output_generated_tables_do_not_edit {
+     Some(m) => m.get(&table_name).cloned(),
+     None => None,
+    };
+
+    match t {
+     Some(t) => t,
+     None => {
+      abort!(
+       span,
+       "Table {:?} not found. Does struct {} exist and have #[derive(Turbosql, Default)]?",
+       table_name,
+       result_type
+      );
      }
     }
    };
+   // };
 
    let column_names_str =
     table.columns.iter().map(|c| c.name.as_str()).collect::<Vec<_>>().join(", ");
@@ -740,8 +742,8 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
  };
 
  if std::env::current_exe().unwrap().file_stem().unwrap() != "rust-analyzer" {
-  TABLES.lock().unwrap().insert(table_name, minitable);
-  create(&table);
+  // TABLES.lock().unwrap().insert(table_name, minitable);
+  create(&table, &minitable);
  }
 
  // create trait functions
@@ -866,7 +868,7 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
 use std::fs;
 
 /// CREATE TABLE
-fn create(table: &Table) {
+fn create(table: &Table, minitable: &MiniTable) {
  // create the migrations
 
  let sql = makesql_create(table);
@@ -911,16 +913,18 @@ fn create(table: &Table) {
   }
  });
 
- let tables = match source_migrations_toml.output_generated_tables_do_not_edit {
-  Some(ref t) => {
-   let mut t = t.clone();
-   TABLES.lock().unwrap().iter().for_each(|(k, v)| {
-    t.insert(k.clone(), v.clone());
-   });
-   t
-  }
-  None => TABLES.lock().unwrap().clone(),
- };
+ let mut tables = source_migrations_toml.output_generated_tables_do_not_edit.unwrap_or_default();
+ tables.insert(table.name.clone(), minitable.clone());
+ // {
+ //  Some(ref t) => {
+ //   let mut t = t.clone();
+ //   TABLES.lock().unwrap().iter().for_each(|(k, v)| {
+ //    t.insert(k.clone(), v.clone());
+ //   });
+ //   t
+ //  }
+ //  None => TABLES.lock().unwrap().clone(),
+ // };
 
  // save to toml
 
