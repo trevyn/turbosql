@@ -741,7 +741,7 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
  };
 
  let minitable = MiniTable {
-  name: table_name.clone(),
+  name: table_name,
   columns: table
    .columns
    .iter()
@@ -765,14 +765,15 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
 
  // output tokenstream
 
- quote! {
+ let output = quote! {
   #[cfg(not(target_arch = "wasm32"))]
   impl ::turbosql::Turbosql for #table {
    #fn_insert
    #fn_update
   }
- }
- .into()
+ };
+
+ output.into()
 }
 
 /// Convert syn::FieldsNamed to our Column type.
