@@ -80,7 +80,7 @@ struct MiniColumn {
 // static TEST_DB: Lazy<Mutex<Connection>> =
 //  Lazy::new(|| Mutex::new(Connection::open_in_memory().unwrap()));
 
-static LAST_TABLE_NAME: Lazy<Mutex<String>> = Lazy::new(|| Mutex::new("none".to_string()));
+// static LAST_TABLE_NAME: Lazy<Mutex<String>> = Lazy::new(|| Mutex::new("none".to_string()));
 
 static TABLES: Lazy<Mutex<BTreeMap<String, MiniTable>>> = Lazy::new(Default::default);
 
@@ -706,10 +706,10 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
  let table_ident = input.ident;
  let table_name = table_ident.to_string().to_lowercase();
 
- let ltn = LAST_TABLE_NAME.lock().unwrap().clone();
+ // let ltn = LAST_TABLE_NAME.lock().unwrap().clone();
 
- let mut last_table_name_ref = LAST_TABLE_NAME.lock().unwrap();
- *last_table_name_ref = format!("{}, {}", ltn, table_name);
+ // let mut last_table_name_ref = LAST_TABLE_NAME.lock().unwrap();
+ // *last_table_name_ref = format!("{}, {}", ltn, table_name);
 
  let fields = match input.data {
   Data::Struct(ref data) => match data.fields {
@@ -739,8 +739,8 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
    .collect(),
  };
 
- TABLES.lock().unwrap().insert(table_name, minitable);
  if std::env::current_exe().unwrap().file_stem().unwrap() != "rust-analyzer" {
+  TABLES.lock().unwrap().insert(table_name, minitable);
   create(&table);
  }
 
