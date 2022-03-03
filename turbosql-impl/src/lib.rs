@@ -753,10 +753,8 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
    .collect(),
  };
 
- if std::env::current_exe().unwrap().file_stem().unwrap() != "rust-analyzer" {
-  // TABLES.lock().unwrap().insert(table_name, minitable);
-  create(&table, &minitable);
- }
+ // TABLES.lock().unwrap().insert(table_name, minitable);
+ create(&table, &minitable);
 
  // create trait functions
 
@@ -973,9 +971,7 @@ fn create(table: &Table, minitable: &MiniTable) {
  // Only write migrations.toml file if it has actually changed;
  // this keeps file mod date clean so cargo doesn't pathologically rebuild
 
- if old_toml_str != new_toml_str
-  && std::env::current_exe().unwrap().file_stem().unwrap() != "rust-analyzer"
- {
+ if old_toml_str != new_toml_str {
   fs::write(&migrations_toml_path, new_toml_str)
    .unwrap_or_else(|e| abort_call_site!("Unable to write {}: {:?}", migrations_toml_path_lossy, e));
  }

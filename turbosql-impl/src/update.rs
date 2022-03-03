@@ -10,9 +10,7 @@ pub(super) fn update(table: &Table) -> proc_macro2::TokenStream {
 
  let sql = makesql_update(table);
 
- if std::env::current_exe().unwrap().file_stem().unwrap() != "rust-analyzer" {
-  super::validate_sql_or_abort(&sql);
- }
+ super::validate_sql_or_abort(&sql);
 
  let mut columns = table.columns.clone();
  columns.rotate_left(1);
