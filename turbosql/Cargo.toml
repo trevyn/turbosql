@@ -28,6 +28,7 @@ toml = "0.5"
 
 [dev-dependencies]
 tokio = {version = "1", features = ["rt-multi-thread", "macros"]}
+trybuild = "1"
 
 [features]
 test = ["turbosql-impl/test"]

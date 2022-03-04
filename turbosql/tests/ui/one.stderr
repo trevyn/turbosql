@@ -1,0 +1,5 @@
+error: expected expression
+  --> tests/ui/one.rs:11:50
+   |
+11 |  select!(Person "WHERE age = " 24 " AND name = ?", "Bob").unwrap();
+   |                                                  ^
