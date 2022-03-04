@@ -321,6 +321,37 @@ fn validate_sql_or_abort<S: AsRef<str> + std::fmt::Debug>(sql: S) -> StatementIn
  })
 }
 
+fn parse_interpolated_sql(
+ input: ParseStream,
+) -> syn::Result<(Option<String>, Punctuated<Expr, Token![,]>)> {
+ let mut params: Punctuated<Expr, Token![,]> = Punctuated::new();
+
+ if input.is_empty() {
+  return Ok((None, params));
+ }
+
+ let mut sql = input.parse::<LitStr>()?.value();
+
+ if input.parse::<Token![,]>().is_ok() {
+  return Ok((Some(sql), input.parse_terminated(Expr::parse)?));
+ }
+
+ loop {
+  if input.is_empty() {
+   return Ok((Some(sql), params));
+  }
+
+  params.push(input.parse()?);
+  sql.push('?');
+
+  if input.is_empty() {
+   return Ok((Some(sql), params));
+  }
+
+  sql.push_str(&input.parse::<LitStr>()?.value());
+ }
+}
+
 fn do_parse_tokens(
  input: ParseStream,
  statement_type: ParseStatementType,
@@ -330,9 +361,7 @@ fn do_parse_tokens(
  // Get result type and SQL
 
  let result_type = input.parse::<Type>().ok();
- let sql = input.parse::<LitStr>().ok();
- let _maybe_comma: Result<Token![,], _> = input.parse();
- let params: Punctuated<Expr, Token![,]> = input.parse_terminated(Expr::parse)?;
+ let (sql, params) = parse_interpolated_sql(input)?;
 
  if std::env::current_exe().unwrap().file_stem().unwrap() == "rust-analyzer" {
   if let Some(ty) = result_type {
@@ -341,9 +370,6 @@ fn do_parse_tokens(
    return Ok(quote!());
   }
  }
-
- let sql_span = sql.span();
- let sql = sql.map(|s| s.value());
 
  // Try validating SQL as-is
 
@@ -469,12 +495,10 @@ fn do_parse_tokens(
  }
 
  if params.len() != stmt_info.positional_parameter_count {
-  abort!(
-   {
-    #[cfg(feature = "todo-or-die")]
-    todo_or_die::issue_closed!("rust-lang", "rust", 54725); // span.join()
-    sql_span
-   },
+  #[cfg(feature = "todo-or-die")]
+  todo_or_die::issue_closed!("rust-lang", "rust", 54725); // span.join()
+
+  abort_call_site!(
    "Expected {} bound parameter{}, got {}: {:?}",
    stmt_info.positional_parameter_count,
    if stmt_info.positional_parameter_count == 1 { "" } else { "s" },
@@ -720,11 +744,6 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
  let table_ident = input.ident;
  let table_name = table_ident.to_string().to_lowercase();
 
- // let ltn = LAST_TABLE_NAME.lock().unwrap().clone();
-
- // let mut last_table_name_ref = LAST_TABLE_NAME.lock().unwrap();
- // *last_table_name_ref = format!("{}, {}", ltn, table_name);
-
  let fields = match input.data {
   Data::Struct(ref data) => match data.fields {
    Fields::Named(ref fields) => fields,
@@ -753,7 +772,6 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
    .collect(),
  };
 
- // TABLES.lock().unwrap().insert(table_name, minitable);
  create(&table, &minitable);
 
  // create trait functions
@@ -927,16 +945,6 @@ fn create(table: &Table, minitable: &MiniTable) {
 
  let mut tables = source_migrations_toml.output_generated_tables_do_not_edit.unwrap_or_default();
  tables.insert(table.name.clone(), minitable.clone());
- // {
- //  Some(ref t) => {
- //   let mut t = t.clone();
- //   TABLES.lock().unwrap().iter().for_each(|(k, v)| {
- //    t.insert(k.clone(), v.clone());
- //   });
- //   t
- //  }
- //  None => TABLES.lock().unwrap().clone(),
- // };
 
  // save to toml
 
