@@ -495,7 +495,7 @@ fn do_parse_tokens(
  }
 
  if params.len() != stmt_info.positional_parameter_count {
-  #[cfg(feature = "todo-or-die")]
+  #[cfg(test)]
   todo_or_die::issue_closed!("rust-lang", "rust", 54725); // span.join()
 
   abort_call_site!(
