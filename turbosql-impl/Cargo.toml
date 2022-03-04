@@ -13,7 +13,6 @@ proc-macro = true
 
 [dependencies]
 fs2 = "0.4"
-indoc = "1"
 once_cell = "1.5"
 proc-macro-error = "1"
 proc-macro2 = "1"
