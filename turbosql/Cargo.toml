@@ -27,8 +27,9 @@ thiserror = "1"
 toml = "0.5"
 
 [dev-dependencies]
+rustversion = "1"
 tokio = {version = "1", features = ["rt-multi-thread", "macros"]}
-trybuild = "1.0.56"
+trybuild = {version = "1.0.56", features = ["diff"]}
 
 [features]
 test = ["turbosql-impl/test"]

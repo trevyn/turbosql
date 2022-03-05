@@ -1,3 +1,4 @@
+#[rustversion::attr(nightly, ignore)]
 #[test]
 fn ui() {
  let t = trybuild::TestCases::new();
