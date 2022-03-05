@@ -10,12 +10,11 @@
 
 - Added support for `Vec<u8>` and `[u8; N]` types.
 - Added a `now_ms()` convenience function for timestamps.
-- SQLite named parameters will reference variables in the current scope:
-
-```rust,ignore
-let name = "John";
-select!(Person "WHERE name = $name");
-```
+- Added expression interpolation:
+  - ```rust,ignore
+    let name = "John";
+    select!(Person "WHERE name = " name);
+    ```
 
 ### Fixed
 

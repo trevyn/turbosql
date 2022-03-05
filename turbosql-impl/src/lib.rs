@@ -13,7 +13,6 @@ use quote::{format_ident, quote, ToTokens};
 use rusqlite::{params, Connection, Statement};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-// use std::sync::Mutex;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
@@ -29,16 +28,6 @@ const MIGRATIONS_FILENAME: &str = "test.migrations.toml";
 
 mod insert;
 mod update;
-
-// trait Ok<T> {
-//  fn ok(self) -> Result<T, anyhow::Error>;
-// }
-
-// impl<T> Ok<T> for Option<T> {
-//  fn ok(self) -> Result<T, anyhow::Error> {
-//   self.ok_or_else(|| anyhow::anyhow!("NoneError"))
-//  }
-// }
 
 #[derive(Debug, Clone)]
 struct Table {
@@ -76,13 +65,6 @@ struct MiniColumn {
  rust_type: String,
  sql_type: String,
 }
-
-// static TEST_DB: Lazy<Mutex<Connection>> =
-//  Lazy::new(|| Mutex::new(Connection::open_in_memory().unwrap()));
-
-// static LAST_TABLE_NAME: Lazy<Mutex<String>> = Lazy::new(|| Mutex::new("none".to_string()));
-
-// static TABLES: Lazy<Mutex<BTreeMap<String, MiniTable>>> = Lazy::new(Default::default);
 
 static U8_ARRAY_RE: Lazy<regex::Regex> =
  Lazy::new(|| regex::Regex::new(r"^Option < \[u8 ; \d+\] >$").unwrap());
@@ -338,18 +320,20 @@ fn parse_interpolated_sql(
 
  loop {
   if input.is_empty() {
-   return Ok((Some(sql), params));
+   break;
   }
 
   params.push(input.parse()?);
   sql.push('?');
 
   if input.is_empty() {
-   return Ok((Some(sql), params));
+   break;
   }
 
   sql.push_str(&input.parse::<LitStr>()?.value());
  }
+
+ Ok((Some(sql), params))
 }
 
 fn do_parse_tokens(
@@ -490,8 +474,8 @@ fn do_parse_tokens(
 
  // get query params and validate their count against what the statement is expecting
 
- if stmt_info.positional_parameter_count > 0 && !stmt_info.named_parameters.is_empty() {
-  abort_call_site!("Cannot yet combine positional and named parameters in the same statement.");
+ if !stmt_info.named_parameters.is_empty() {
+  abort_call_site!("SQLite named parameters not currently supported.");
  }
 
  if params.len() != stmt_info.positional_parameter_count {

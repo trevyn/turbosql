@@ -87,14 +87,14 @@ fn integration_test() {
  assert!(select!(Option<PersonIntegrationTest>).unwrap() == Some(row.clone()));
 
  let field_u8 = row.field_u8;
- assert!(select!(PersonIntegrationTest r#"WHERE field_u8 = $field_u8"#).unwrap() == row);
+ // assert!(select!(PersonIntegrationTest r#"WHERE field_u8 = $field_u8"#).unwrap() == row);
  assert!(select!(PersonIntegrationTest "WHERE field_u8 = " field_u8).unwrap() == row);
  assert!(select!(PersonIntegrationTest "WHERE field_u8 = " field_u8 " AND 1 = " 1).unwrap() == row);
  assert!(select!(PersonIntegrationTest "WHERE field_u8 = " field_u8 " AND 1 = " 0).is_err());
 
  let field_string = row.field_string.clone();
- assert!(select!(PersonIntegrationTest r#"WHERE field_string = $field_string"#).unwrap() == row);
- assert!(select!(PersonIntegrationTest r#"WHERE field_string = $field_string"#).unwrap() == row);
+ // assert!(select!(PersonIntegrationTest r#"WHERE field_string = $field_string"#).unwrap() == row);
+ // assert!(select!(PersonIntegrationTest r#"WHERE field_string = $field_string"#).unwrap() == row);
  assert!(select!(PersonIntegrationTest "WHERE field_string = " field_string " ").unwrap() == row);
  assert!(select!(PersonIntegrationTest "WHERE field_string = " field_string).unwrap() == row);
 
