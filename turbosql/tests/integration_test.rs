@@ -1,6 +1,6 @@
 // cargo test --features test --manifest-path turbosql/Cargo.toml -- --nocapture
 
-#![allow(clippy::bool_assert_comparison)]
+#![allow(clippy::bool_assert_comparison, clippy::bool_comparison)]
 
 #[cfg(not(feature = "test"))]
 compile_error!("turbosql must be tested with '--features test'");
@@ -49,6 +49,10 @@ fn integration_test() {
 
  assert!(select!(i64 "1").unwrap() == 1);
  assert!(select!(i64 "SELECT 1").unwrap() == 1);
+ assert!(select!(bool "SELECT 1 > ? AS val", 0).unwrap() == true);
+ assert!(select!(bool "SELECT 1 > ? AS val", 2).unwrap() == false);
+ assert!(select!(bool "SELECT 1 > "0" AS val").unwrap() == true);
+ assert!(select!(bool "SELECT 1 > "2" AS val").unwrap() == false);
  assert!(
   execute!("")
    == Err(rusqlite::Error::SqliteFailure(
@@ -153,13 +157,12 @@ fn integration_test() {
  );
 
  assert_eq!(
-  select!(bool "field_string = ? FROM personintegrationtest", "Arthur Schopenhauer").unwrap(),
+  select!(bool "field_string =?FROM personintegrationtest", "Arthur Schopenhauer").unwrap(),
   false
  );
  let new_row = row.clone();
  assert_eq!(
-  select!(bool "field_string = ? FROM personintegrationtest", new_row.field_string.unwrap())
-   .unwrap(),
+  select!(bool "field_string =?FROM personintegrationtest", new_row.field_string.unwrap()).unwrap(),
   true
  );
  // this incorrectly consumes row:
@@ -195,6 +198,11 @@ fn integration_test() {
  // let result = select!((Person.name, Person.age))?;
  // let result = select!(Vec<(Person.name, Person.age)>)?;
  // let result = select!(Vec<(Person.name, Person.age)> "WHERE ...")?;
+
+ // let result = select!({ name, "age >= 18 AS" adult: bool } "FROM" Person)?;
+ // let result = select!({ name: String, "age >= 18 AS" adult: bool } "FROM person")?;
+ // let_select!(name: String, "age >= " adult_age " AS " adult: bool "FROM person")?;
+ // let result = select!(( "name AS" String, "age >= 18 AS" bool ) "FROM person")?;
 
  // DELETE
 
