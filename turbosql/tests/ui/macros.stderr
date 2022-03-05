@@ -1,0 +1,79 @@
+error: Turbosql types must be wrapped in Option for forward/backward schema compatibility. Try: Option<u8>
+ --> tests/ui/macros.rs:6:5
+  |
+6 |  e: u8,
+  |     ^^
+
+error: derive(Turbosql) structs must include a 'rowid: Option<i64>' field
+ --> tests/ui/macros.rs:9:10
+  |
+9 | #[derive(Turbosql, Default)]
+  |          ^^^^^^^^
+  |
+  = note: this error originates in the derive macro `Turbosql` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: SQLite cannot natively store unsigned 64-bit integers, so Turbosql does not support u64 fields. Use i64, u32, f64, or a string or binary format instead. (see https://github.com/trevyn/turbosql/issues/3 )
+  --> tests/ui/macros.rs:17:5
+   |
+17 |  e: Option<u64>,
+   |     ^^^^^^^^^^^
+
+error: expected expression
+  --> tests/ui/macros.rs:28:50
+   |
+28 |  select!(Person "WHERE age = " 24 " AND name = ?", "Bob").unwrap();
+   |                                                  ^
+
+error: SQLite named parameters not currently supported.
+  --> tests/ui/macros.rs:29:2
+   |
+29 |  select!(Person "WHERE age = " 24 " AND name = $name").unwrap();
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `select` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: Expected 1 bound parameter, got 2: "SELECT rowid, name, age FROM person WHERE age = ?"
+  --> tests/ui/macros.rs:30:2
+   |
+30 |  select!(Person "WHERE age = ?", 1, 2).unwrap();
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `select` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: No rows returned from SQL, use execute! instead.
+  --> tests/ui/macros.rs:31:2
+   |
+31 |  select!("UPDATE person SET age = 1").unwrap();
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `select` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: Rows returned from SQL, use select! instead.
+  --> tests/ui/macros.rs:32:2
+   |
+32 |  execute!("SELECT 1").unwrap();
+   |  ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `execute` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: Error validating SQL statement: "no such column: nonexistentcolumn". SQL: "SELECT rowid, name, age FROM person WHERE nonexistentcolumn = 1"
+  --> tests/ui/macros.rs:33:2
+   |
+33 |  select!(Person "WHERE nonexistentcolumn = 1").unwrap();
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `select` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: Table "nonexistenttable" not found. Does struct Nonexistenttable exist and have #[derive(Turbosql, Default)]?
+  --> tests/ui/macros.rs:34:10
+   |
+34 |  select!(Nonexistenttable).unwrap();
+   |          ^^^^^^^^^^^^^^^^
+
+error: No arguments found for container type
+  --> tests/ui/macros.rs:35:2
+   |
+35 |  select!(Vec).unwrap();
+   |  ^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `select` (in Nightly builds, run with -Z macro-backtrace for more info)
