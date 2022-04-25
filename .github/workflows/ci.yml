@@ -56,11 +56,11 @@ jobs:
       - run: cargo clean
 
       - name: rusqlite master cargo test turbosql-impl
-        run: cargo test --features "test" -- --nocapture --test-threads=1
+        run: cargo test --features "test" -- --nocapture --test-threads=1 --skip ui
         working-directory: 'turbosql-impl'
 
       - name: rusqlite master cargo test turbosql
-        run: cargo test --features "test" -- --nocapture --test-threads=1
+        run: cargo test --features "test" -- --nocapture --test-threads=1 --skip ui
         working-directory: 'turbosql'
 
   minimal-versions:
