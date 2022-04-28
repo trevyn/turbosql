@@ -22,33 +22,38 @@ struct Person {
     rowid: Option<i64>, // rowid member required & enforced at compile time
     name: Option<String>,
     age: Option<i64>,
-    image_jpg: Option<Blob>
+    image_jpg: Option<Vec<u8>>
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
 
+    let name = "Joe";
+
     // INSERT a row
     let rowid = Person {
-        rowid: None,
-        name: Some("Joe".to_string()),
+        name: Some(name.to_string()),
         age: Some(42),
-        image_jpg: None
+        ..Default::default()
     }.insert()?;
 
     // SELECT all rows
     let people = select!(Vec<Person>)?;
 
     // SELECT multiple rows with a predicate
-    let people = select!(Vec<Person> "WHERE age > ?", 21)?;
+    let people = select!(Vec<Person> "WHERE age > " 21)?;
 
     // SELECT a single row with a predicate
-    let person = select!(Person "WHERE name = ?", "Joe")?;
+    let mut person = select!(Person "WHERE name = " name)?;
 
-    // UPDATE
-    execute!("UPDATE person SET age = ? WHERE name = ?", 18, "Joe")?;
+    // UPDATE based on rowid, rewrites all fields in database row
+    person.age = Some(43);
+    person.update()?;
+
+    // UPDATE with manual SQL
+    execute!("UPDATE person SET age = " 44 " WHERE name = " name)?;
 
     // DELETE
-    execute!("DELETE FROM person WHERE rowid = ?", 1)?;
+    execute!("DELETE FROM person WHERE rowid = " 1)?;
 
     Ok(())
 }
