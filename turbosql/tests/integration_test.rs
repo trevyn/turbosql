@@ -1,6 +1,6 @@
 // cargo test --features test --manifest-path turbosql/Cargo.toml -- --nocapture
 
-// #![allow(clippy::bool_assert_comparison, clippy::bool_comparison)]
+#![allow(clippy::bool_assert_comparison)]
 
 #[cfg(not(feature = "test"))]
 compile_error!("turbosql must be tested with '--features test'");
