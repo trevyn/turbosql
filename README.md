@@ -201,7 +201,7 @@ struct Person {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tokio::task::spawn_blocking(|| -> turbosql::Result<()> {
+    tokio::task::spawn_blocking(|| -> Result<(), turbosql::Error> {
         Person { rowid: None, age: Some(21) }.insert()?;
         execute!("BEGIN IMMEDIATE TRANSACTION")?;
         let p = select!(Person "WHERE rowid = ?", 1)?;

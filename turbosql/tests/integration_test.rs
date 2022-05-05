@@ -26,6 +26,7 @@ struct PersonIntegrationTest {
  field_blob: Option<Blob>,
  field_vec_u8: Option<Vec<u8>>,
  field_array_u8: Option<[u8; 99]>,
+ field_serialize: Option<Vec<i64>>,
 }
 
 #[test]
@@ -39,6 +40,7 @@ fn integration_test() {
   field_f32: Some(std::f32::consts::E),
   field_blob: None,
   field_array_u8: Some([1u8; 99]),
+  field_serialize: Some(vec![42, 43]),
   ..Default::default()
  };
 
@@ -57,11 +59,8 @@ fn integration_test() {
  assert_eq!(select!(bool "SELECT 1 > " 2).unwrap(), false);
 
  assert_eq!(
-  execute!(""),
-  Err(rusqlite::Error::SqliteFailure(
-   rusqlite::ffi::Error { code: rusqlite::ErrorCode::ApiMisuse, extended_code: 21 },
-   Some("not an error".to_string()),
-  ))
+  format!("{:?}", execute!("")),
+  "Err(Rusqlite(SqliteFailure(Error { code: ApiMisuse, extended_code: 21 }, Some(\"not an error\"))))"
  );
 
  // assert_eq!(select!(Vec<i64> "SELECT 1").unwrap(), Some(1));
@@ -69,7 +68,7 @@ fn integration_test() {
 
  assert_eq!(select!(PersonIntegrationTest).unwrap(), row);
  assert_eq!(
-  select!(PersonIntegrationTest "rowid, field_string, field_i64, field_bool, field_f64, field_f32, field_u8, field_i8, field_u16, field_i16, field_u32, field_i32, field_blob, field_vec_u8, field_array_u8 FROM personintegrationtest").unwrap(),
+  select!(PersonIntegrationTest "rowid, field_string, field_i64, field_bool, field_f64, field_f32, field_u8, field_i8, field_u16, field_i16, field_u32, field_i32, field_blob, field_vec_u8, field_array_u8, field_serialize AS field_serialize__serialized FROM personintegrationtest").unwrap(),
   row
  );
 
@@ -170,7 +169,7 @@ fn integration_test() {
  );
  assert_eq!(
   select!(i64 "field_u8 FROM personintegrationtest").unwrap(),
-  row.field_u8.unwrap().into()
+  row.field_u8.unwrap() as i64
  );
 
  assert_eq!(

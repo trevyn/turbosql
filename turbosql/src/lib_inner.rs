@@ -14,11 +14,13 @@ use std::sync::Mutex;
 pub use once_cell::sync::Lazy;
 #[doc(hidden)]
 pub use rusqlite::{
- named_params, params, types::FromSql, types::FromSqlResult, types::ToSql, types::ToSqlOutput,
- types::Value, types::ValueRef, Error, OptionalExtension, Result,
+ self, named_params, params, types::FromSql, types::FromSqlResult, types::ToSql,
+ types::ToSqlOutput, types::Value, types::ValueRef,
 };
 #[doc(hidden)]
 pub use serde::Serialize;
+#[doc(hidden)]
+pub use serde_json;
 pub use turbosql_impl::{execute, select, Turbosql};
 
 /// Wrapper for `Vec<u8>` that may one day impl `Read`, `Write` and `Seek` traits.
@@ -27,15 +29,19 @@ pub type Blob = Vec<u8>;
 /// `#[derive(Turbosql)]` generates impls for this trait.
 pub trait Turbosql {
  /// Inserts this row into the database. `rowid` must be `None`. On success, returns the new `rowid`.
- fn insert(&self) -> Result<i64>;
- fn insert_batch<T: AsRef<Self>>(rows: &[T]);
+ fn insert(&self) -> Result<i64, Error>;
+ fn insert_batch<T: AsRef<Self>>(rows: &[T]) -> Result<(), Error>;
  /// Updates this existing row in the database, based on `rowid`, which must be `Some`. All fields are overwritten in the database. On success, returns the number of rows updated, which should be 1.
- fn update(&self) -> Result<usize>;
- fn update_batch<T: AsRef<Self>>(rows: &[T]);
+ fn update(&self) -> Result<usize, Error>;
+ fn update_batch<T: AsRef<Self>>(rows: &[T]) -> Result<(), Error>;
 }
 
 #[derive(thiserror::Error, Debug)]
-pub enum TurbosqlError {
+pub enum Error {
+ #[error("rusqlite error")]
+ Rusqlite(#[from] rusqlite::Error),
+ #[error("serde_json error")]
+ SerdeJson(#[from] serde_json::Error),
  #[error("Turbosql Error: {0}")]
  OtherError(&'static str),
 }
@@ -158,7 +164,7 @@ pub struct CheckpointResult {
 
 /// Checkpoint the DB.
 /// If no other threads have open connections, this will clean up the `-wal` and `-shm` files as well.
-pub fn checkpoint() -> Result<CheckpointResult> {
+pub fn checkpoint() -> Result<CheckpointResult, Error> {
  let start = std::time::Instant::now();
  let db_path = __DB_PATH.lock().unwrap();
 
@@ -242,11 +248,11 @@ thread_local! {
 /// Set the local path and filename where Turbosql will store the underlying SQLite database.
 ///
 /// Must be called before any usage of Turbosql macros or will return an error.
-pub fn set_db_path(path: &Path) -> Result<(), TurbosqlError> {
+pub fn set_db_path(path: &Path) -> Result<(), Error> {
  let mut db_path = __DB_PATH.lock().unwrap();
 
  if db_path.opened {
-  return Err(TurbosqlError::OtherError("Trying to set path when DB is already opened"));
+  return Err(Error::OtherError("Trying to set path when DB is already opened"));
  }
 
  db_path.path = Some(path.to_owned());

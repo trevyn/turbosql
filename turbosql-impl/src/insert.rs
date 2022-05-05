@@ -12,24 +12,29 @@ pub(super) fn insert(table: &Table) -> proc_macro2::TokenStream {
   .iter()
   .map(|c| {
    let ident = &c.ident;
-   quote_spanned!(c.span => &self.#ident as &dyn ::turbosql::ToSql)
+   if c.sql_type == "TEXT" && c.rust_type != "Option < String >" {
+    quote_spanned!(c.span => &serde_json::to_string(&self.#ident)? as &dyn ::turbosql::ToSql)
+   } else {
+    quote_spanned!(c.span => &self.#ident as &dyn ::turbosql::ToSql)
+   }
   })
   .collect::<Vec<_>>();
 
  quote_spanned! { table.span =>
-  fn insert(&self) -> ::turbosql::Result<i64> {
+  fn insert(&self) -> Result<i64, ::turbosql::Error> {
    assert!(self.rowid.is_none());
    ::turbosql::__TURBOSQL_DB.with(|db| {
     let db = db.borrow_mut();
     let mut stmt = db.prepare_cached(#sql)?;
-    stmt.insert(&[#( #columns ),*] as &[&dyn ::turbosql::ToSql])
+    Ok(stmt.insert(&[#( #columns ),*] as &[&dyn ::turbosql::ToSql])?)
    })
   }
 
-  fn insert_batch<T: AsRef<#table>>(rows: &[T]) {
+  fn insert_batch<T: AsRef<#table>>(rows: &[T]) -> Result<(), ::turbosql::Error> {
    for row in rows {
-    row.as_ref().insert().unwrap();
+    row.as_ref().insert()?;
    }
+   Ok(())
   }
  }
 }

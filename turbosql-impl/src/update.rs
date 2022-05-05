@@ -18,24 +18,29 @@ pub(super) fn update(table: &Table) -> proc_macro2::TokenStream {
   .iter()
   .map(|c| {
    let ident = &c.ident;
-   quote_spanned!(c.span => &self.#ident as &dyn ::turbosql::ToSql)
+   if c.sql_type == "TEXT" && c.rust_type != "Option < String >" {
+    quote_spanned!(c.span => &serde_json::to_string(&self.#ident)? as &dyn ::turbosql::ToSql)
+   } else {
+    quote_spanned!(c.span => &self.#ident as &dyn ::turbosql::ToSql)
+   }
   })
   .collect::<Vec<_>>();
 
  quote_spanned! { table.span =>
-  fn update(&self) -> ::turbosql::Result<usize> {
+  fn update(&self) -> Result<usize, ::turbosql::Error> {
    assert!(self.rowid.is_some());
    ::turbosql::__TURBOSQL_DB.with(|db| {
     let db = db.borrow_mut();
     let mut stmt = db.prepare_cached(#sql)?;
-    stmt.execute(&[#( #columns ),*] as &[&dyn ::turbosql::ToSql])
+    Ok(stmt.execute(&[#( #columns ),*] as &[&dyn ::turbosql::ToSql])?)
    })
   }
 
-  fn update_batch<T: AsRef<#table>>(rows: &[T]) {
+  fn update_batch<T: AsRef<#table>>(rows: &[T]) -> Result<(), ::turbosql::Error>{
    for row in rows {
-    row.as_ref().update().unwrap();
+    row.as_ref().update()?;
    }
+   Ok(())
   }
  }
 }

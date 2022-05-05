@@ -122,8 +122,21 @@ struct MembersAndCasters {
 impl MembersAndCasters {
  fn create(members: Vec<(Ident, Ident, usize)>) -> MembersAndCasters {
   // let struct_members: Vec<_> = members.iter().map(|(name, ty, _i)| quote!(#name: #ty)).collect();
-  let row_casters =
-   members.iter().map(|(name, _ty, i)| quote!(#name: row.get(#i)?)).collect::<Vec<_>>();
+  let row_casters = members
+   .iter()
+   .map(|(name, _ty, i)| {
+    if name.to_string().ends_with("__serialized") {
+     let name = name.to_string();
+     let real_name = format_ident!("{}", name.strip_suffix("__serialized").unwrap());
+     quote!(#real_name: {
+      let string: String = row.get(#i)?;
+      ::turbosql::serde_json::from_str(&string)?
+     })
+    } else {
+     quote!(#name: row.get(#i)?)
+    }
+   })
+   .collect::<Vec<_>>();
 
   Self { row_casters }
  }
@@ -448,8 +461,18 @@ fn do_parse_tokens(
    };
    // };
 
-   let column_names_str =
-    table.columns.iter().map(|c| c.name.as_str()).collect::<Vec<_>>().join(", ");
+   let column_names_str = table
+    .columns
+    .iter()
+    .map(|c| {
+     if c.sql_type == "TEXT" && c.rust_type != "Option < String >" {
+      format!("{} AS {}__serialized", c.name, c.name)
+     } else {
+      c.name.clone()
+     }
+    })
+    .collect::<Vec<_>>()
+    .join(", ");
 
    let sql = format!("SELECT {} FROM {} {}", column_names_str, table_name, sql.unwrap_or_default());
 
@@ -514,11 +537,11 @@ fn do_parse_tokens(
 
   return Ok(quote! {
   {
-   (|| -> ::turbosql::Result<usize> {
+   (|| -> Result<usize, ::turbosql::Error> {
     ::turbosql::__TURBOSQL_DB.with(|db| {
      let db = db.borrow_mut();
      let mut stmt = db.prepare_cached(#sql)?;
-     stmt.execute(#params)
+     Ok(stmt.execute(#params)?)
     })
    })()
   }
@@ -579,11 +602,11 @@ fn do_parse_tokens(
    quote! {
     {
      // #struct_decl
-     (|| -> ::turbosql::Result<Vec<#contents>> {
+     (|| -> Result<Vec<#contents>, ::turbosql::Error> {
       ::turbosql::__TURBOSQL_DB.with(|db| {
        let db = db.borrow_mut();
        let mut stmt = db.prepare_cached(#sql)?;
-       let result = stmt.query_map(#params, |row| {
+       let result = stmt.query_and_then(#params, |row| -> Result<#contents, ::turbosql::Error> {
         Ok(#contents {
          #(#row_casters),*
          // #default
@@ -611,19 +634,19 @@ fn do_parse_tokens(
    quote! {
     {
      // #struct_decl
-     (|| -> ::turbosql::Result<Option<#contents>> {
-      use ::turbosql::OptionalExtension;
+     (|| -> Result<Option<#contents>, ::turbosql::Error> {
       ::turbosql::__TURBOSQL_DB.with(|db| {
        let db = db.borrow_mut();
        let mut stmt = db.prepare_cached(#sql)?;
-       let result = stmt.query_row(#params, |row| -> ::turbosql::Result<#contents> {
-        Ok(#contents {
+       let mut rows = stmt.query(#params)?;
+       Ok(if let Some(row) = rows.next()? {
+        Some(#contents {
          #(#row_casters),*
-         // #default
         })
-       }).optional()?;
-
-       Ok(result)
+       }
+       else {
+        None
+       })
       })
      })()
     }
@@ -637,11 +660,11 @@ fn do_parse_tokens(
   {
    quote! {
     {
-     (|| -> ::turbosql::Result<#contents> {
+     (|| -> Result<#contents, ::turbosql::Error> {
       ::turbosql::__TURBOSQL_DB.with(|db| {
        let db = db.borrow_mut();
        let mut stmt = db.prepare_cached(#sql)?;
-       let result = stmt.query_row(#params, |row| -> ::turbosql::Result<#contents> {
+       let result = stmt.query_row(#params, |row| {
         row.get(0)
        })?;
        Ok(result)
@@ -660,17 +683,15 @@ fn do_parse_tokens(
 
    quote! {
     {
-     (|| -> ::turbosql::Result<#contents> {
+     (|| -> Result<#contents, ::turbosql::Error> {
       ::turbosql::__TURBOSQL_DB.with(|db| {
        let db = db.borrow_mut();
        let mut stmt = db.prepare_cached(#sql)?;
-       let result = stmt.query_row(#params, |row| -> ::turbosql::Result<#contents> {
-        Ok(#contents {
-         #(#row_casters),*
-         // #default
-        })
-       })?;
-       Ok(result)
+       let mut rows = stmt.query(#params)?;
+       let row = rows.next()?.ok_or(::turbosql::rusqlite::Error::QueryReturnedNoRows)?;
+       Ok(#contents {
+        #(#row_casters),*
+       })
       })
      })()
     }
@@ -820,7 +841,6 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
     if U8_ARRAY_RE.is_match(&ty_str) { "Option < [u8; _] >" } else { ty_str.as_str() },
    ) {
     ("rowid", "Option < i64 >") => "INTEGER PRIMARY KEY",
-    // (_, "i64") => "INTEGER NOT NULL",
     (_, "Option < i8 >") => "INTEGER",
     (_, "Option < u8 >") => "INTEGER",
     (_, "Option < i16 >") => "INTEGER",
@@ -828,23 +848,18 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
     (_, "Option < i32 >") => "INTEGER",
     (_, "Option < u32 >") => "INTEGER",
     (_, "Option < i64 >") => "INTEGER",
-    // (_, "u64") => abort!(ty, SQLITE_U64_ERROR),
     (_, "Option < u64 >") => abort!(ty, SQLITE_U64_ERROR),
-    // (_, "f64") => "REAL NOT NULL",
     (_, "Option < f64 >") => "REAL",
     (_, "Option < f32 >") => "REAL",
-    // (_, "bool") => "BOOLEAN NOT NULL",
     (_, "Option < bool >") => "INTEGER",
-    // (_, "String") => "TEXT NOT NULL",
     (_, "Option < String >") => "TEXT",
     // SELECT LENGTH(blob_column) ... will be null if blob is null
-    // (_, "Blob") => "BLOB NOT NULL",
     (_, "Option < Blob >") => "BLOB",
     (_, "Option < Vec < u8 > >") => "BLOB",
     (_, "Option < [u8; _] >") => "BLOB",
     _ => {
      if ty_str.starts_with("Option < ") {
-      abort!(ty, "Turbosql doesn't support rust type: {}", ty_str)
+      "TEXT" // JSON-serialized
      } else {
       abort!(
        ty,
