@@ -15,7 +15,7 @@ An easy local data persistence layer, backed by SQLite.
 ## Usage
 
 ```rust
-use turbosql::{Turbosql, Blob, select, execute};
+use turbosql::{Turbosql, select, execute};
 
 #[derive(Turbosql, Default)]
 struct Person {
