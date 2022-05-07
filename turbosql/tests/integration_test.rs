@@ -45,11 +45,20 @@ fn integration_test() {
  };
 
  assert_eq!(row.insert().unwrap(), 1);
+ assert_eq!(row.insert().unwrap(), 2);
  row.rowid = Some(1);
  row.field_u8 = Some(84);
  assert_eq!(row.update().unwrap(), 1);
 
  assert_eq!(select!(i64 "1").unwrap(), 1);
+ // assert_eq!(select!(Vec<i64> "1").unwrap(), vec![1]);
+ // assert_eq!(select!(Option<i64> "1").unwrap(), Some(1));
+ assert_eq!(select!(Vec<i64> "rowid FROM personintegrationtest").unwrap(), vec![1, 2]);
+ assert_eq!(
+  select!(Vec<String> "field_string FROM personintegrationtest").unwrap(),
+  vec!["Bob", "Bob"]
+ );
+ execute!("DELETE FROM personintegrationtest WHERE rowid = 2").unwrap();
  assert_eq!(select!(i64 "SELECT 1").unwrap(), 1);
  assert_eq!(select!(bool "SELECT 1 > ? AS val", 0).unwrap(), true);
  assert_eq!(select!(bool "SELECT 1 > ? AS val", 2).unwrap(), false);

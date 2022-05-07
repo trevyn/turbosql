@@ -589,7 +589,29 @@ fn do_parse_tokens(
  // };
 
  let tokens = match result_type {
-  //
+  // Vec of primitive type
+  Some(ResultType { container: Some(container), contents: Some(contents) })
+   if container == "Vec"
+    && ["f32", "f64", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "String", "bool"]
+     .contains(&contents.to_string().as_str()) =>
+  {
+   quote! {
+    {
+     (|| -> Result<Vec<#contents>, ::turbosql::Error> {
+      ::turbosql::__TURBOSQL_DB.with(|db| {
+       let db = db.borrow_mut();
+       let mut stmt = db.prepare_cached(#sql)?;
+       let result = stmt.query_and_then(#params, |row| -> Result<#contents, ::turbosql::Error> {
+        Ok(row.get(0)?)
+       })?.collect::<Vec<_>>();
+       let result = result.into_iter().flatten().collect::<Vec<_>>();
+       Ok(result)
+      })
+     })()
+    }
+   }
+  }
+
   // Vec
   Some(ResultType { container: Some(container), contents: Some(contents) })
    if container == "Vec" =>
@@ -612,9 +634,7 @@ fn do_parse_tokens(
          // #default
         })
        })?.collect::<Vec<_>>();
-
        let result = result.into_iter().flatten().collect::<Vec<_>>();
-
        Ok(result)
       })
      })()

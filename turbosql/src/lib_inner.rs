@@ -59,7 +59,7 @@ struct DbPath {
  opened: bool,
 }
 
-static __DB_PATH: Lazy<Mutex<DbPath>> = Lazy::new(|| Mutex::new(DbPath::default()));
+static __DB_PATH: Lazy<Mutex<DbPath>> = Lazy::new(Default::default);
 
 /// Convenience function that returns the current time as milliseconds since UNIX epoch.
 pub fn now_ms() -> i64 {
