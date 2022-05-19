@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Allow selecting into Vec of primitive type, e.g. `select!(Vec<String> "name FROM table")`.
+- `struct` fields with unrecognized types are now serialized/deserialized as JSON. These types must implement `serde::Serialize` and `serde::Deserialize`.
+- Reworked Error type.
+
 ## 0.5.0 - 2022-03-05
 
 ### Bumped
