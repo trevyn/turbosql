@@ -75,7 +75,7 @@ sql_type = 'INTEGER'
 
 [[output_generated_tables_do_not_edit.person.columns]]
 name = 'image_jpg'
-rust_type = 'Option < Blob >'
+rust_type = 'Option < Vec < u8 > >'
 sql_type = 'BLOB'
 
 [output_generated_tables_do_not_edit.personintegrationtest]

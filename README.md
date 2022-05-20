@@ -66,14 +66,14 @@ See [`integration_test.rs`](https://github.com/trevyn/turbosql/blob/main/turbosq
 Turbosql generates a SQLite schema and prepared queries for each struct:
 
 ```rust
-use turbosql::{Turbosql, Blob};
+use turbosql::Turbosql;
 
 #[derive(Turbosql, Default)]
 struct Person {
     rowid: Option<i64>, // rowid member required & enforced
     name: Option<String>,
     age: Option<i64>,
-    image_jpg: Option<Blob>
+    image_jpg: Option<Vec<u8>>
 }
 ```
 
