@@ -28,9 +28,11 @@ fn main() {
  select!(Person "WHERE age = " 24 " AND name = ?", "Bob").unwrap();
  select!(Person "WHERE age = " 24 " AND name = $name").unwrap();
  select!(Person "WHERE age = ?", 1, 2).unwrap();
+ select!(Person "WHERE age = ").unwrap();
  select!("UPDATE person SET age = 1").unwrap();
  execute!("SELECT 1").unwrap();
  select!(Person "WHERE nonexistentcolumn = 1").unwrap();
  select!(Nonexistenttable).unwrap();
  select!(Vec).unwrap();
+ select!(Vec<"what">).unwrap();
 }

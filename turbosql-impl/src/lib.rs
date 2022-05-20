@@ -318,17 +318,23 @@ fn validate_sql_or_abort<S: AsRef<str> + std::fmt::Debug>(sql: S) -> StatementIn
 
 fn parse_interpolated_sql(
  input: ParseStream,
-) -> syn::Result<(Option<String>, Punctuated<Expr, Token![,]>)> {
+) -> syn::Result<(Option<String>, Punctuated<Expr, Token![,]>, impl ToTokens)> {
  let mut params: Punctuated<Expr, Token![,]> = Punctuated::new();
 
  if input.is_empty() {
-  return Ok((None, params));
+  return Ok((None, params, quote!()));
  }
 
- let mut sql = input.parse::<LitStr>()?.value();
+ let sql_token = input.parse::<LitStr>()?;
+ let mut sql = sql_token.value();
 
- if input.parse::<Token![,]>().is_ok() {
-  return Ok((Some(sql), input.parse_terminated(Expr::parse)?));
+ if let Ok(comma_token) = input.parse::<Token![,]>() {
+  let punctuated_tokens: Punctuated<Expr, Token![,]> = input.parse_terminated(Expr::parse)?;
+  return Ok((
+   Some(sql),
+   punctuated_tokens.clone(),
+   quote!(#sql_token #comma_token #punctuated_tokens),
+  ));
  }
 
  loop {
@@ -346,7 +352,7 @@ fn parse_interpolated_sql(
   sql.push_str(&input.parse::<LitStr>()?.value());
  }
 
- Ok((Some(sql), params))
+ Ok((Some(sql), params, quote!()))
 }
 
 fn do_parse_tokens(
@@ -358,7 +364,7 @@ fn do_parse_tokens(
  // Get result type and SQL
 
  let result_type = input.parse::<Type>().ok();
- let (sql, params) = parse_interpolated_sql(input)?;
+ let (sql, params, sql_and_parameters_tokens) = parse_interpolated_sql(input)?;
 
  if std::env::current_exe().unwrap().file_stem().unwrap() == "rust-analyzer" {
   if let Some(ty) = result_type {
@@ -414,10 +420,10 @@ fn do_parse_tokens(
        syn::GenericArgument::Type(syn::Type::Infer(_)) => {
         ResultType { container: Some(segment.ident.clone()), contents: None }
        }
-       _ => abort_call_site!("No segments found for container type {:#?}", arg),
+       _ => abort!(arg, "No type segments found in container type"),
       }
      }
-     _ => abort_call_site!("No arguments found for container type"),
+     _ => abort!(segment, "No type parameters found for container type"),
     },
     _ => ResultType { container: None, contents: Some(segment.ident.clone()) },
    })
@@ -502,10 +508,8 @@ fn do_parse_tokens(
  }
 
  if params.len() != stmt_info.positional_parameter_count {
-  #[cfg(test)]
-  todo_or_die::issue_closed!("rust-lang", "rust", 54725); // span.join()
-
-  abort_call_site!(
+  abort!(
+   sql_and_parameters_tokens,
    "Expected {} bound parameter{}, got {}: {:?}",
    stmt_info.positional_parameter_count,
    if stmt_info.positional_parameter_count == 1 { "" } else { "s" },

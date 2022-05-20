@@ -33,47 +33,57 @@ error: SQLite named parameters not currently supported.
    = note: this error originates in the macro `select` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: Expected 1 bound parameter, got 2: "SELECT rowid, name, age FROM person WHERE age = ?"
-  --> tests/ui/macros.rs:30:2
+  --> tests/ui/macros.rs:30:17
    |
 30 |  select!(Person "WHERE age = ?", 1, 2).unwrap();
-   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |                 ^^^^^^^^^^^^^^^^^^^^^
+
+error: Error validating SQL statement: "incomplete input". SQL: "SELECT rowid, name, age FROM person WHERE age = "
+  --> tests/ui/macros.rs:31:2
+   |
+31 |  select!(Person "WHERE age = ").unwrap();
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: this error originates in the macro `select` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: No rows returned from SQL, use execute! instead.
-  --> tests/ui/macros.rs:31:2
+  --> tests/ui/macros.rs:32:2
    |
-31 |  select!("UPDATE person SET age = 1").unwrap();
+32 |  select!("UPDATE person SET age = 1").unwrap();
    |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: this error originates in the macro `select` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: Rows returned from SQL, use select! instead.
-  --> tests/ui/macros.rs:32:2
+  --> tests/ui/macros.rs:33:2
    |
-32 |  execute!("SELECT 1").unwrap();
+33 |  execute!("SELECT 1").unwrap();
    |  ^^^^^^^^^^^^^^^^^^^^
    |
    = note: this error originates in the macro `execute` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: Error validating SQL statement: "no such column: nonexistentcolumn". SQL: "SELECT rowid, name, age FROM person WHERE nonexistentcolumn = 1"
-  --> tests/ui/macros.rs:33:2
+  --> tests/ui/macros.rs:34:2
    |
-33 |  select!(Person "WHERE nonexistentcolumn = 1").unwrap();
+34 |  select!(Person "WHERE nonexistentcolumn = 1").unwrap();
    |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: this error originates in the macro `select` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: Table "nonexistenttable" not found. Does struct Nonexistenttable exist and have #[derive(Turbosql, Default)]?
-  --> tests/ui/macros.rs:34:10
+  --> tests/ui/macros.rs:35:10
    |
-34 |  select!(Nonexistenttable).unwrap();
+35 |  select!(Nonexistenttable).unwrap();
    |          ^^^^^^^^^^^^^^^^
 
-error: No arguments found for container type
-  --> tests/ui/macros.rs:35:2
+error: No type parameters found for container type
+  --> tests/ui/macros.rs:36:10
    |
-35 |  select!(Vec).unwrap();
-   |  ^^^^^^^^^^^^
+36 |  select!(Vec).unwrap();
+   |          ^^^
+
+error: No type segments found in container type
+  --> tests/ui/macros.rs:37:14
    |
-   = note: this error originates in the macro `select` (in Nightly builds, run with -Z macro-backtrace for more info)
+37 |  select!(Vec<"what">).unwrap();
+   |              ^^^^^^

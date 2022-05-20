@@ -23,9 +23,6 @@ serde = {version = "1", features = ["derive"]}
 syn = {version = "1", features = ["extra-traits", "full"]}
 toml = "0.5"
 
-[dev-dependencies]
-todo-or-die = {version = "0.1", features = ["github"]}
-
 [features]
 # Needs to be set during parent crate tests
 test = []
