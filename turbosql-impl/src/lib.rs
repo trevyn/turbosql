@@ -368,7 +368,7 @@ fn do_parse_tokens(
 
  if std::env::current_exe().unwrap().file_stem().unwrap() == "rust-analyzer" {
   if let Some(ty) = result_type {
-   return Ok(quote!(Ok(#ty::default())));
+   return Ok(quote!(Ok({let x: #ty = Default::default(); x})));
   } else {
    return Ok(quote!());
   }
