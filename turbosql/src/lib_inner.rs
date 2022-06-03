@@ -38,9 +38,9 @@ pub trait Turbosql {
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
- #[error("rusqlite error")]
+ #[error(transparent)]
  Rusqlite(#[from] rusqlite::Error),
- #[error("serde_json error")]
+ #[error(transparent)]
  SerdeJson(#[from] serde_json::Error),
  #[error("Turbosql Error: {0}")]
  OtherError(&'static str),
