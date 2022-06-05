@@ -17,8 +17,8 @@ use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::{
- parse_macro_input, Data, DeriveInput, Expr, Fields, FieldsNamed, Ident, LitStr, Meta, NestedMeta,
- Token, Type,
+ parse_macro_input, parse_quote, Data, DeriveInput, Expr, Fields, FieldsNamed, Ident, LitStr, Meta,
+ NestedMeta, Token, Type,
 };
 
 #[cfg(not(feature = "test"))]
@@ -69,25 +69,6 @@ struct MiniColumn {
 static U8_ARRAY_RE: Lazy<regex::Regex> =
  Lazy::new(|| regex::Regex::new(r"^Option < \[u8 ; \d+\] >$").unwrap());
 
-// #[proc_macro]
-// pub fn set_db_path(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-//  let input = proc_macro2::TokenStream::from(input);
-
-//  eprintln!("IN SET DB PATH!");
-//  eprintln!("{:#?}", input);
-
-//  let mut db_path = DB_PATH.lock().unwrap();
-
-//  let mut iter = input.into_iter();
-
-//  *db_path = match iter.next() {
-//   Some(proc_macro2::TokenTree::Literal(literal)) => literal.to_string(),
-//   _ => panic!("Expected string literal"),
-//  };
-
-//  proc_macro::TokenStream::new()
-// }
-
 #[derive(Debug)]
 struct SelectTokens {
  tokens: proc_macro2::TokenStream,
@@ -99,9 +80,49 @@ struct ExecuteTokens {
 }
 
 #[derive(Clone, Debug)]
+struct SingleColumn {
+ table: Ident,
+ column: Ident,
+}
+
+#[derive(Clone, Debug)]
+enum Content {
+ // Type(Type),
+ Ident(Ident),
+ SingleColumn(SingleColumn),
+}
+
+impl Content {
+ fn ty(&self) -> syn::Result<Type> {
+  match self {
+   // Content::Type(ty) => Ok(ty.clone()),
+   Content::Ident(ident) => syn::parse2(ident.to_token_stream()),
+   Content::SingleColumn(_) => unimplemented!(), //syn::parse_str(&c.rust_type),
+  }
+ }
+ fn table_ident(&self) -> &Ident {
+  match self {
+   // Content::Type(_) => unimplemented!(),
+   Content::Ident(ident) => ident,
+   Content::SingleColumn(c) => &c.table,
+  }
+ }
+}
+
+#[derive(Clone, Debug)]
 struct ResultType {
  container: Option<Ident>,
- contents: Option<Ident>,
+ content: Content,
+}
+
+impl ResultType {
+ fn ty(&self) -> syn::Result<Type> {
+  let content = self.content.ty()?;
+  match self.container {
+   Some(ref container) => Ok(parse_quote!(#container < #content >)),
+   None => Ok(content),
+  }
+ }
 }
 
 // impl Parse for ResultType {
@@ -318,24 +339,24 @@ fn validate_sql_or_abort<S: AsRef<str> + std::fmt::Debug>(sql: S) -> StatementIn
 
 fn parse_interpolated_sql(
  input: ParseStream,
-) -> syn::Result<(Option<String>, Punctuated<Expr, Token![,]>, impl ToTokens)> {
- let mut params: Punctuated<Expr, Token![,]> = Punctuated::new();
-
+) -> syn::Result<(Option<String>, Punctuated<Expr, Token![,]>, proc_macro2::TokenStream)> {
  if input.is_empty() {
-  return Ok((None, params, quote!()));
+  return Ok(Default::default());
  }
 
  let sql_token = input.parse::<LitStr>()?;
  let mut sql = sql_token.value();
 
  if let Ok(comma_token) = input.parse::<Token![,]>() {
-  let punctuated_tokens: Punctuated<Expr, Token![,]> = input.parse_terminated(Expr::parse)?;
+  let punctuated_tokens = input.parse_terminated(Expr::parse)?;
   return Ok((
    Some(sql),
    punctuated_tokens.clone(),
    quote!(#sql_token #comma_token #punctuated_tokens),
   ));
  }
+
+ let mut params = Punctuated::new();
 
  loop {
   if input.is_empty() {
@@ -352,7 +373,7 @@ fn parse_interpolated_sql(
   sql.push_str(&input.parse::<LitStr>()?.value());
  }
 
- Ok((Some(sql), params, quote!()))
+ Ok((Some(sql), params, Default::default()))
 }
 
 fn do_parse_tokens(
@@ -363,20 +384,36 @@ fn do_parse_tokens(
 
  // Get result type and SQL
 
- let result_type = input.parse::<Type>().ok();
- let (sql, params, sql_and_parameters_tokens) = parse_interpolated_sql(input)?;
+ // let result_type = input.parse::<Type>().ok();
 
- if std::env::current_exe().unwrap().file_stem().unwrap() == "rust-analyzer" {
-  if let Some(ty) = result_type {
-   return Ok(quote!(Ok({let x: #ty = Default::default(); x})));
+ let result_type = if let Ok(mut ident) = input.parse::<Ident>() {
+  let container = if ident == "Vec" || ident == "Option" {
+   let container = Some(ident);
+   input.parse::<Token![<]>()?;
+   ident = input.parse::<Ident>()?;
+   container
   } else {
-   return Ok(quote!());
-  }
- }
+   None
+  };
+
+  let content = if input.parse::<Token![.]>().is_ok() {
+   Content::SingleColumn(SingleColumn { table: ident, column: input.parse::<Ident>()? })
+  } else {
+   Content::Ident(ident)
+  };
+
+  input.parse::<Token![>]>().ok();
+
+  Some(ResultType { container, content })
+ } else {
+  None
+ };
+
+ let (sql, params, sql_and_parameters_tokens) = parse_interpolated_sql(input)?;
 
  // Try validating SQL as-is
 
- let stmt_info = sql.clone().and_then(|s| validate_sql(s).ok());
+ let stmt_info = sql.as_ref().and_then(|s| validate_sql(s).ok());
 
  // Try adding SELECT if it didn't validate
 
@@ -389,59 +426,23 @@ fn do_parse_tokens(
   t => t,
  };
 
- // eprintln!("{:?}, {:?}, {:?}", quote!(#result_type).to_string(), sql, stmt_info);
-
- // Extract container type (e.g. Vec, Option) if present
-
- let result_type = match result_type {
-  Some(syn::Type::Path(syn::TypePath { path: syn::Path { segments, .. }, .. }))
-   if segments.len() == 1 =>
-  {
-   let segment = segments.first().unwrap();
-   Some(match segment.ident.to_string().as_str() {
-    "Vec" | "Option" => match &segment.arguments {
-     syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments { args, .. })
-      if args.len() == 1 =>
-     {
-      let arg = args.first().unwrap();
-      match arg {
-       syn::GenericArgument::Type(syn::Type::Path(syn::TypePath {
-        path: syn::Path { segments, .. },
-        ..
-       }))
-        if segments.len() == 1 =>
-       {
-        let contents_segment = segments.first().unwrap();
-        ResultType {
-         container: Some(segment.ident.clone()),
-         contents: Some(contents_segment.ident.clone()),
-        }
-       }
-       syn::GenericArgument::Type(syn::Type::Infer(_)) => {
-        ResultType { container: Some(segment.ident.clone()), contents: None }
-       }
-       _ => abort!(arg, "No type segments found in container type"),
-      }
-     }
-     _ => abort!(segment, "No type parameters found for container type"),
-    },
-    _ => ResultType { container: None, contents: Some(segment.ident.clone()) },
-   })
+ if std::env::current_exe().unwrap().file_stem().unwrap() == "rust-analyzer" {
+  if let Some(ty) = result_type {
+   let ty = ty.ty()?;
+   return Ok(quote!(Ok({let x: #ty = Default::default(); x})));
+  } else {
+   return Ok(quote!());
   }
-  Some(_) => abort_call_site!("Could not parse result_type"),
-  None => None,
- };
-
- // eprintln!("{:?}, {:?}, {:?}", result_type, sql, stmt_info);
+ }
 
  // If it didn't still validate and we have a non-inferred result type, try adding SELECT ... FROM
 
  let (sql, stmt_info) = match (result_type.clone(), sql, stmt_info) {
   //
   // Have result type and SQL did not validate, try generating SELECT ... FROM
-  (Some(ResultType { contents: Some(contents), .. }), sql, None) => {
-   let result_type = contents.to_string();
-   let table_name = result_type.to_lowercase();
+  (Some(ResultType { content, .. }), sql, None) => {
+   let table_type = content.table_ident().to_string();
+   let table_name = table_type.to_lowercase();
    // let tables = TABLES.lock().unwrap();
    // let table = match tables.get(&table_name) {
    //  Some(t) => t.clone(),
@@ -460,7 +461,7 @@ fn do_parse_tokens(
        span,
        "Table {:?} not found. Does struct {} exist and have #[derive(Turbosql, Default)]?",
        table_name,
-       result_type
+       table_type
       );
      }
     }
@@ -470,11 +471,18 @@ fn do_parse_tokens(
    let column_names_str = table
     .columns
     .iter()
-    .map(|c| {
-     if c.sql_type == "TEXT" && c.rust_type != "Option < String >" {
-      format!("{} AS {}__serialized", c.name, c.name)
+    .filter_map(|c| {
+     if match &content {
+      Content::SingleColumn(col) => col.column == c.name,
+      _ => true,
+     } {
+      if c.sql_type == "TEXT" && c.rust_type != "Option < String >" {
+       Some(format!("{} AS {}__serialized", c.name, c.name))
+      } else {
+       Some(c.name.clone())
+      }
      } else {
-      c.name.clone()
+      None
      }
     })
     .collect::<Vec<_>>()
@@ -594,18 +602,18 @@ fn do_parse_tokens(
 
  let tokens = match result_type {
   // Vec of primitive type
-  Some(ResultType { container: Some(container), contents: Some(contents) })
+  Some(ResultType { container: Some(container), content: Content::Ident(content) })
    if container == "Vec"
     && ["f32", "f64", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "String", "bool"]
-     .contains(&contents.to_string().as_str()) =>
+     .contains(&content.to_string().as_str()) =>
   {
    quote! {
     {
-     (|| -> Result<Vec<#contents>, ::turbosql::Error> {
+     (|| -> Result<Vec<#content>, ::turbosql::Error> {
       ::turbosql::__TURBOSQL_DB.with(|db| {
        let db = db.borrow_mut();
        let mut stmt = db.prepare_cached(#sql)?;
-       let result = stmt.query_and_then(#params, |row| -> Result<#contents, ::turbosql::Error> {
+       let result = stmt.query_and_then(#params, |row| -> Result<#content, ::turbosql::Error> {
         Ok(row.get(0)?)
        })?.collect::<Vec<_>>();
        let result = result.into_iter().flatten().collect::<Vec<_>>();
@@ -617,7 +625,7 @@ fn do_parse_tokens(
   }
 
   // Vec
-  Some(ResultType { container: Some(container), contents: Some(contents) })
+  Some(ResultType { container: Some(container), content: Content::Ident(content) })
    if container == "Vec" =>
   {
    let m = stmt_info
@@ -628,12 +636,12 @@ fn do_parse_tokens(
    quote! {
     {
      // #struct_decl
-     (|| -> Result<Vec<#contents>, ::turbosql::Error> {
+     (|| -> Result<Vec<#content>, ::turbosql::Error> {
       ::turbosql::__TURBOSQL_DB.with(|db| {
        let db = db.borrow_mut();
        let mut stmt = db.prepare_cached(#sql)?;
-       let result = stmt.query_and_then(#params, |row| -> Result<#contents, ::turbosql::Error> {
-        Ok(#contents {
+       let result = stmt.query_and_then(#params, |row| -> Result<#content, ::turbosql::Error> {
+        Ok(#content {
          #(#row_casters),*
          // #default
         })
@@ -647,7 +655,7 @@ fn do_parse_tokens(
   }
 
   // Option
-  Some(ResultType { container: Some(container), contents: Some(contents) })
+  Some(ResultType { container: Some(container), content: Content::Ident(content) })
    if container == "Option" =>
   {
    let m = stmt_info
@@ -658,13 +666,13 @@ fn do_parse_tokens(
    quote! {
     {
      // #struct_decl
-     (|| -> Result<Option<#contents>, ::turbosql::Error> {
+     (|| -> Result<Option<#content>, ::turbosql::Error> {
       ::turbosql::__TURBOSQL_DB.with(|db| {
        let db = db.borrow_mut();
        let mut stmt = db.prepare_cached(#sql)?;
        let mut rows = stmt.query(#params)?;
        Ok(if let Some(row) = rows.next()? {
-        Some(#contents {
+        Some(#content {
          #(#row_casters),*
         })
        }
@@ -678,13 +686,13 @@ fn do_parse_tokens(
   }
 
   // Primitive type
-  Some(ResultType { container: None, contents: Some(contents) })
+  Some(ResultType { container: None, content: Content::Ident(content) })
    if ["f32", "f64", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "String", "bool"]
-    .contains(&contents.to_string().as_str()) =>
+    .contains(&content.to_string().as_str()) =>
   {
    quote! {
     {
-     (|| -> Result<#contents, ::turbosql::Error> {
+     (|| -> Result<#content, ::turbosql::Error> {
       ::turbosql::__TURBOSQL_DB.with(|db| {
        let db = db.borrow_mut();
        let mut stmt = db.prepare_cached(#sql)?;
@@ -699,7 +707,7 @@ fn do_parse_tokens(
   }
 
   // Custom struct type
-  Some(ResultType { container: None, contents: Some(contents) }) => {
+  Some(ResultType { container: None, content: Content::Ident(content) }) => {
    let m = stmt_info
     .membersandcasters()
     .unwrap_or_else(|_| abort_call_site!("stmt_info.membersandcasters failed"));
@@ -707,13 +715,13 @@ fn do_parse_tokens(
 
    quote! {
     {
-     (|| -> Result<#contents, ::turbosql::Error> {
+     (|| -> Result<#content, ::turbosql::Error> {
       ::turbosql::__TURBOSQL_DB.with(|db| {
        let db = db.borrow_mut();
        let mut stmt = db.prepare_cached(#sql)?;
        let mut rows = stmt.query(#params)?;
        let row = rows.next()?.ok_or(::turbosql::rusqlite::Error::QueryReturnedNoRows)?;
-       Ok(#contents {
+       Ok(#content {
         #(#row_casters),*
        })
       })
@@ -722,8 +730,105 @@ fn do_parse_tokens(
    }
   }
 
-  // Inferred
-  Some(ResultType { container: Some(_container), contents: None }) => abort_call_site!("INFERRED"),
+  // Vec of single column
+  Some(ResultType { container: Some(container), content: Content::SingleColumn(col) })
+   if container == "Vec" =>
+  {
+   let content_ty: Type = syn::parse_str(
+    &read_migrations_toml()
+     .output_generated_tables_do_not_edit
+     .unwrap()
+     .get(&col.table.to_string().to_lowercase())
+     .unwrap()
+     .columns
+     .iter()
+     .find(|c| col.column == c.name)
+     .unwrap()
+     .rust_type,
+   )?;
+   quote! {
+    {
+     (|| -> Result<Vec<#content_ty>, ::turbosql::Error> {
+      ::turbosql::__TURBOSQL_DB.with(|db| {
+       let db = db.borrow_mut();
+       let mut stmt = db.prepare_cached(#sql)?;
+       let result = stmt.query_and_then(#params, |row| -> Result<#content_ty, ::turbosql::Error> {
+        Ok(row.get(0)?)
+       })?.collect::<Vec<_>>();
+       let result = result.into_iter().flatten().collect::<Vec<_>>();
+       Ok(result)
+      })
+     })()
+    }
+   }
+  }
+
+  // Option of single column
+  Some(ResultType { container: Some(container), content: Content::SingleColumn(col) })
+   if container == "Option" =>
+  {
+   let content_ty: Type = syn::parse_str(
+    &read_migrations_toml()
+     .output_generated_tables_do_not_edit
+     .unwrap()
+     .get(&col.table.to_string().to_lowercase())
+     .unwrap()
+     .columns
+     .iter()
+     .find(|c| col.column == c.name)
+     .unwrap()
+     .rust_type,
+   )?;
+   quote! {
+    {
+     (|| -> Result<Option<#content_ty>, ::turbosql::Error> {
+      ::turbosql::__TURBOSQL_DB.with(|db| {
+       let db = db.borrow_mut();
+       let mut stmt = db.prepare_cached(#sql)?;
+       let mut rows = stmt.query(#params)?;
+       Ok(if let Some(row) = rows.next()? {
+        let val = row.get::<_, #content_ty>(0)?.clone();
+        Some(val)
+       }
+       else {
+        None
+       })
+      })
+     })()
+    }
+   }
+  }
+
+  // Single column
+  Some(ResultType { container: None, content: Content::SingleColumn(col) }) => {
+   let content_ty: Type = syn::parse_str(
+    &read_migrations_toml()
+     .output_generated_tables_do_not_edit
+     .unwrap()
+     .get(&col.table.to_string().to_lowercase())
+     .unwrap()
+     .columns
+     .iter()
+     .find(|c| col.column == c.name)
+     .unwrap()
+     .rust_type,
+   )?;
+   quote! {
+    {
+     (|| -> Result<#content_ty, ::turbosql::Error> {
+      ::turbosql::__TURBOSQL_DB.with(|db| {
+       let db = db.borrow_mut();
+       let mut stmt = db.prepare_cached(#sql)?;
+       let result = stmt.query_row(#params, |row| {
+        row.get(0)
+       })?;
+       Ok(result)
+      })
+     })()
+    }
+   }
+  }
+
   _ => abort_call_site!("unknown result_type"),
  };
 

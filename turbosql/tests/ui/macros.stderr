@@ -76,13 +76,15 @@ error: Table "nonexistenttable" not found. Does struct Nonexistenttable exist an
 35 |  select!(Nonexistenttable).unwrap();
    |          ^^^^^^^^^^^^^^^^
 
-error: No type parameters found for container type
-  --> tests/ui/macros.rs:36:10
+error: expected `<`
+  --> tests/ui/macros.rs:36:2
    |
 36 |  select!(Vec).unwrap();
-   |          ^^^
+   |  ^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `select` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: No type segments found in container type
+error: expected identifier
   --> tests/ui/macros.rs:37:14
    |
 37 |  select!(Vec<"what">).unwrap();

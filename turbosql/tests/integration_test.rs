@@ -221,12 +221,34 @@ fn integration_test() {
  // let result = select!(Option<(String, i64)> "name, age FROM person")?;
 
  // struct members
- // let result = select!(Person.age)?;
+ assert_eq!(select!(Vec<PersonIntegrationTest.field_u8>).unwrap(), vec![row.field_u8]);
+ assert_eq!(select!(Option<PersonIntegrationTest.field_u8>).unwrap(), Some(row.field_u8));
+ assert_eq!(select!(PersonIntegrationTest.field_u8).unwrap(), row.field_u8);
+ assert_eq!(
+  select!(Vec<PersonIntegrationTest.field_vec_u8>).unwrap(),
+  vec![row.field_vec_u8.clone()]
+ );
+ assert_eq!(
+  select!(Option<PersonIntegrationTest.field_vec_u8>).unwrap(),
+  Some(row.field_vec_u8.clone())
+ );
+ assert_eq!(select!(PersonIntegrationTest.field_vec_u8).unwrap(), row.field_vec_u8.clone());
+ assert_eq!(select!(Vec<PersonIntegrationTest.field_array_u8>).unwrap(), vec![row.field_array_u8]);
+ assert_eq!(
+  select!(Option<PersonIntegrationTest.field_array_u8>).unwrap(),
+  Some(row.field_array_u8)
+ );
+ assert_eq!(select!(PersonIntegrationTest.field_array_u8).unwrap(), row.field_array_u8);
+
+ assert_eq!(select!(Option<PersonIntegrationTest.field_u8> "WHERE 0").unwrap(), None);
+
  // let result = select!((Person.name, Person.age))?;
+ // let result = select!({Person.name, Person.age})?;
  // let result = select!(Vec<(Person.name, Person.age)>)?;
  // let result = select!(Vec<(Person.name, Person.age)> "WHERE ...")?;
 
  // let result = select!({ name, "age >= 18 AS" adult: bool } "FROM" Person)?;
+ // let result = select!({ Person.name, "age >= 18 AS" adult: bool })?;
  // let result = select!({ name: String, "age >= 18 AS" adult: bool } "FROM person")?;
  // let_select!(name: String, "age >= " adult_age " AS " adult: bool "FROM person")?;
  // let result = select!(( "name AS" String, "age >= 18 AS" bool ) "FROM person")?;

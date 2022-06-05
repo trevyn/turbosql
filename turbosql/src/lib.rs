@@ -2,7 +2,7 @@
 #![doc = include_str!("../README.md")]
 
 #[cfg(all(not(feature = "test"), any(test, doctest)))]
-compile_error!("turbosql must be tested with '--features test'");
+compile_error!("turbosql must be tested with '--features test -- --test-threads=1'");
 
 #[cfg(not(target_arch = "wasm32"))]
 include!("lib_inner.rs");
