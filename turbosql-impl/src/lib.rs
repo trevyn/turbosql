@@ -604,7 +604,7 @@ fn do_parse_tokens(
   // Vec of primitive type
   Some(ResultType { container: Some(container), content: Content::Ident(content) })
    if container == "Vec"
-    && ["f32", "f64", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "String", "bool"]
+    && ["f32", "f64", "i8", "i16", "u16", "i32", "u32", "i64", "String", "bool"]
      .contains(&content.to_string().as_str()) =>
   {
    quote! {
