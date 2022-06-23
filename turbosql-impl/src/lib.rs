@@ -396,11 +396,11 @@ fn do_parse_tokens(
    None
   };
 
-  let content = if input.parse::<Token![.]>().is_ok() {
-   Content::SingleColumn(SingleColumn { table: ident, column: input.parse::<Ident>()? })
-  } else {
-   Content::Ident(ident)
-  };
+  let content = // if input.parse::<Token![.]>().is_ok() {
+  //  Content::SingleColumn(SingleColumn { table: ident, column: input.parse::<Ident>()? })
+  // } else {
+   Content::Ident(ident);
+  // };
 
   input.parse::<Token![>]>().ok();
 
