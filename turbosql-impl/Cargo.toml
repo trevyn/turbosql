@@ -6,7 +6,7 @@ license = "MIT OR Apache-2.0 OR CC0-1.0"
 name = "turbosql-impl"
 repository = "https://github.com/trevyn/turbosql"
 rust-version = "1.56"
-version = "0.5.0"
+version = "0.6.0"
 
 [lib]
 proc-macro = true
