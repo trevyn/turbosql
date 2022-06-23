@@ -262,9 +262,11 @@ fn migrations_to_tempdb(migrations: &[String]) -> Connection {
  let tempdb = rusqlite::Connection::open_in_memory().unwrap();
 
  tempdb
-  .execute_batch(
-   "CREATE TABLE _turbosql_migrations (rowid INTEGER PRIMARY KEY, migration TEXT NOT NULL) STRICT;",
-  )
+  .execute_batch(if cfg!(feature = "sqlite-compat-no-strict-tables") {
+   "CREATE TABLE _turbosql_migrations (rowid INTEGER PRIMARY KEY, migration TEXT NOT NULL);"
+  } else {
+   "CREATE TABLE _turbosql_migrations (rowid INTEGER PRIMARY KEY, migration TEXT NOT NULL) STRICT;"
+  })
   .unwrap();
 
  migrations.iter().filter(|m| !m.starts_with("--")).for_each(|m| {
@@ -1108,15 +1110,24 @@ fn create(table: &Table, minitable: &MiniTable) {
 }
 
 fn makesql_create(table: &Table) -> String {
- format!(
-  "CREATE TABLE {} ({}) STRICT",
-  table.name,
-  table.columns.iter().map(|c| format!("{} {}", c.name, c.sql_type)).collect::<Vec<_>>().join(",")
- )
+ let columns =
+  table.columns.iter().map(|c| format!("{} {}", c.name, c.sql_type)).collect::<Vec<_>>().join(",");
+
+ if cfg!(feature = "sqlite-compat-no-strict-tables") {
+  format!("CREATE TABLE {} ({})", table.name, columns)
+ } else {
+  format!("CREATE TABLE {} ({}) STRICT", table.name, columns)
+ }
 }
 
 fn make_migrations(table: &Table) -> Vec<String> {
- let mut vec = vec![format!("CREATE TABLE {} (rowid INTEGER PRIMARY KEY) STRICT", table.name)];
+ let sql = if cfg!(feature = "sqlite-compat-no-strict-tables") {
+  format!("CREATE TABLE {} (rowid INTEGER PRIMARY KEY)", table.name)
+ } else {
+  format!("CREATE TABLE {} (rowid INTEGER PRIMARY KEY) STRICT", table.name)
+ };
+
+ let mut vec = vec![sql];
 
  let mut alters = table
   .columns

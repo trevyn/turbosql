@@ -1,10 +1,16 @@
 # Changelog
 
-## Unreleased
+## 0.6.0 - 2022-06-23
 
+### Added
+
+- Added `sqlite-compat-no-strict-tables` feature, which allows easier compatibility with tools using a version of SQLite prior to 3.37. The downside is that some extra typechecking is disabled.
 - Allow selecting into Vec of primitive type, e.g. `select!(Vec<String> "name FROM table")`.
 - `struct` fields with unrecognized types are now serialized/deserialized as JSON. These types must implement `serde::Serialize` and `serde::Deserialize`. This might synergize well with SQLite's built-in JSON support!
-- Reworked Error type.
+
+### Changed
+
+- Reworked Error/Result type.
 
 ## 0.5.0 - 2022-03-05
 

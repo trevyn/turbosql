@@ -33,6 +33,7 @@ tokio = {version = "1", features = ["rt-multi-thread", "macros"]}
 trybuild = {version = "1", features = ["diff"]}
 
 [features]
+sqlite-compat-no-strict-tables = ["turbosql-impl/sqlite-compat-no-strict-tables"]
 test = ["turbosql-impl/test"]
 
 [[test]]
