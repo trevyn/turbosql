@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Bumped
+
+- Bumped `rusqlite` to 0.28
+
 ## 0.6.0 - 2022-06-23
 
 ### Added
