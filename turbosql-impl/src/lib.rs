@@ -89,6 +89,7 @@ struct SingleColumn {
 enum Content {
  // Type(Type),
  Ident(Ident),
+ #[allow(dead_code)]
  SingleColumn(SingleColumn),
 }
 
