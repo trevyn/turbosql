@@ -62,7 +62,7 @@ error: Rows returned from SQL, use select! instead.
    |
    = note: this error originates in the macro `execute` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: Error validating SQL statement: "no such column: nonexistentcolumn". SQL: "SELECT rowid, name, age FROM person WHERE nonexistentcolumn = 1"
+error: Error validating SQL statement: "no such column: nonexistentcolumn in SELECT rowid, name, age FROM person WHERE nonexistentcolumn = 1 at offset 42". SQL: "SELECT rowid, name, age FROM person WHERE nonexistentcolumn = 1"
   --> tests/ui/macros.rs:34:2
    |
 34 |  select!(Person "WHERE nonexistentcolumn = 1").unwrap();
