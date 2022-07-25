@@ -13,7 +13,7 @@ pub(super) fn insert(table: &Table) -> proc_macro2::TokenStream {
   .map(|c| {
    let ident = &c.ident;
    if c.sql_type == "TEXT" && c.rust_type != "Option < String >" {
-    quote_spanned!(c.span => &serde_json::to_string(&self.#ident)? as &dyn ::turbosql::ToSql)
+    quote_spanned!(c.span => &::turbosql::serde_json::to_string(&self.#ident)? as &dyn ::turbosql::ToSql)
    } else {
     quote_spanned!(c.span => &self.#ident as &dyn ::turbosql::ToSql)
    }
