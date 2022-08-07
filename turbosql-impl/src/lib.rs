@@ -429,7 +429,13 @@ fn do_parse_tokens(
   t => t,
  };
 
- if std::env::current_exe().unwrap().file_stem().unwrap() == "rust-analyzer" {
+ if std::env::current_exe()
+  .unwrap()
+  .file_stem()
+  .unwrap()
+  .to_string_lossy()
+  .starts_with("rust-analyzer")
+ {
   if let Some(ty) = result_type {
    let ty = ty.ty()?;
    return Ok(quote!(Ok({let x: #ty = Default::default(); x})));
@@ -870,7 +876,13 @@ pub fn select(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(Turbosql, attributes(turbosql))]
 #[proc_macro_error]
 pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
- if std::env::current_exe().unwrap().file_stem().unwrap() == "rust-analyzer" {
+ if std::env::current_exe()
+  .unwrap()
+  .file_stem()
+  .unwrap()
+  .to_string_lossy()
+  .starts_with("rust-analyzer")
+ {
   return quote!().into();
  }
 
