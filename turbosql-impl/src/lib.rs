@@ -429,13 +429,7 @@ fn do_parse_tokens(
   t => t,
  };
 
- if std::env::current_exe()
-  .unwrap()
-  .file_stem()
-  .unwrap()
-  .to_string_lossy()
-  .starts_with("rust-analyzer")
- {
+ if is_rust_analyzer() {
   if let Some(ty) = result_type {
    let ty = ty.ty()?;
    return Ok(quote!(Ok({let x: #ty = Default::default(); x})));
@@ -876,13 +870,7 @@ pub fn select(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(Turbosql, attributes(turbosql))]
 #[proc_macro_error]
 pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
- if std::env::current_exe()
-  .unwrap()
-  .file_stem()
-  .unwrap()
-  .to_string_lossy()
-  .starts_with("rust-analyzer")
- {
+ if is_rust_analyzer() {
   return quote!().into();
  }
 
@@ -1164,4 +1152,13 @@ fn migrations_toml_path() -> std::path::PathBuf {
  path.pop();
  path.push(MIGRATIONS_FILENAME);
  path
+}
+
+fn is_rust_analyzer() -> bool {
+ std::env::current_exe()
+  .unwrap()
+  .file_stem()
+  .unwrap()
+  .to_string_lossy()
+  .starts_with("rust-analyzer")
 }
