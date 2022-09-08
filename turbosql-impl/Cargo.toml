@@ -1,5 +1,4 @@
 [package]
-authors = ["The authors"]
 description = "Internal implementation details for Turbosql."
 edition = "2021"
 license = "MIT OR Apache-2.0 OR CC0-1.0"

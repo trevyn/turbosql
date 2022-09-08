@@ -1,5 +1,4 @@
 [package]
-authors = ["The authors"]
 categories = ["database"]
 description = "An easy local data persistence layer, backed by SQLite."
 documentation = "https://docs.rs/turbosql"
