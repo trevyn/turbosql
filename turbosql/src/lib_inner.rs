@@ -189,7 +189,7 @@ pub fn checkpoint() -> Result<CheckpointResult, Error> {
 fn open_db() -> Connection {
  let mut db_path = __DB_PATH.lock().unwrap();
 
- if db_path.path == None {
+ if db_path.path.is_none() {
   #[cfg(not(feature = "test"))]
   let path = {
    let exe_stem = std::env::current_exe().unwrap().file_stem().unwrap().to_owned();
