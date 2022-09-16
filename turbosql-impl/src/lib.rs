@@ -373,7 +373,7 @@ fn parse_interpolated_sql(
   }
 
   params.push(input.parse()?);
-  sql.push('?');
+  sql.push_str(" ? ");
 
   if input.is_empty() {
    break;
