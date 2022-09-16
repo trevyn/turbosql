@@ -362,6 +362,12 @@ fn parse_interpolated_sql(
  let mut params = Punctuated::new();
 
  loop {
+  if input.peek(LitStr) {
+   sql.push(' ');
+   sql.push_str(&input.parse::<LitStr>()?.value());
+   continue;
+  }
+
   if input.is_empty() {
    break;
   }
