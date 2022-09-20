@@ -253,6 +253,8 @@ fn integration_test() {
  // let_select!(name: String, "age >= " adult_age " AS " adult: bool "FROM person")?;
  // let result = select!(( "name AS" String, "age >= 18 AS" bool ) "FROM person")?;
 
+ execute!("INSERT INTO personintegrationtest(field_u8, field_i8) VALUES (" 1, 2 ")").unwrap();
+
  // DELETE
 
  assert!(execute!("DELETE FROM personintegrationtest").is_ok());

@@ -372,8 +372,15 @@ fn parse_interpolated_sql(
    break;
   }
 
-  params.push(input.parse()?);
-  sql.push_str(" ? ");
+  loop {
+   params.push(input.parse()?);
+   sql.push_str(" ? ");
+   if input.parse::<Token![,]>().is_ok() {
+    sql.push(',');
+   } else {
+    break;
+   }
+  }
 
   if input.is_empty() {
    break;
@@ -446,7 +453,7 @@ fn do_parse_tokens(
 
  // If it didn't still validate and we have a non-inferred result type, try adding SELECT ... FROM
 
- let (sql, stmt_info) = match (result_type.clone(), sql, stmt_info) {
+ let (sql, stmt_info) = match (result_type.clone(), sql.clone(), stmt_info) {
   //
   // Have result type and SQL did not validate, try generating SELECT ... FROM
   (Some(ResultType { content, .. }), sql, None) => {
@@ -504,7 +511,7 @@ fn do_parse_tokens(
 
   // Otherwise, everything is validated, just unwrap
   (_, Some(sql), Some(stmt_info)) => (sql, stmt_info),
-
+  (_, Some(sql), _) => abort_call_site!("sql did not validate: {}", sql),
   _ => abort_call_site!("no predicate and no result type found"),
  };
 
