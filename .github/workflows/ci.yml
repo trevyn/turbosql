@@ -35,6 +35,7 @@ jobs:
       fail-fast: false
       matrix:
         rust: ["1.56.1", stable, beta, nightly]
+
     steps:
       - uses: actions/checkout@v3
 
