@@ -3,7 +3,10 @@ name: ci
 on:
   push:
   pull_request:
-  schedule: [cron: '40 1 * * *']
+  schedule: [cron: "40 1 * * *"]
+
+permissions:
+  contents: read
 
 env:
   CARGO_TERM_COLOR: always
@@ -31,22 +34,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rust: [1.56, stable, beta, nightly]
-#              1.56 is minimum rust-version
+        rust: ["1.56.1", stable, beta, nightly]
     steps:
       - uses: actions/checkout@v3
 
       - uses: hecrj/setup-rust-action@v1
         with:
           rust-version: ${{ matrix.rust }}
-      
+
       - name: cargo test turbosql-impl
         run: cargo test --features "test" -- --nocapture --test-threads=1
-        working-directory: 'turbosql-impl'
+        working-directory: "turbosql-impl"
 
       - name: cargo test turbosql
         run: cargo test --features "test" -- --nocapture --test-threads=1
-        working-directory: 'turbosql'
+        working-directory: "turbosql"
 
       - run: cargo doc --no-deps
 
@@ -57,11 +59,11 @@ jobs:
 
       - name: rusqlite master cargo test turbosql-impl
         run: cargo test --features "test" -- --nocapture --test-threads=1 --skip ui
-        working-directory: 'turbosql-impl'
+        working-directory: "turbosql-impl"
 
       - name: rusqlite master cargo test turbosql
         run: cargo test --features "test" -- --nocapture --test-threads=1 --skip ui
-        working-directory: 'turbosql'
+        working-directory: "turbosql"
 
   publish:
     needs: [checklinks, test]
@@ -77,8 +79,8 @@ jobs:
 
       - name: cargo publish turbosql-impl
         run: cargo publish --no-verify --allow-dirty --token ${{ secrets.CARGO_TOKEN }}
-        working-directory: 'turbosql-impl'
+        working-directory: "turbosql-impl"
 
       - name: cargo publish turbosql
         run: cargo publish --no-verify --allow-dirty --token ${{ secrets.CARGO_TOKEN }}
-        working-directory: 'turbosql'
+        working-directory: "turbosql"
