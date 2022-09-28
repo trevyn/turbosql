@@ -362,31 +362,20 @@ fn parse_interpolated_sql(
  let mut params = Punctuated::new();
 
  loop {
-  if input.peek(LitStr) {
+  while input.peek(LitStr) {
    sql.push(' ');
    sql.push_str(&input.parse::<LitStr>()?.value());
-   continue;
   }
 
   if input.is_empty() {
    break;
   }
 
-  loop {
-   params.push(input.parse()?);
-   sql.push_str(" ? ");
-   if input.parse::<Token![,]>().is_ok() {
-    sql.push(',');
-   } else {
-    break;
-   }
+  params.push(input.parse()?);
+  sql.push_str(" ? ");
+  if input.parse::<Token![,]>().is_ok() {
+   sql.push(',');
   }
-
-  if input.is_empty() {
-   break;
-  }
-
-  sql.push_str(&input.parse::<LitStr>()?.value());
  }
 
  Ok((Some(sql), params, Default::default()))
