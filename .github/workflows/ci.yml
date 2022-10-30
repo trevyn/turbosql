@@ -34,14 +34,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rust: ["1.56.1", stable, beta, nightly]
+        rust: ["1.56.1", "1.58.1", stable, beta, nightly]
 
     steps:
       - uses: actions/checkout@v3
 
-      - uses: hecrj/setup-rust-action@v1
-        with:
-          rust-version: ${{ matrix.rust }}
+      - run: rustup default ${{ matrix.rust }}
 
       - name: cargo test turbosql-impl
         run: cargo test --features "test" -- --nocapture --test-threads=1
@@ -59,10 +57,12 @@ jobs:
       - run: cargo clean
 
       - name: rusqlite master cargo test turbosql-impl
+        if: matrix.rust != "1.56.1"
         run: cargo test --features "test" -- --nocapture --test-threads=1 --skip ui
         working-directory: "turbosql-impl"
 
       - name: rusqlite master cargo test turbosql
+        if: matrix.rust != "1.56.1"
         run: cargo test --features "test" -- --nocapture --test-threads=1 --skip ui
         working-directory: "turbosql"
 
@@ -74,9 +74,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: hecrj/setup-rust-action@v1
-        with:
-          rust-version: stable
+      - run: rustup default stable
 
       - name: cargo publish turbosql-impl
         run: cargo publish --no-verify --allow-dirty --token ${{ secrets.CARGO_TOKEN }}
