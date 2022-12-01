@@ -28,7 +28,7 @@ toml = "0.5"
 
 [dev-dependencies]
 rustversion = "1"
-tokio = {version = "1", features = ["rt-multi-thread", "macros"]}
+tokio = {version = "1.13.1", features = ["rt-multi-thread", "macros"]}
 trybuild = {version = "1", features = ["diff"]}
 
 [features]
