@@ -39,7 +39,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - run: rustup default ${{ matrix.rust }}
+      - run: rustup default ${{ matrix.rust }} && rustup update ${{ matrix.rust }}
 
       - name: cargo test turbosql-impl
         run: cargo test --features "test" -- --nocapture --test-threads=1
@@ -74,7 +74,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - run: rustup default stable
+      - run: rustup default stable && rustup update stable
 
       - name: cargo publish turbosql-impl
         run: cargo publish --no-verify --allow-dirty --token ${{ secrets.CARGO_TOKEN }}
