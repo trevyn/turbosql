@@ -442,7 +442,7 @@ fn do_parse_tokens(
 
 	// If it didn't still validate and we have a non-inferred result type, try adding SELECT ... FROM
 
-	let (sql, stmt_info) = match (result_type.clone(), sql.clone(), stmt_info) {
+	let (sql, stmt_info) = match (result_type.clone(), sql, stmt_info) {
 		//
 		// Have result type and SQL did not validate, try generating SELECT ... FROM
 		(Some(ResultType { content, .. }), sql, None) => {
