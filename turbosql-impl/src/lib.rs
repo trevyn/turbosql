@@ -1169,25 +1169,16 @@ fn is_rust_analyzer() -> bool {
 mod tests {
 	use super::*;
 
-	fn create_field(ident: &str, ty_str: &str, attrs: Vec<syn::Attribute>) -> syn::Field {
-		let ident = Ident::new(ident, Span::call_site());
-		let ty: Type = syn::parse_str(ty_str).unwrap();
-
-		syn::Field { ident: Some(ident), vis: syn::Visibility::Inherited, attrs, ty, colon_token: None }
-	}
-
 	#[test]
 	fn test_extract_columns() {
-		let fields_named = FieldsNamed {
-			brace_token: syn::token::Brace { span: Span::call_site() },
-			named: syn::punctuated::Punctuated::from_iter(vec![
-				create_field("rowid", "Option<i64>", vec![]),
-				create_field("name", "Option<String>", vec![]),
-				create_field("age", "Option<u32>", vec![]),
-				create_field("awesomeness", "Option<f64>", vec![]),
-				create_field("skipped", "Option<bool>", vec![parse_quote!(#[turbosql(skip)])]),
-			]),
-		};
+		let fields_named = parse_quote!({
+			rowid: Option<i64>,
+			name: Option<String>,
+			age: Option<u32>,
+			awesomeness: Option<f64>,
+			#[turbosql(skip)]
+			skipped: Option<bool>
+		});
 
 		let columns = extract_columns(&fields_named);
 
