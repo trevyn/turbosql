@@ -156,10 +156,7 @@ fn integration_test() {
 		select!(i8 "field_u8 FROM personintegrationtest").unwrap(),
 		row.field_u8.unwrap() as i8
 	);
-	assert_eq!(
-		select!(u8 "field_u8 FROM personintegrationtest").unwrap(),
-		row.field_u8.unwrap() as u8
-	);
+	assert_eq!(select!(u8 "field_u8 FROM personintegrationtest").unwrap(), row.field_u8.unwrap());
 	assert_eq!(
 		select!(i16 "field_u8 FROM personintegrationtest").unwrap(),
 		row.field_u8.unwrap() as i16
