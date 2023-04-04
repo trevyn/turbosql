@@ -18,7 +18,7 @@ use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::{
 	parse_macro_input, parse_quote, Data, DeriveInput, Expr, Fields, FieldsNamed, Ident, LitStr, Meta,
-	NestedMeta, Token, Type,
+	Token, Type,
 };
 
 #[cfg(not(feature = "test"))]
@@ -351,7 +351,7 @@ fn parse_interpolated_sql(
 	let mut sql = sql_token.value();
 
 	if let Ok(comma_token) = input.parse::<Token![,]>() {
-		let punctuated_tokens = input.parse_terminated(Expr::parse)?;
+		let punctuated_tokens = input.parse_terminated(Expr::parse, Token![,])?;
 		return Ok((
 			Some(sql),
 			punctuated_tokens.clone(),
@@ -940,23 +940,17 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
 			// Skip (skip) fields
 
 			for attr in &f.attrs {
-				let meta = attr.parse_meta().unwrap();
-				match meta {
-					Meta::List(list) if list.path.is_ident("turbosql") => {
-						for value in list.nested.iter() {
-							if let NestedMeta::Meta(meta) = value {
-								match meta {
-									Meta::Path(p) if p.is_ident("skip") => {
-										// TODO: For skipped fields, Handle derive(Default) requirement better
-										// require Option and manifest None values
-										return None;
-									}
-									_ => (),
-								}
+				if attr.path().is_ident("turbosql") {
+					for meta in attr.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated).unwrap() {
+						match meta {
+							Meta::Path(path) if path.is_ident("skip") => {
+								// TODO: For skipped fields, Handle derive(Default) requirement better
+								// require Option and manifest None values
+								return None;
 							}
+							_ => ()
 						}
 					}
-					_ => (),
 				}
 			}
 

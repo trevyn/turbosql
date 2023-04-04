@@ -19,7 +19,7 @@ quote = "1"
 regex = "1.5.5"
 rusqlite = {version = "0.29", features = ["bundled", "blob", "column_decltype"]}
 serde = {version = "1", features = ["derive"]}
-syn = {version = "1", features = ["extra-traits", "full"]}
+syn = {version = "2", features = ["extra-traits", "full"]}
 toml = "0.7"
 
 [features]
