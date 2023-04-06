@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.8.0 - 2023-04-06
+
+### Bumped
+
+- Bumped `rusqlite` to 0.29
+- Bumped `toml` to 0.7. This will cause non-semantic changes to your `migrations.toml`.
+- Bumped `syn` to 2.
+
+### Improved
+
+- `select!` and `execute!` macros now allow more concatenation options, and allow literal commas to appear outside of quotes.
+
+### Fixed
+
+- Fixed problem where `serde_json` had to be in user scope.
+- Improved compatibility with `rust-analyzer`.
+
+### Changed
+
+- MSRV is now Rust 1.60.
+
 ## 0.7.0 - 2022-07-22
 
 ### Bumped
