@@ -22,7 +22,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          args: --verbose --no-progress --headers="accept=text/html" "**/*.md" "**/*.rs" "**/*.json" "**/*.toml" "**/*.yml"
+          args: --verbose --no-progress --header="accept=text/html" "**/*.md" "**/*.rs" "**/*.json" "**/*.toml" "**/*.yml"
 
       - name: Fail if there were link-check errors
         run: exit ${{ steps.lychee.outputs.exit_code }}
