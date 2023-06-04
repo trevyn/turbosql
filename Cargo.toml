@@ -3,3 +3,4 @@ members = [
   "turbosql",
   "turbosql-impl",
 ]
+resolver = "2"
