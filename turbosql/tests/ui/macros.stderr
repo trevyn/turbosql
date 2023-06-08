@@ -23,6 +23,8 @@ error: expected expression
    |
 30 |     select!(Person "WHERE age = " 24 " AND name = ?", "Bob").unwrap();
    |                                                     ^
+   |
+   = note: this error originates in the macro `select` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: SQLite named parameters not currently supported.
   --> tests/ui/macros.rs:31:2
@@ -89,3 +91,5 @@ error: expected identifier
    |
 39 |     select!(Vec<"what">).unwrap();
    |                 ^^^^^^
+   |
+   = note: this error originates in the macro `select` (in Nightly builds, run with -Z macro-backtrace for more info)
