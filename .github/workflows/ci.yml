@@ -41,6 +41,10 @@ jobs:
 
       - run: rustup default ${{ matrix.rust }} && rustup update ${{ matrix.rust }}
 
+      - name: Enable type layout randomization
+        run: echo RUSTFLAGS=${RUSTFLAGS}\ -Zrandomize-layout >> $GITHUB_ENV
+        if: matrix.rust == 'nightly'
+
       - name: cargo test turbosql-impl
         run: cargo test --features "test" -- --nocapture --test-threads=1
         working-directory: "turbosql-impl"
