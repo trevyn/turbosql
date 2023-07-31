@@ -18,7 +18,7 @@ error: SQLite cannot natively store unsigned 64-bit integers, so Turbosql does n
 19 |     e: Option<u64>,
    |        ^^^^^^^^^^^
 
-error: expected expression
+error: expected an expression
   --> tests/ui/macros.rs:30:50
    |
 30 |     select!(Person "WHERE age = " 24 " AND name = ?", "Bob").unwrap();
