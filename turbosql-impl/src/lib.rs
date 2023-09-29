@@ -569,272 +569,88 @@ fn do_parse_tokens(
 		abort_call_site!("Rows returned from SQL, use select! instead.");
 	}
 
-	// dispatch
+	// Decide how to handle selected rows depending on content type.
 
-	// let (struct_members, row_casters) = match (&result_type, &stmt_info, explicit_members) {
-	//  (Some(_result_type), stmt_info, None) => {
-	//   let members: Vec<_> = stmt_info
-	//    .column_names
-	//    .iter()
-	//    .enumerate()
-	//    .map(|(i, col_name)| (format_ident!("{}", col_name), format_ident!("None"), i))
-	//    .collect();
+	let Some(ResultType { container, content }) = result_type else {
+		abort_call_site!("unknown result_type")
+	};
 
-	//   let m = MembersAndCasters::create(members);
-
-	//   (m.struct_members, m.row_casters)
-	//  }
-
-	//  _ => abort!(span, "Expected explicitly typed return values or a return type."),
-	// };
-
-	// let struct_decl = None;
-	// let (result_type, struct_decl) = match &result_type {
-	//  Some(result_type) => (result_type, None),
-	//  // Some(ResultType { contents, .. }) => (quote!(#contents), None),
-	//  // Some(t) => (quote!(#t), None, Some(quote!(, ..Default::default()))),
-	//  None => {
-	//   let tsr = format_ident!("TurbosqlResult");
-	//   (
-	//    quote!(#tsr),
-	//    Some(quote! {
-	//     #[derive(Debug, Clone, ::turbosql::Serialize)]
-	//     struct #tsr { #(#struct_members),* }
-	//    }),
-	//   )
-	//  }
-	// };
-
-	let tokens = match result_type {
-		// Vec of primitive type
-		Some(ResultType { container: Some(container), content: Content::Ident(content) })
-			if container == "Vec"
-				&& ["f32", "f64", "i8", "i16", "u16", "i32", "u32", "i64", "String", "bool"]
-					.contains(&content.to_string().as_str()) =>
-		{
-			quote! {
-				{
-					(|| -> Result<Vec<#content>, ::turbosql::Error> {
-						::turbosql::__TURBOSQL_DB.with(|db| {
-							let db = db.borrow_mut();
-							let mut stmt = db.prepare_cached(#sql)?;
-							let result = stmt.query_and_then(#params, |row| -> Result<#content, ::turbosql::Error> {
-								Ok(row.get(0)?)
-							})?.collect::<Vec<_>>();
-							let result = result.into_iter().flatten().collect::<Vec<_>>();
-							Ok(result)
-						})
-					})()
-				}
-			}
-		}
-
-		// Vec
-		Some(ResultType { container: Some(container), content: Content::Ident(content) })
-			if container == "Vec" =>
-		{
-			let m = stmt_info
-				.membersandcasters()
-				.unwrap_or_else(|_| abort_call_site!("stmt_info.membersandcasters failed"));
-			let row_casters = m.row_casters;
-
-			quote! {
-				{
-					// #struct_decl
-					(|| -> Result<Vec<#content>, ::turbosql::Error> {
-						::turbosql::__TURBOSQL_DB.with(|db| {
-							let db = db.borrow_mut();
-							let mut stmt = db.prepare_cached(#sql)?;
-							let result = stmt.query_and_then(#params, |row| -> Result<#content, ::turbosql::Error> {
-								Ok(#content {
-									#(#row_casters),*
-									// #default
-								})
-							})?.collect::<Vec<_>>();
-							let result = result.into_iter().flatten().collect::<Vec<_>>();
-							Ok(result)
-						})
-					})()
-				}
-			}
-		}
-
-		// Option
-		Some(ResultType { container: Some(container), content: Content::Ident(content) })
-			if container == "Option" =>
-		{
-			let m = stmt_info
-				.membersandcasters()
-				.unwrap_or_else(|_| abort_call_site!("stmt_info.membersandcasters failed"));
-			let row_casters = m.row_casters;
-
-			quote! {
-				{
-					// #struct_decl
-					(|| -> Result<Option<#content>, ::turbosql::Error> {
-						::turbosql::__TURBOSQL_DB.with(|db| {
-							let db = db.borrow_mut();
-							let mut stmt = db.prepare_cached(#sql)?;
-							let mut rows = stmt.query(#params)?;
-							Ok(if let Some(row) = rows.next()? {
-								Some(#content {
-									#(#row_casters),*
-								})
-							}
-							else {
-								None
-							})
-						})
-					})()
-				}
-			}
-		}
-
-		// Primitive type
-		Some(ResultType { container: None, content: Content::Ident(content) })
+	let handle_row;
+	let content_ty;
+	match content {
+		Content::Ident(content)
 			if ["f32", "f64", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "String", "bool"]
 				.contains(&content.to_string().as_str()) =>
 		{
-			quote! {
-				{
-					(|| -> Result<#content, ::turbosql::Error> {
-						::turbosql::__TURBOSQL_DB.with(|db| {
-							let db = db.borrow_mut();
-							let mut stmt = db.prepare_cached(#sql)?;
-							let result = stmt.query_row(#params, |row| {
-								row.get(0)
-							})?;
-							Ok(result)
-						})
-					})()
-				}
-			}
+			handle_row = quote! { Ok(row.get(0)?) };
+			content_ty = quote! { #content };
 		}
-
-		// Custom struct type
-		Some(ResultType { container: None, content: Content::Ident(content) }) => {
+		Content::Ident(content) => {
 			let m = stmt_info
 				.membersandcasters()
-				.unwrap_or_else(|_| abort_call_site!("stmt_info.membersandcasters failed"));
+				.unwrap_or_else(|_| abort_call_site!("stmt_info.membersandcasters failed 1"));
 			let row_casters = m.row_casters;
 
-			quote! {
-				{
-					(|| -> Result<#content, ::turbosql::Error> {
-						::turbosql::__TURBOSQL_DB.with(|db| {
-							let db = db.borrow_mut();
-							let mut stmt = db.prepare_cached(#sql)?;
-							let mut rows = stmt.query(#params)?;
-							let row = rows.next()?.ok_or(::turbosql::rusqlite::Error::QueryReturnedNoRows)?;
-							Ok(#content {
-								#(#row_casters),*
-							})
-						})
-					})()
-				}
-			}
+			handle_row = quote! {
+				Ok(#content {
+					#(#row_casters),*
+				})
+			};
+			content_ty = quote! { #content };
 		}
+		Content::SingleColumn(col) => {
+			handle_row = quote! { Ok(row.get(0)?) };
+			let rust_ty: Type = syn::parse_str(
+				&read_migrations_toml()
+					.output_generated_tables_do_not_edit
+					.unwrap()
+					.get(&col.table.to_string().to_lowercase())
+					.unwrap()
+					.columns
+					.iter()
+					.find(|c| col.column == c.name)
+					.unwrap()
+					.rust_type,
+			)?;
+			content_ty = quote! { #rust_ty };
+		}
+	};
 
-		// Vec of single column
-		Some(ResultType { container: Some(container), content: Content::SingleColumn(col) })
-			if container == "Vec" =>
+	// Decide how to handle the iterator over rows depending on container.
+
+	let return_type;
+	let handle_result;
+	if container.as_ref().is_some_and(|ident| ident == "Vec") {
+		return_type = quote! { Vec<#content_ty> };
+		handle_result = quote! { Ok(result.collect::<Vec<_>>()) }
+	} else if container.as_ref().is_some_and(|ident| ident == "Option") {
+		return_type = quote! { Option<#content_ty> };
+		handle_result = quote! {
+			Ok(result.next())
+		}
+	} else if container.is_none() {
+		return_type = quote! { #content_ty };
+		handle_result =
+			quote! { Ok(result.next().ok_or(::turbosql::rusqlite::Error::QueryReturnedNoRows)?) };
+	} else {
+		unreachable!("No other container type is possible");
+	}
+
+	// Put it all together
+
+	let tokens = quote! {
 		{
-			let content_ty: Type = syn::parse_str(
-				&read_migrations_toml()
-					.output_generated_tables_do_not_edit
-					.unwrap()
-					.get(&col.table.to_string().to_lowercase())
-					.unwrap()
-					.columns
-					.iter()
-					.find(|c| col.column == c.name)
-					.unwrap()
-					.rust_type,
-			)?;
-			quote! {
-				{
-					(|| -> Result<Vec<#content_ty>, ::turbosql::Error> {
-						::turbosql::__TURBOSQL_DB.with(|db| {
-							let db = db.borrow_mut();
-							let mut stmt = db.prepare_cached(#sql)?;
-							let result = stmt.query_and_then(#params, |row| -> Result<#content_ty, ::turbosql::Error> {
-								Ok(row.get(0)?)
-							})?.collect::<Vec<_>>();
-							let result = result.into_iter().flatten().collect::<Vec<_>>();
-							Ok(result)
-						})
-					})()
-				}
-			}
+			(|| -> Result<#return_type, ::turbosql::Error> {
+				::turbosql::__TURBOSQL_DB.with(|db| {
+					let db = db.borrow_mut();
+					let mut stmt = db.prepare_cached(#sql)?;
+					let mut result = stmt.query_and_then(#params, |row| -> Result<#content_ty, ::turbosql::Error> {
+						#handle_row
+					})?.flatten();
+					#handle_result
+				})
+			})()
 		}
-
-		// Option of single column
-		Some(ResultType { container: Some(container), content: Content::SingleColumn(col) })
-			if container == "Option" =>
-		{
-			let content_ty: Type = syn::parse_str(
-				&read_migrations_toml()
-					.output_generated_tables_do_not_edit
-					.unwrap()
-					.get(&col.table.to_string().to_lowercase())
-					.unwrap()
-					.columns
-					.iter()
-					.find(|c| col.column == c.name)
-					.unwrap()
-					.rust_type,
-			)?;
-			quote! {
-				{
-					(|| -> Result<Option<#content_ty>, ::turbosql::Error> {
-						::turbosql::__TURBOSQL_DB.with(|db| {
-							let db = db.borrow_mut();
-							let mut stmt = db.prepare_cached(#sql)?;
-							let mut rows = stmt.query(#params)?;
-							Ok(if let Some(row) = rows.next()? {
-								let val = row.get::<_, #content_ty>(0)?.clone();
-								Some(val)
-							}
-							else {
-								None
-							})
-						})
-					})()
-				}
-			}
-		}
-
-		// Single column
-		Some(ResultType { container: None, content: Content::SingleColumn(col) }) => {
-			let content_ty: Type = syn::parse_str(
-				&read_migrations_toml()
-					.output_generated_tables_do_not_edit
-					.unwrap()
-					.get(&col.table.to_string().to_lowercase())
-					.unwrap()
-					.columns
-					.iter()
-					.find(|c| col.column == c.name)
-					.unwrap()
-					.rust_type,
-			)?;
-			quote! {
-				{
-					(|| -> Result<#content_ty, ::turbosql::Error> {
-						::turbosql::__TURBOSQL_DB.with(|db| {
-							let db = db.borrow_mut();
-							let mut stmt = db.prepare_cached(#sql)?;
-							let result = stmt.query_row(#params, |row| {
-								row.get(0)
-							})?;
-							Ok(result)
-						})
-					})()
-				}
-			}
-		}
-
-		_ => abort_call_site!("unknown result_type"),
 	};
 
 	Ok(tokens)
