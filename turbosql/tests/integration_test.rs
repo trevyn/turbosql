@@ -38,7 +38,7 @@ fn integration_test() {
 		field_i64: Some(85262398562),
 		field_f64: Some(std::f64::consts::PI),
 		field_f32: Some(std::f32::consts::E),
-		field_blob: None,
+		field_blob: Some(vec![1, 2, 3]),
 		field_array_u8: Some([1u8; 99]),
 		field_serialize: Some(vec![42, 43]),
 		..Default::default()
@@ -196,6 +196,14 @@ fn integration_test() {
 		select!(i64 "field_u8 FROM personintegrationtest").unwrap(),
 		row.field_u8.unwrap() as i64
 	);
+	assert_eq!(
+		&select!(Blob "field_blob from personintegrationtest").unwrap(),
+		row.field_blob.as_ref().unwrap()
+	);
+	// assert_eq!(
+	// 	&select!([u8; 99] "field_array_u8 from personintegrationtest").unwrap(),
+	// 	row.field_array_u8.as_ref().unwrap()
+	// );
 
 	assert_eq!(
 		select!(bool "field_string = ? FROM personintegrationtest", "Arthur Schopenhauer").unwrap(),
