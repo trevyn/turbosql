@@ -579,7 +579,7 @@ fn do_parse_tokens(
 	let content_ty;
 	match content {
 		Content::Ident(content)
-			if ["f32", "f64", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "String", "bool"]
+			if ["f32", "f64", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "String", "bool", "Blob"]
 				.contains(&content.to_string().as_str()) =>
 		{
 			handle_row = quote! { Ok(row.get(0)?) };
