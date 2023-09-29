@@ -98,6 +98,25 @@ fn integration_test() {
 		}
 	);
 
+	assert_eq!(
+		select!(Option<NameAndAgeResult> r#""Martin Luther" AS name, field_u8 AS age FROM personintegrationtest"#)
+			.unwrap(),
+		Some(NameAndAgeResult {
+			name: Some("Martin Luther".into()),
+			age: Some(row.field_u8.unwrap().into())
+		})
+	);
+	assert_eq!(
+		select!(Vec<NameAndAgeResult> r#""Martin Luther" AS name, field_u8 AS age FROM personintegrationtest"#)
+			.unwrap(),
+		vec![
+			NameAndAgeResult {
+				name: Some("Martin Luther".into()),
+				age: Some(row.field_u8.unwrap().into())
+			}
+		]
+	);
+
 	assert_eq!(select!(Vec<PersonIntegrationTest>).unwrap(), vec![row.clone()]);
 	assert_eq!(select!(Option<PersonIntegrationTest>).unwrap(), Some(row.clone()));
 
@@ -200,17 +219,29 @@ fn integration_test() {
 	);
 
 	assert_eq!(
-		select!(String "field_string FROM personintegrationtest").unwrap(),
-		row.field_string.unwrap()
+		&select!(String "field_string FROM personintegrationtest").unwrap(),
+		row.field_string.as_ref().unwrap()
 	);
 
-	// assert_eq!(select!(Option<i64> "field_u8 FROM personintegrationtest").unwrap(), Some(row.field_u8.unwrap()));
+	assert_eq!(
+		select!(Option<i64> "field_u8 FROM personintegrationtest").unwrap(),
+		Some(row.field_u8.unwrap() as i64)
+	);
 	assert!(select!(i64 "field_u8 FROM personintegrationtest WHERE FALSE").is_err());
-	// assert_eq!(select!(Option<i64> "field_u8 FROM personintegrationtest WHERE ?", false).unwrap(), None);
+	assert_eq!(
+		select!(Option<i64> "field_u8 FROM personintegrationtest WHERE ?", false).unwrap(),
+		None
+	);
 
-	// assert_eq!(select!(Vec<i64> "field_u8 FROM personintegrationtest").unwrap(), row.field_u8.unwrap());
-	// assert_eq!(select!(Option<i64> "field_u8 FROM personintegrationtest").unwrap(), row.field_u8);
-	// assert_eq!(select!(String "field_string FROM personintegrationtest").unwrap(), row.field_string.unwrap());
+	assert_eq!(
+		select!(Vec<i64> "field_u8 FROM personintegrationtest").unwrap(),
+		vec![row.field_u8.unwrap() as i64]
+	);
+	assert_eq!(select!(Option<u8> "field_u8 FROM personintegrationtest").unwrap(), row.field_u8);
+	assert_eq!(
+		&select!(String "field_string FROM personintegrationtest").unwrap(),
+		row.field_string.as_ref().unwrap()
+	);
 
 	// future: tuples:
 	// let result = select!((String, i64) "name, age FROM person")?;
