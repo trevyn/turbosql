@@ -15,7 +15,7 @@ jobs:
   checklinks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: trevyn/lychee-action@v1
         id: lychee
@@ -37,7 +37,7 @@ jobs:
         rust: ["1.70", stable, beta, nightly]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - run: rustup default ${{ matrix.rust }} && rustup update ${{ matrix.rust }}
 
@@ -74,7 +74,7 @@ jobs:
     if: ${{ contains(github.event.head_commit.message, 'turbosql@') && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - run: rustup default stable && rustup update stable
 
