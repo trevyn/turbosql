@@ -1,10 +1,25 @@
 # Changelog
 
+## 0.9.0 - 2023-11-15
+
+### Bumped
+
+- Bumped `rusqlite` to 0.30 (sqlite 3.44.0)
+
+### Added
+
+- Allow selecting for `Option<primitive type>` and `Vec<primitive type>`. ([#33](https://github.com/trevyn/turbosql/pull/33), thanks @gmorenz!)
+
+### Changed
+
+- In `select!`, `Vec<u8>` is now interpreted as multiple rows of `u8`. Use the newtype `Blob` to select a single row `BLOB` result.
+- MSRV is now Rust 1.70
+
 ## 0.8.0 - 2023-04-06
 
 ### Bumped
 
-- Bumped `rusqlite` to 0.29
+- Bumped `rusqlite` to 0.29 (sqlite 3.41.2)
 - Bumped `toml` to 0.7. This will cause non-semantic changes to your `migrations.toml`.
 - Bumped `syn` to 2.
 
@@ -19,7 +34,7 @@
 
 ### Changed
 
-- MSRV is now Rust 1.60.
+- MSRV is now Rust 1.60
 
 ## 0.7.0 - 2022-07-22
 
@@ -72,7 +87,7 @@
 
 ### Changed
 
-- MSRV is now Rust 1.56.
+- MSRV is now Rust 1.56
 - New tables are created with SQLite 3.37's `STRICT` mode.
 
 ## 0.3.1 - 2021-09-03
@@ -90,7 +105,7 @@
 
 ### Changed
 
-- MSRV is now Rust 1.54.
+- MSRV is now Rust 1.54
 - Some returned errors of type `anyhow::Error` have been changed to `turbosql::TurbosqlError`.
 
 ### Fixed
