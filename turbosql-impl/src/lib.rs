@@ -396,6 +396,7 @@ fn do_parse_tokens(
 			let container = Some(ident);
 			input.parse::<Token![<]>()?;
 			ident = input.parse::<Ident>()?;
+			input.parse::<Token![>]>()?;
 			container
 		} else {
 			None
@@ -406,8 +407,6 @@ fn do_parse_tokens(
 		// } else {
 			Content::Ident(ident);
 		// };
-
-		input.parse::<Token![>]>().ok();
 
 		Some(ResultType { container, content })
 	} else {
@@ -432,15 +431,15 @@ fn do_parse_tokens(
 	};
 
 	if is_rust_analyzer() {
-		if let Some(ty) = result_type {
+		return Ok(if let Some(ty) = result_type {
 			let ty = ty.ty()?;
-			return Ok(quote!(Ok({let x: #ty = Default::default(); x})));
+			quote!(Ok({let x: #ty = Default::default(); x}))
 		} else {
-			return Ok(quote!());
-		}
+			quote!()
+		});
 	}
 
-	// If it didn't still validate and we have a non-inferred result type, try adding SELECT ... FROM
+	// If it still didn't validate and we have a non-inferred result type, try adding SELECT ... FROM
 
 	let (sql, stmt_info) = match (result_type.clone(), sql, stmt_info) {
 		//
@@ -471,7 +470,6 @@ fn do_parse_tokens(
 					}
 				}
 			};
-			// };
 
 			let column_names_str = table
 				.columns
@@ -577,29 +575,26 @@ fn do_parse_tokens(
 
 	let handle_row;
 	let content_ty;
+
 	match content {
 		Content::Ident(content)
 			if ["f32", "f64", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "String", "bool", "Blob"]
 				.contains(&content.to_string().as_str()) =>
 		{
-			handle_row = quote! { Ok(row.get(0)?) };
+			handle_row = quote! { row.get(0)? };
 			content_ty = quote! { #content };
 		}
 		Content::Ident(content) => {
 			let m = stmt_info
 				.membersandcasters()
-				.unwrap_or_else(|_| abort_call_site!("stmt_info.membersandcasters failed 1"));
+				.unwrap_or_else(|_| abort_call_site!("stmt_info.membersandcasters failed"));
 			let row_casters = m.row_casters;
 
-			handle_row = quote! {
-				Ok(#content {
-					#(#row_casters),*
-				})
-			};
+			handle_row = quote! { #content { #(#row_casters),* } };
 			content_ty = quote! { #content };
 		}
 		Content::SingleColumn(col) => {
-			handle_row = quote! { Ok(row.get(0)?) };
+			handle_row = quote! { row.get(0)? };
 			let rust_ty: Type = syn::parse_str(
 				&read_migrations_toml()
 					.output_generated_tables_do_not_edit
@@ -620,40 +615,36 @@ fn do_parse_tokens(
 
 	let return_type;
 	let handle_result;
+
 	if container.as_ref().is_some_and(|ident| ident == "Vec") {
 		return_type = quote! { Vec<#content_ty> };
-		handle_result = quote! { Ok(result.collect::<Vec<_>>()) }
+		handle_result = quote! { result.collect::<Vec<_>>() }
 	} else if container.as_ref().is_some_and(|ident| ident == "Option") {
 		return_type = quote! { Option<#content_ty> };
-		handle_result = quote! {
-			Ok(result.next())
-		}
+		handle_result = quote! { result.next() }
 	} else if container.is_none() {
 		return_type = quote! { #content_ty };
-		handle_result =
-			quote! { Ok(result.next().ok_or(::turbosql::rusqlite::Error::QueryReturnedNoRows)?) };
+		handle_result = quote! { result.next().ok_or(::turbosql::rusqlite::Error::QueryReturnedNoRows)? };
 	} else {
 		unreachable!("No other container type is possible");
 	}
 
 	// Put it all together
 
-	let tokens = quote! {
+	Ok(quote! {
 		{
 			(|| -> Result<#return_type, ::turbosql::Error> {
 				::turbosql::__TURBOSQL_DB.with(|db| {
 					let db = db.borrow_mut();
 					let mut stmt = db.prepare_cached(#sql)?;
 					let mut result = stmt.query_and_then(#params, |row| -> Result<#content_ty, ::turbosql::Error> {
-						#handle_row
+						Ok(#handle_row)
 					})?.flatten();
-					#handle_result
+					Ok(#handle_result)
 				})
 			})()
 		}
-	};
-
-	Ok(tokens)
+	})
 }
 
 impl Parse for SelectTokens {
@@ -736,15 +727,14 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
 
 	// output tokenstream
 
-	let output = quote! {
+	quote! {
 		#[cfg(not(target_arch = "wasm32"))]
 		impl ::turbosql::Turbosql for #table {
 			#fn_insert
 			#fn_update
 		}
-	};
-
-	output.into()
+	}
+	.into()
 }
 
 /// Convert syn::FieldsNamed to our Column type.
