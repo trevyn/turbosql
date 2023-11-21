@@ -3,5 +3,25 @@
   "rust-analyzer.cargo.features": ["test"],
   "rust-analyzer.checkOnSave.command": "clippy",
   "editor.detectIndentation": false,
-  "editor.insertSpaces": false
+"editor.insertSpaces": false,
+"files.exclude": {
+	"**/.git": true,
+	"**/.svn": true,
+	"**/.hg": true,
+	"**/CVS": true,
+	"**/.DS_Store": true,
+	"**/Thumbs.db": true,
+	".github": true,
+	".vscode": true,
+	"target": true,
+	"rustfmt.toml": true,
+	"README.md": true
+},
+"hide-files.files": [
+	".github",
+	".vscode",
+	"target",
+	"rustfmt.toml",
+	"README.md"
+]
 }
