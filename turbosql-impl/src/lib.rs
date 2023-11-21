@@ -28,6 +28,7 @@ const MIGRATIONS_FILENAME: &str = "test.migrations.toml";
 
 mod insert;
 mod update;
+mod delete;
 
 #[derive(Debug, Clone)]
 struct Table {
@@ -724,6 +725,7 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
 
 	let fn_insert = insert::insert(&table);
 	let fn_update = update::update(&table);
+	let fn_delete = delete::delete(&table);
 
 	// output tokenstream
 
@@ -732,6 +734,7 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
 		impl ::turbosql::Turbosql for #table {
 			#fn_insert
 			#fn_update
+			#fn_delete
 		}
 	}
 	.into()
