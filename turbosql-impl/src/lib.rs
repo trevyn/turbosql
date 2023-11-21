@@ -723,7 +723,7 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
 
 	// create trait functions
 
-	println!("{:#?}", table);
+	// println!("{:#?}", table);
 	let fn_insert = insert::insert(&table);
 	let fn_update = update::update(&table);
 	let fn_delete = delete::delete(&table);

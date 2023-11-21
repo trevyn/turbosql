@@ -17,7 +17,7 @@ pub(super) fn delete(table: &Table) -> proc_macro2::TokenStream {
 
 
 	quote_spanned! { table.span =>
-		fn delete(&self) -> Result<i64, ::turbosql::Error> {
+		fn delete(&self) -> Result<usize, ::turbosql::Error> {
 			assert!(self.rowid.is_some());
 			::turbosql::__TURBOSQL_DB.with(|db| {
 				let db = db.borrow_mut();

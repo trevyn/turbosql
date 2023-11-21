@@ -8,7 +8,7 @@ pub(super) fn insert(table: &Table) -> proc_macro2::TokenStream {
 	super::validate_sql_or_abort(&sql);
 
 	let columns = table.columns.iter().map(|c| {
-		println!("c: {:#?}", c);
+		// println!("c: {:#?}", c);
 		let ident = &c.ident;
 		if c.sql_type == "TEXT" && c.rust_type != "Option < String >" {
 			quote_spanned!(c.span => &::turbosql::serde_json::to_string(&self.#ident)? as &dyn ::turbosql::ToSql)
