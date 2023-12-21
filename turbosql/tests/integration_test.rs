@@ -1,4 +1,4 @@
-// cargo test --features test --manifest-path turbosql/Cargo.toml -- --nocapture
+// cargo test --features test --manifest-path turbosql/Cargo.toml -- --nocapture --test-threads=1
 
 #![allow(clippy::bool_assert_comparison, clippy::redundant_clone)]
 
@@ -58,13 +58,16 @@ fn integration_test() {
 		select!(Vec<String> "field_string FROM personintegrationtest").unwrap(),
 		vec!["Bob", "Bob"]
 	);
-	let mut r = PersonIntegrationTest {
-		..Default::default()
-	};
+	let mut r = PersonIntegrationTest::default();
 	let id = r.insert().unwrap();
+	let id2 = r.insert().unwrap();
 	r.rowid = Some(id);
 	r.delete().unwrap();
 	assert!(select!(PersonIntegrationTest "WHERE rowid = ?", id).is_err());
+	assert!(select!(PersonIntegrationTest "WHERE rowid = ?", id2).is_ok());
+	r.rowid = Some(id2);
+	r.delete().unwrap();
+	assert!(select!(PersonIntegrationTest "WHERE rowid = ?", id2).is_err());
 	execute!("DELETE FROM personintegrationtest WHERE rowid = 2").unwrap();
 	assert_eq!(select!(i64 "SELECT 1").unwrap(), 1);
 	assert_eq!(select!(bool "SELECT 1 > ? AS val", 0).unwrap(), true);
