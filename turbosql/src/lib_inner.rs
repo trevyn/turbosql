@@ -34,6 +34,7 @@ pub trait Turbosql {
 	/// Updates this existing row in the database, based on `rowid`, which must be `Some`. All fields are overwritten in the database. On success, returns the number of rows updated, which should be 1.
 	fn update(&self) -> Result<usize, Error>;
 	fn update_batch<T: AsRef<Self>>(rows: &[T]) -> Result<(), Error>;
+	/// Deletes this existing row in the database, based on `rowid`, which must be `Some`. On success, returns the number of rows deleted, which should be 1.
 	fn delete(&self) -> Result<usize, Error>;
 }
 
