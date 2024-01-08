@@ -133,7 +133,9 @@ fn run_migrations(conn: &mut Connection, path: &Path) {
 				panic!("Mismatch in Turbosql migrations! {:?} != {:?} {:?}", a, b, path)
 			}
 		}
-		Left(_) => panic!("More migrations are applied than target"),
+		Left(_) => {
+			panic!("Mismatch in Turbosql migrations! More migrations are applied than target. {:?}", path)
+		}
 		Right(migration) => {
 			// eprintln!("insert -> {:#?}", migration);
 			if !migration.starts_with("--") {
