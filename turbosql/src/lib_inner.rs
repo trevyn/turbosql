@@ -21,7 +21,7 @@ pub use rusqlite::{
 pub use serde::Serialize;
 #[doc(hidden)]
 pub use serde_json;
-pub use turbosql_impl::{execute, select, Turbosql};
+pub use turbosql_impl::{execute, select, update, Turbosql};
 
 /// Wrapper for `Vec<u8>` that may one day impl `Read`, `Write` and `Seek` traits.
 pub type Blob = Vec<u8>;

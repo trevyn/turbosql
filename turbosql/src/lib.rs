@@ -8,7 +8,7 @@ compile_error!("turbosql must be tested with '--features test -- --test-threads=
 include!("lib_inner.rs");
 
 #[cfg(target_arch = "wasm32")]
-pub use turbosql_impl::{execute, select, Turbosql};
+pub use turbosql_impl::{execute, select, update, Turbosql};
 
 #[cfg(target_arch = "wasm32")]
 pub fn now_ms() -> i64 {
