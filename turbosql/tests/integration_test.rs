@@ -29,8 +29,6 @@ struct PersonIntegrationTest {
 	field_serialize: Option<Vec<i64>>,
 	#[turbosql(sql_default = "foo foo")]
 	field_string_not_null: String,
-	#[turbosql(sql_default = foo)]
-	field_string_not_null2: String,
 	#[turbosql(sql_default = 6)]
 	field_i64_not_null: i64,
 	#[turbosql(sql_default = false)]
@@ -39,20 +37,25 @@ struct PersonIntegrationTest {
 	field_f64_not_null: f64,
 	#[turbosql(sql_default = "2.3")]
 	field_f32_not_null: f32,
-	#[turbosql(sql_default = "0")]
+	#[turbosql(sql_default = -1.2)]
 	field_u8_not_null: u8,
 	#[turbosql(sql_default = 0)]
 	field_i8_not_null: i8,
 	#[turbosql(sql_default = r#"hello"#)]
 	field_u16_not_null: u16,
+	#[turbosql(sql_default = -1)]
 	field_i16_not_null: i16,
+	#[turbosql(sql_default = -1)]
 	field_u32_not_null: u32,
+	#[turbosql(sql_default = -1)]
 	field_i32_not_null: i32,
 	#[turbosql(sql_default = b"")]
 	field_blob_not_null: Blob,
 	#[turbosql(sql_default = b"0")]
 	field_vec_u8_not_null: Vec<u8>,
+	#[turbosql(sql_default = b"\x00\x01\xff")]
 	field_array_u8_not_null: [u8; 5],
+	#[turbosql(sql_default = "")]
 	field_serialize_not_null: Vec<i64>,
 }
 

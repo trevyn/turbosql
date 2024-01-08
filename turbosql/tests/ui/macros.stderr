@@ -1,3 +1,9 @@
+error: Field e has no default value and is not nullable. Either add a default value with e.g. #[turbosql(sql_default = 0)] or make it Option<u8>.
+ --> tests/ui/macros.rs:8:2
+  |
+8 |     e: u8,
+  |     ^^^^^
+
 error: derive(Turbosql) structs must include a 'rowid: Option<i64>' field
   --> tests/ui/macros.rs:11:10
    |

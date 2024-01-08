@@ -823,7 +823,7 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
 			let ty = &f.ty;
 			let ty_str = quote!(#ty).to_string();
 
-			let sql_type = match (
+			let (sql_type, default_example) = match (
 				name.as_str(),
 				if OPTION_U8_ARRAY_RE.is_match(&ty_str) {
 					"Option < [u8; _] >"
@@ -833,47 +833,51 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
 					ty_str.as_str()
 				},
 			) {
-				("rowid", "Option < i64 >") => "INTEGER PRIMARY KEY",
-				(_, "Option < i8 >") => "INTEGER",
-				(_, "i8") => "INTEGER NOT NULL",
-				(_, "Option < u8 >") => "INTEGER",
-				(_, "u8") => "INTEGER NOT NULL",
-				(_, "Option < i16 >") => "INTEGER",
-				(_, "i16") => "INTEGER NOT NULL",
-				(_, "Option < u16 >") => "INTEGER",
-				(_, "u16") => "INTEGER NOT NULL",
-				(_, "Option < i32 >") => "INTEGER",
-				(_, "i32") => "INTEGER NOT NULL",
-				(_, "Option < u32 >") => "INTEGER",
-				(_, "u32") => "INTEGER NOT NULL",
-				(_, "Option < i64 >") => "INTEGER",
-				(_, "i64") => "INTEGER NOT NULL",
+				("rowid", "Option < i64 >") => ("INTEGER PRIMARY KEY", "NULL"),
+				(_, "Option < i8 >") => ("INTEGER", "0"),
+				(_, "i8") => ("INTEGER NOT NULL", "0"),
+				(_, "Option < u8 >") => ("INTEGER", "0"),
+				(_, "u8") => ("INTEGER NOT NULL", "0"),
+				(_, "Option < i16 >") => ("INTEGER", "0"),
+				(_, "i16") => ("INTEGER NOT NULL", "0"),
+				(_, "Option < u16 >") => ("INTEGER", "0"),
+				(_, "u16") => ("INTEGER NOT NULL", "0"),
+				(_, "Option < i32 >") => ("INTEGER", "0"),
+				(_, "i32") => ("INTEGER NOT NULL", "0"),
+				(_, "Option < u32 >") => ("INTEGER", "0"),
+				(_, "u32") => ("INTEGER NOT NULL", "0"),
+				(_, "Option < i64 >") => ("INTEGER", "0"),
+				(_, "i64") => ("INTEGER NOT NULL", "0"),
 				(_, "Option < u64 >") => abort!(ty, SQLITE_U64_ERROR),
 				(_, "u64") => abort!(ty, SQLITE_U64_ERROR),
-				(_, "Option < f64 >") => "REAL",
-				(_, "f64") => "REAL NOT NULL",
-				(_, "Option < f32 >") => "REAL",
-				(_, "f32") => "REAL NOT NULL",
-				(_, "Option < bool >") => "INTEGER",
-				(_, "bool") => "INTEGER NOT NULL",
-				(_, "Option < String >") => "TEXT",
-				(_, "String") => "TEXT NOT NULL",
+				(_, "Option < f64 >") => ("REAL", "0.0"),
+				(_, "f64") => ("REAL NOT NULL", "0.0"),
+				(_, "Option < f32 >") => ("REAL", "0.0"),
+				(_, "f32") => ("REAL NOT NULL", "0.0"),
+				(_, "Option < bool >") => ("INTEGER", "false"),
+				(_, "bool") => ("INTEGER NOT NULL", "false"),
+				(_, "Option < String >") => ("TEXT", "\"\""),
+				(_, "String") => ("TEXT NOT NULL", "\"\""),
 				// SELECT LENGTH(blob_column) ... will be null if blob is null
-				(_, "Option < Blob >") => "BLOB",
-				(_, "Blob") => "BLOB NOT NULL",
-				(_, "Option < Vec < u8 > >") => "BLOB",
-				(_, "Vec < u8 >") => "BLOB NOT NULL",
-				(_, "Option < [u8; _] >") => "BLOB",
-				(_, "[u8; _]") => "BLOB NOT NULL",
+				(_, "Option < Blob >") => ("BLOB", "b\"\""),
+				(_, "Blob") => ("BLOB NOT NULL", "b\"\""),
+				(_, "Option < Vec < u8 > >") => ("BLOB", "b\"\""),
+				(_, "Vec < u8 >") => ("BLOB NOT NULL", "b\"\""),
+				(_, "Option < [u8; _] >") => ("BLOB", "b\"\\x00\\x01\\xff\""),
+				(_, "[u8; _]") => ("BLOB NOT NULL", "b\"\\x00\\x01\\xff\""),
 				_ => {
 					// JSON-serialized
 					if ty_str.starts_with("Option < ") {
-						"TEXT"
+						("TEXT", "\"\"")
 					} else {
-						"TEXT NOT NULL"
+						("TEXT NOT NULL", "\"\"")
 					}
 				}
 			};
+
+			if sql_default.is_none() && sql_type.ends_with("NOT NULL") {
+				abort!(f, "Field {} has no default value and is not nullable. Either add a default value with e.g. #[turbosql(sql_default = {default_example})] or make it Option<{ty_str}>.", name);
+			}
 
 			Some(Column {
 				ident: ident.clone().unwrap(),
