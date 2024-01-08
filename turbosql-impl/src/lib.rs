@@ -17,8 +17,8 @@ use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::{
-	parse_macro_input, parse_quote, Data, DeriveInput, Expr, Fields, FieldsNamed, Ident, LitStr, Meta,
-	Token, Type,
+	parse_macro_input, parse_quote, Data, DeriveInput, Expr, ExprLit, Fields, FieldsNamed, Ident, Lit,
+	LitStr, Meta, MetaNameValue, Token, Type,
 };
 
 #[cfg(not(feature = "test"))]
@@ -58,6 +58,7 @@ struct Column {
 	name: String,
 	rust_type: String,
 	sql_type: &'static str,
+	sql_default: Option<String>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -605,7 +606,13 @@ fn do_parse_tokens(
 				.unwrap_or_else(|_| abort_call_site!("stmt_info.membersandcasters failed"));
 			let row_casters = m.row_casters;
 
-			handle_row = quote! { #content { #(#row_casters),* } };
+			handle_row = quote! {
+				#[allow(clippy::needless_update)]
+				#content {
+					#(#row_casters),*,
+					..Default::default()
+				}
+			};
 			content_ty = quote! { #content };
 		}
 		Content::SingleColumn(col) => {
@@ -774,16 +781,23 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
 		.named
 		.iter()
 		.filter_map(|f| {
-			// Skip (skip) fields
+			let mut sql_default = None;
 
 			for attr in &f.attrs {
 				if attr.path().is_ident("turbosql") {
 					for meta in attr.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated).unwrap() {
-						match meta {
+						match &meta {
 							Meta::Path(path) if path.is_ident("skip") => {
-								// TODO: For skipped fields, Handle derive(Default) requirement better
-								// require Option and manifest None values
 								return None;
+							}
+							Meta::NameValue(MetaNameValue {
+								path,
+								value: Expr::Lit(ExprLit { lit: Lit::Str(litstr), .. }),
+								..
+							})
+								if path.is_ident("sql_default") =>
+							{
+								sql_default = Some(litstr.value());
 							}
 							_ => (),
 						}
@@ -855,6 +869,7 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
 				rust_type: ty_str,
 				name,
 				sql_type,
+				sql_default,
 			})
 		})
 		.collect::<Vec<_>>();
@@ -980,9 +995,13 @@ fn make_migrations(table: &Table) -> Vec<String> {
 	let mut alters = table
 		.columns
 		.iter()
-		.filter_map(|c| match (c.name.as_str(), c.sql_type) {
-			("rowid", "INTEGER PRIMARY KEY") => None,
-			_ => Some(format!("ALTER TABLE {} ADD COLUMN {} {}", table.name, c.name, c.sql_type)),
+		.filter_map(|c| match (c.name.as_str(), c.sql_type, &c.sql_default) {
+			("rowid", "INTEGER PRIMARY KEY", _) => None,
+			(_, _, None) => Some(format!("ALTER TABLE {} ADD COLUMN {} {}", table.name, c.name, c.sql_type)),
+			(_, _, Some(sql_default)) => Some(format!(
+				"ALTER TABLE {} ADD COLUMN {} {} DEFAULT {}",
+				table.name, c.name, c.sql_type, sql_default
+			)),
 		})
 		.collect::<Vec<_>>();
 

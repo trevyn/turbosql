@@ -29,6 +29,7 @@ struct PersonIntegrationTest {
 	field_serialize: Option<Vec<i64>>,
 	field_string_not_null: String,
 	field_i64_not_null: i64,
+	#[turbosql(sql_default = "0")]
 	field_bool_not_null: bool,
 	field_f64_not_null: f64,
 	field_f32_not_null: f32,
@@ -108,7 +109,7 @@ fn integration_test() {
 
 	// select! into struct without Turbosql derive
 
-	#[derive(Debug, Eq, PartialEq, Clone)]
+	#[derive(Debug, Eq, PartialEq, Clone, Default)]
 	struct NameAndAgeResult {
 		name: Option<String>,
 		age: Option<i64>,
