@@ -1,7 +1,3 @@
-use itertools::{
-	EitherOrBoth::{Both, Left, Right},
-	Itertools,
-};
 use rusqlite::{Connection, OpenFlags};
 use serde::Deserialize;
 use std::cell::RefCell;
@@ -127,25 +123,31 @@ fn run_migrations(conn: &mut Connection, path: &Path) {
 
 	// execute migrations
 
-	applied_migrations.iter().zip_longest(&target_migrations).for_each(|item| match item {
-		Both(a, b) => {
-			if a != b {
-				panic!("Mismatch in Turbosql migrations! {:?} != {:?} {:?}", a, b, path)
+	let mut a = applied_migrations.iter();
+	let mut t = target_migrations.iter();
+
+	loop {
+		match (a.next(), t.next()) {
+			(Some(a), Some(t)) => {
+				if a != t {
+					panic!("Mismatch in Turbosql migrations! {:?} != {:?} {:?}", a, t, path)
+				}
 			}
-		}
-		Left(_) => {
-			panic!("Mismatch in Turbosql migrations! More migrations are applied than target. {:?}", path)
-		}
-		Right(migration) => {
-			// eprintln!("insert -> {:#?}", migration);
-			if !migration.starts_with("--") {
-				conn.execute(migration, params![]).unwrap();
+			(Some(a), None) => {
+				panic!(
+					"Mismatch in Turbosql migrations! More migrations are applied than target. {:?} {:?}",
+					a, path
+				)
 			}
-			conn
-				.execute("INSERT INTO _turbosql_migrations(migration) VALUES(?)", params![migration])
-				.unwrap();
+			(None, Some(t)) => {
+				if !t.starts_with("--") {
+					conn.execute(t, params![]).unwrap();
+				}
+				conn.execute("INSERT INTO _turbosql_migrations(migration) VALUES(?)", params![t]).unwrap();
+			}
+			(None, None) => break,
 		}
-	});
+	}
 
 	// TODO: verify schema against output_generated_schema_for_your_information_do_not_edit
 
