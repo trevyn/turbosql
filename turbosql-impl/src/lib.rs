@@ -790,14 +790,26 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
 							Meta::Path(path) if path.is_ident("skip") => {
 								return None;
 							}
-							Meta::NameValue(MetaNameValue {
-								path,
-								value: Expr::Lit(ExprLit { lit: Lit::Str(litstr), .. }),
-								..
-							})
+							Meta::NameValue(MetaNameValue { path, value: Expr::Lit(ExprLit { lit, .. }), .. })
 								if path.is_ident("sql_default") =>
 							{
-								sql_default = Some(litstr.value());
+								match lit {
+									Lit::Bool(value) => sql_default = Some(value.value().to_string()),
+									Lit::Int(token) => sql_default = Some(token.to_string()),
+									Lit::Float(token) => sql_default = Some(token.to_string()),
+									Lit::Str(token) => sql_default = Some(format!("\"{}\"", token.value())),
+									Lit::ByteStr(token) => {
+										use std::fmt::Write;
+										sql_default = Some(format!(
+											"x'{}'",
+											token.value().iter().fold(String::new(), |mut o, b| {
+												let _ = write!(o, "{b:02x}");
+												o
+											})
+										))
+									}
+									_ => (),
+								}
 							}
 							_ => (),
 						}

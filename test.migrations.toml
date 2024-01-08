@@ -4,10 +4,6 @@
 # Modifying it by hand may be dangerous; see the docs.
 
 migrations_append_only = [
-    "CREATE TABLE person (rowid INTEGER PRIMARY KEY) STRICT",
-    "ALTER TABLE person ADD COLUMN name TEXT",
-    "ALTER TABLE person ADD COLUMN age INTEGER",
-    "ALTER TABLE person ADD COLUMN image_jpg BLOB",
     "CREATE TABLE personintegrationtest (rowid INTEGER PRIMARY KEY) STRICT",
     "ALTER TABLE personintegrationtest ADD COLUMN field_string TEXT",
     "ALTER TABLE personintegrationtest ADD COLUMN field_i64 INTEGER",
@@ -24,26 +20,37 @@ migrations_append_only = [
     "ALTER TABLE personintegrationtest ADD COLUMN field_vec_u8 BLOB",
     "ALTER TABLE personintegrationtest ADD COLUMN field_array_u8 BLOB",
     "ALTER TABLE personintegrationtest ADD COLUMN field_serialize TEXT",
-    "ALTER TABLE personintegrationtest ADD COLUMN field_string_not_null TEXT NOT NULL",
-    "ALTER TABLE personintegrationtest ADD COLUMN field_i64_not_null INTEGER NOT NULL",
-    "ALTER TABLE personintegrationtest ADD COLUMN field_bool_not_null INTEGER NOT NULL DEFAULT 0",
-    "ALTER TABLE personintegrationtest ADD COLUMN field_f64_not_null REAL NOT NULL",
-    "ALTER TABLE personintegrationtest ADD COLUMN field_f32_not_null REAL NOT NULL",
-    "ALTER TABLE personintegrationtest ADD COLUMN field_u8_not_null INTEGER NOT NULL",
-    "ALTER TABLE personintegrationtest ADD COLUMN field_i8_not_null INTEGER NOT NULL",
-    "ALTER TABLE personintegrationtest ADD COLUMN field_u16_not_null INTEGER NOT NULL",
+    "ALTER TABLE personintegrationtest ADD COLUMN field_string_not_null TEXT NOT NULL DEFAULT \"foo foo\"",
+    "ALTER TABLE personintegrationtest ADD COLUMN field_string_not_null2 TEXT NOT NULL",
+    "ALTER TABLE personintegrationtest ADD COLUMN field_i64_not_null INTEGER NOT NULL DEFAULT 6",
+    "ALTER TABLE personintegrationtest ADD COLUMN field_bool_not_null INTEGER NOT NULL DEFAULT false",
+    "ALTER TABLE personintegrationtest ADD COLUMN field_f64_not_null REAL NOT NULL DEFAULT 1.1",
+    "ALTER TABLE personintegrationtest ADD COLUMN field_f32_not_null REAL NOT NULL DEFAULT \"2.3\"",
+    "ALTER TABLE personintegrationtest ADD COLUMN field_u8_not_null INTEGER NOT NULL DEFAULT \"0\"",
+    "ALTER TABLE personintegrationtest ADD COLUMN field_i8_not_null INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE personintegrationtest ADD COLUMN field_u16_not_null INTEGER NOT NULL DEFAULT \"hello\"",
     "ALTER TABLE personintegrationtest ADD COLUMN field_i16_not_null INTEGER NOT NULL",
     "ALTER TABLE personintegrationtest ADD COLUMN field_u32_not_null INTEGER NOT NULL",
     "ALTER TABLE personintegrationtest ADD COLUMN field_i32_not_null INTEGER NOT NULL",
-    "ALTER TABLE personintegrationtest ADD COLUMN field_blob_not_null BLOB NOT NULL",
-    "ALTER TABLE personintegrationtest ADD COLUMN field_vec_u8_not_null BLOB NOT NULL",
+    "ALTER TABLE personintegrationtest ADD COLUMN field_blob_not_null BLOB NOT NULL DEFAULT x''",
+    "ALTER TABLE personintegrationtest ADD COLUMN field_vec_u8_not_null BLOB NOT NULL DEFAULT x'30'",
     "ALTER TABLE personintegrationtest ADD COLUMN field_array_u8_not_null BLOB NOT NULL",
     "ALTER TABLE personintegrationtest ADD COLUMN field_serialize_not_null TEXT NOT NULL",
+    "CREATE TABLE nooption (rowid INTEGER PRIMARY KEY) STRICT",
+    "ALTER TABLE nooption ADD COLUMN e INTEGER NOT NULL",
+    "CREATE TABLE person (rowid INTEGER PRIMARY KEY) STRICT",
+    "ALTER TABLE person ADD COLUMN name TEXT",
+    "ALTER TABLE person ADD COLUMN age INTEGER",
+    "ALTER TABLE person ADD COLUMN image_jpg BLOB",
 ]
 output_generated_schema_for_your_information_do_not_edit = """
   CREATE TABLE _turbosql_migrations (
     rowid INTEGER PRIMARY KEY,
     migration TEXT NOT NULL
+  ) STRICT
+  CREATE TABLE nooption (
+    rowid INTEGER PRIMARY KEY,
+    e INTEGER NOT NULL
   ) STRICT
   CREATE TABLE person (
     rowid INTEGER PRIMARY KEY,
@@ -68,23 +75,37 @@ output_generated_schema_for_your_information_do_not_edit = """
     field_vec_u8 BLOB,
     field_array_u8 BLOB,
     field_serialize TEXT,
-    field_string_not_null TEXT NOT NULL,
-    field_i64_not_null INTEGER NOT NULL,
-    field_bool_not_null INTEGER NOT NULL DEFAULT 0,
-    field_f64_not_null REAL NOT NULL,
-    field_f32_not_null REAL NOT NULL,
-    field_u8_not_null INTEGER NOT NULL,
-    field_i8_not_null INTEGER NOT NULL,
-    field_u16_not_null INTEGER NOT NULL,
+    field_string_not_null TEXT NOT NULL DEFAULT \"foo foo\",
+    field_string_not_null2 TEXT NOT NULL,
+    field_i64_not_null INTEGER NOT NULL DEFAULT 6,
+    field_bool_not_null INTEGER NOT NULL DEFAULT false,
+    field_f64_not_null REAL NOT NULL DEFAULT 1.1,
+    field_f32_not_null REAL NOT NULL DEFAULT \"2.3\",
+    field_u8_not_null INTEGER NOT NULL DEFAULT \"0\",
+    field_i8_not_null INTEGER NOT NULL DEFAULT 0,
+    field_u16_not_null INTEGER NOT NULL DEFAULT \"hello\",
     field_i16_not_null INTEGER NOT NULL,
     field_u32_not_null INTEGER NOT NULL,
     field_i32_not_null INTEGER NOT NULL,
-    field_blob_not_null BLOB NOT NULL,
-    field_vec_u8_not_null BLOB NOT NULL,
+    field_blob_not_null BLOB NOT NULL DEFAULT x'',
+    field_vec_u8_not_null BLOB NOT NULL DEFAULT x'30',
     field_array_u8_not_null BLOB NOT NULL,
     field_serialize_not_null TEXT NOT NULL
   ) STRICT
 """
+
+[output_generated_tables_do_not_edit.nooption]
+name = "nooption"
+
+[[output_generated_tables_do_not_edit.nooption.columns]]
+name = "rowid"
+rust_type = "Option < i64 >"
+sql_type = "INTEGER PRIMARY KEY"
+
+[[output_generated_tables_do_not_edit.nooption.columns]]
+name = "e"
+rust_type = "u8"
+sql_type = "INTEGER NOT NULL"
 
 [output_generated_tables_do_not_edit.person]
 name = "person"
@@ -194,6 +215,11 @@ sql_type = "TEXT"
 
 [[output_generated_tables_do_not_edit.personintegrationtest.columns]]
 name = "field_string_not_null"
+rust_type = "String"
+sql_type = "TEXT NOT NULL"
+
+[[output_generated_tables_do_not_edit.personintegrationtest.columns]]
+name = "field_string_not_null2"
 rust_type = "String"
 sql_type = "TEXT NOT NULL"
 
