@@ -26,9 +26,9 @@ const MIGRATIONS_FILENAME: &str = "migrations.toml";
 #[cfg(feature = "test")]
 const MIGRATIONS_FILENAME: &str = "test.migrations.toml";
 
+mod delete;
 mod insert;
 mod update;
-mod delete;
 
 #[derive(Debug, Clone)]
 struct Table {
@@ -77,6 +77,11 @@ struct SelectTokens {
 
 #[derive(Debug)]
 struct ExecuteTokens {
+	tokens: proc_macro2::TokenStream,
+}
+
+#[derive(Debug)]
+struct UpdateTokens {
 	tokens: proc_macro2::TokenStream,
 }
 
@@ -230,8 +235,9 @@ fn _extract_stmt_members(stmt: &Statement, span: &Span) -> MembersAndCasters {
 enum ParseStatementType {
 	Execute,
 	Select,
+	Update,
 }
-use ParseStatementType::{Execute, Select};
+use ParseStatementType::{Execute, Select, Update};
 
 #[derive(Debug)]
 struct StatementInfo {
@@ -414,22 +420,25 @@ fn do_parse_tokens(
 		None
 	};
 
-	let (sql, params, sql_and_parameters_tokens) = parse_interpolated_sql(input)?;
+	let (mut sql, params, sql_and_parameters_tokens) = parse_interpolated_sql(input)?;
 
 	// Try validating SQL as-is
 
-	let stmt_info = sql.as_ref().and_then(|s| validate_sql(s).ok());
+	let mut stmt_info = sql.as_ref().and_then(|s| validate_sql(s).ok());
 
-	// Try adding SELECT if it didn't validate
+	// Try adding SELECT or UPDATE if it didn't validate
 
-	let (sql, stmt_info) = match (sql, stmt_info) {
-		(Some(sql), None) => {
-			let sql_with_select = format!("SELECT {}", sql);
-			let stmt_info = validate_sql(&sql_with_select).ok();
-			(Some(if stmt_info.is_some() { sql_with_select } else { sql }), stmt_info)
+	if let (ty @ (Select | Update), Some(orig_sql), None) = (&statement_type, &sql, &stmt_info) {
+		let sql_modified = match ty {
+			Select => format!("SELECT {}", orig_sql),
+			Update => format!("UPDATE {}", orig_sql),
+			_ => unreachable!(),
+		};
+		if let Ok(stmt_info_modified) = validate_sql(&sql_modified) {
+			sql = Some(sql_modified);
+			stmt_info = Some(stmt_info_modified);
 		}
-		t => t,
-	};
+	}
 
 	if is_rust_analyzer() {
 		return Ok(if let Some(ty) = result_type {
