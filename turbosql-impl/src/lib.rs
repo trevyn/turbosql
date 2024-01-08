@@ -67,8 +67,10 @@ struct MiniColumn {
 	sql_type: String,
 }
 
-static U8_ARRAY_RE: Lazy<regex::Regex> =
+static OPTION_U8_ARRAY_RE: Lazy<regex::Regex> =
 	Lazy::new(|| regex::Regex::new(r"^Option < \[u8 ; \d+\] >$").unwrap());
+static U8_ARRAY_RE: Lazy<regex::Regex> =
+	Lazy::new(|| regex::Regex::new(r"^\[u8 ; \d+\]$").unwrap());
 
 #[derive(Debug)]
 struct SelectTokens {
@@ -489,7 +491,10 @@ fn do_parse_tokens(
 						Content::SingleColumn(col) => col.column == c.name,
 						_ => true,
 					} {
-						if c.sql_type == "TEXT" && c.rust_type != "Option < String >" {
+						if c.sql_type.starts_with("TEXT")
+							&& c.rust_type != "Option < String >"
+							&& c.rust_type != "String"
+						{
 							Some(format!("{} AS {}__serialized", c.name, c.name))
 						} else {
 							Some(c.name.clone())
@@ -780,7 +785,7 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
 								// require Option and manifest None values
 								return None;
 							}
-							_ => ()
+							_ => (),
 						}
 					}
 				}
@@ -792,40 +797,54 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
 			let ty = &f.ty;
 			let ty_str = quote!(#ty).to_string();
 
-			// TODO: have specific error messages or advice for other numeric types
-			// specifically, sqlite cannot represent u64 integers, would be coerced to float.
-			// https://sqlite.org/fileformat.html
-
 			let sql_type = match (
 				name.as_str(),
-				if U8_ARRAY_RE.is_match(&ty_str) { "Option < [u8; _] >" } else { ty_str.as_str() },
+				if OPTION_U8_ARRAY_RE.is_match(&ty_str) {
+					"Option < [u8; _] >"
+				} else if U8_ARRAY_RE.is_match(&ty_str) {
+					"[u8; _]"
+				} else {
+					ty_str.as_str()
+				},
 			) {
 				("rowid", "Option < i64 >") => "INTEGER PRIMARY KEY",
 				(_, "Option < i8 >") => "INTEGER",
+				(_, "i8") => "INTEGER NOT NULL",
 				(_, "Option < u8 >") => "INTEGER",
+				(_, "u8") => "INTEGER NOT NULL",
 				(_, "Option < i16 >") => "INTEGER",
+				(_, "i16") => "INTEGER NOT NULL",
 				(_, "Option < u16 >") => "INTEGER",
+				(_, "u16") => "INTEGER NOT NULL",
 				(_, "Option < i32 >") => "INTEGER",
+				(_, "i32") => "INTEGER NOT NULL",
 				(_, "Option < u32 >") => "INTEGER",
+				(_, "u32") => "INTEGER NOT NULL",
 				(_, "Option < i64 >") => "INTEGER",
+				(_, "i64") => "INTEGER NOT NULL",
 				(_, "Option < u64 >") => abort!(ty, SQLITE_U64_ERROR),
+				(_, "u64") => abort!(ty, SQLITE_U64_ERROR),
 				(_, "Option < f64 >") => "REAL",
+				(_, "f64") => "REAL NOT NULL",
 				(_, "Option < f32 >") => "REAL",
+				(_, "f32") => "REAL NOT NULL",
 				(_, "Option < bool >") => "INTEGER",
+				(_, "bool") => "INTEGER NOT NULL",
 				(_, "Option < String >") => "TEXT",
+				(_, "String") => "TEXT NOT NULL",
 				// SELECT LENGTH(blob_column) ... will be null if blob is null
 				(_, "Option < Blob >") => "BLOB",
+				(_, "Blob") => "BLOB NOT NULL",
 				(_, "Option < Vec < u8 > >") => "BLOB",
+				(_, "Vec < u8 >") => "BLOB NOT NULL",
 				(_, "Option < [u8; _] >") => "BLOB",
+				(_, "[u8; _]") => "BLOB NOT NULL",
 				_ => {
+					// JSON-serialized
 					if ty_str.starts_with("Option < ") {
-						"TEXT" // JSON-serialized
+						"TEXT"
 					} else {
-						abort!(
-							ty,
-							"Turbosql types must be wrapped in Option for forward/backward schema compatibility. Try: Option<{}>",
-							ty_str
-						)
+						"TEXT NOT NULL"
 					}
 				}
 			};

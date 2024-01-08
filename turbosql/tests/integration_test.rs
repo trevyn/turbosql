@@ -27,6 +27,21 @@ struct PersonIntegrationTest {
 	field_vec_u8: Option<Vec<u8>>,
 	field_array_u8: Option<[u8; 99]>,
 	field_serialize: Option<Vec<i64>>,
+	field_string_not_null: String,
+	field_i64_not_null: i64,
+	field_bool_not_null: bool,
+	field_f64_not_null: f64,
+	field_f32_not_null: f32,
+	field_u8_not_null: u8,
+	field_i8_not_null: i8,
+	field_u16_not_null: u16,
+	field_i16_not_null: i16,
+	field_u32_not_null: u32,
+	field_i32_not_null: i32,
+	field_blob_not_null: Blob,
+	field_vec_u8_not_null: Vec<u8>,
+	field_array_u8_not_null: [u8; 5],
+	field_serialize_not_null: Vec<i64>,
 }
 
 #[test]
@@ -87,7 +102,7 @@ fn integration_test() {
 
 	assert_eq!(select!(PersonIntegrationTest).unwrap(), row);
 	assert_eq!(
-		select!(PersonIntegrationTest "rowid, field_string, field_i64, field_bool, field_f64, field_f32, field_u8, field_i8, field_u16, field_i16, field_u32, field_i32, field_blob, field_vec_u8, field_array_u8, field_serialize AS field_serialize__serialized FROM personintegrationtest").unwrap(),
+		select!(PersonIntegrationTest "rowid, field_string, field_i64, field_bool, field_f64, field_f32, field_u8, field_i8, field_u16, field_i16, field_u32, field_i32, field_blob, field_vec_u8, field_array_u8, field_serialize AS field_serialize__serialized, field_string_not_null, field_i64_not_null, field_bool_not_null, field_f64_not_null, field_f32_not_null, field_u8_not_null, field_i8_not_null, field_u16_not_null, field_i16_not_null, field_u32_not_null, field_i32_not_null, field_blob_not_null, field_vec_u8_not_null, field_array_u8_not_null, field_serialize_not_null AS field_serialize_not_null__serialized FROM personintegrationtest").unwrap(),
 		row
 	);
 
