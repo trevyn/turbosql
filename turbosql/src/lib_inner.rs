@@ -68,7 +68,7 @@ pub fn now_ms() -> i64 {
 	std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as i64
 }
 
-fn run_migrations(conn: &mut Connection) {
+fn run_migrations(conn: &mut Connection, path: &Path) {
 	cfg_if::cfg_if! {
 		if #[cfg(doc)] {
 			// if these are what's run in doctests, could add a test struct here to scaffold one-liner tests
@@ -130,7 +130,7 @@ fn run_migrations(conn: &mut Connection) {
 	applied_migrations.iter().zip_longest(&target_migrations).for_each(|item| match item {
 		Both(a, b) => {
 			if a != b {
-				panic!("Mismatch in Turbosql migrations! {:?} != {:?}", a, b)
+				panic!("Mismatch in Turbosql migrations! {:?} != {:?} {:?}", a, b, path)
 			}
 		}
 		Left(_) => panic!("More migrations are applied than target"),
@@ -237,7 +237,7 @@ fn open_db() -> Connection {
 		.expect("Execute PRAGMAs");
 
 	if !db_path.opened {
-		run_migrations(&mut conn);
+		run_migrations(&mut conn, db_path.path.as_ref().unwrap());
 		db_path.opened = true;
 	}
 
