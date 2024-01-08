@@ -7,7 +7,7 @@ compile_error!("turbosql must be tested with '--features test -- --test-threads=
 #[cfg(not(test))]
 compile_error!("integration_tests.rs must be run in test mode");
 
-use turbosql::{execute, select, Blob, Turbosql};
+use turbosql::{execute, select, update, Blob, Turbosql};
 
 #[derive(Turbosql, Default, Debug, PartialEq, Clone)]
 struct PersonIntegrationTest {
@@ -300,6 +300,8 @@ fn integration_test() {
 	// let result = select!(( "name AS" String, "age >= 18 AS" bool ) "FROM person")?;
 
 	execute!("INSERT INTO personintegrationtest(field_u8, field_i8) VALUES (" 1, 2 ")").unwrap();
+
+	update!("personintegrationtest SET field_u8 = " 0).unwrap();
 
 	// DELETE
 

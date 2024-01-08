@@ -556,7 +556,7 @@ fn do_parse_tokens(
 	// if we return no columns, this should be an execute
 
 	if stmt_info.column_names.is_empty() {
-		if !matches!(statement_type, Execute) {
+		if matches!(statement_type, Select) {
 			abort_call_site!("No rows returned from SQL, use execute! instead.");
 		}
 
@@ -669,6 +669,12 @@ impl Parse for ExecuteTokens {
 	}
 }
 
+impl Parse for UpdateTokens {
+	fn parse(input: ParseStream) -> syn::Result<Self> {
+		Ok(UpdateTokens { tokens: do_parse_tokens(input, Update)? })
+	}
+}
+
 /// Executes a SQL statement. On success, returns the number of rows that were changed or inserted or deleted.
 #[proc_macro]
 #[proc_macro_error]
@@ -682,6 +688,14 @@ pub fn execute(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_error]
 pub fn select(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 	let SelectTokens { tokens } = parse_macro_input!(input);
+	proc_macro::TokenStream::from(tokens)
+}
+
+/// Executes a SQL statement with optionally automatic `UPDATE` clause.
+#[proc_macro]
+#[proc_macro_error]
+pub fn update(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+	let UpdateTokens { tokens } = parse_macro_input!(input);
 	proc_macro::TokenStream::from(tokens)
 }
 
