@@ -860,11 +860,11 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
 				(_, "String") => ("TEXT NOT NULL", "\"\""),
 				// SELECT LENGTH(blob_column) ... will be null if blob is null
 				(_, "Option < Blob >") => ("BLOB", "b\"\""),
-				(_, "Blob") => ("BLOB NOT NULL", "b\"\""),
+				(_, "Blob") => ("BLOB NOT NULL", "\"\""),
 				(_, "Option < Vec < u8 > >") => ("BLOB", "b\"\""),
-				(_, "Vec < u8 >") => ("BLOB NOT NULL", "b\"\""),
+				(_, "Vec < u8 >") => ("BLOB NOT NULL", "\"\""),
 				(_, "Option < [u8; _] >") => ("BLOB", "b\"\\x00\\x01\\xff\""),
-				(_, "[u8; _]") => ("BLOB NOT NULL", "b\"\\x00\\x01\\xff\""),
+				(_, "[u8; _]") => ("BLOB NOT NULL", "\"\""),
 				_ => {
 					// JSON-serialized
 					if ty_str.starts_with("Option < ") {
@@ -876,7 +876,8 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
 			};
 
 			if sql_default.is_none() && sql_type.ends_with("NOT NULL") {
-				abort!(f, "Field {} has no default value and is not nullable. Either add a default value with e.g. #[turbosql(sql_default = {default_example})] or make it Option<{ty_str}>.", name);
+				sql_default = Some(default_example.into());
+				// abort!(f, "Field `{}` has no default value and is not nullable. Either add a default value with e.g. #[turbosql(sql_default = {default_example})] or make it Option<{ty_str}>.", name);
 			}
 
 			Some(Column {
