@@ -797,7 +797,7 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
 									Lit::Bool(value) => sql_default = Some(value.value().to_string()),
 									Lit::Int(token) => sql_default = Some(token.to_string()),
 									Lit::Float(token) => sql_default = Some(token.to_string()),
-									Lit::Str(token) => sql_default = Some(format!("\"{}\"", token.value())),
+									Lit::Str(token) => sql_default = Some(format!("'{}'", token.value())),
 									Lit::ByteStr(token) => {
 										use std::fmt::Write;
 										sql_default = Some(format!(
@@ -857,20 +857,20 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
 				(_, "Option < bool >") => ("INTEGER", "false"),
 				(_, "bool") => ("INTEGER NOT NULL", "false"),
 				(_, "Option < String >") => ("TEXT", "\"\""),
-				(_, "String") => ("TEXT NOT NULL", "\"\""),
+				(_, "String") => ("TEXT NOT NULL", "''"),
 				// SELECT LENGTH(blob_column) ... will be null if blob is null
 				(_, "Option < Blob >") => ("BLOB", "b\"\""),
-				(_, "Blob") => ("BLOB NOT NULL", "\"\""),
+				(_, "Blob") => ("BLOB NOT NULL", "''"),
 				(_, "Option < Vec < u8 > >") => ("BLOB", "b\"\""),
-				(_, "Vec < u8 >") => ("BLOB NOT NULL", "\"\""),
+				(_, "Vec < u8 >") => ("BLOB NOT NULL", "''"),
 				(_, "Option < [u8; _] >") => ("BLOB", "b\"\\x00\\x01\\xff\""),
-				(_, "[u8; _]") => ("BLOB NOT NULL", "\"\""),
+				(_, "[u8; _]") => ("BLOB NOT NULL", "''"),
 				_ => {
 					// JSON-serialized
 					if ty_str.starts_with("Option < ") {
 						("TEXT", "\"\"")
 					} else {
-						("TEXT NOT NULL", "\"\"")
+						("TEXT NOT NULL", "''")
 					}
 				}
 			};
