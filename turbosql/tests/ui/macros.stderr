@@ -1,9 +1,3 @@
-error: Turbosql types must be wrapped in Option for forward/backward schema compatibility. Try: Option<u8>
- --> tests/ui/macros.rs:8:5
-  |
-8 |     e: u8,
-  |        ^^
-
 error: derive(Turbosql) structs must include a 'rowid: Option<i64>' field
   --> tests/ui/macros.rs:11:10
    |

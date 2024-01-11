@@ -1,7 +1,3 @@
-use itertools::{
-	EitherOrBoth::{Both, Left, Right},
-	Itertools,
-};
 use rusqlite::{Connection, OpenFlags};
 use serde::Deserialize;
 use std::cell::RefCell;
@@ -68,7 +64,7 @@ pub fn now_ms() -> i64 {
 	std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as i64
 }
 
-fn run_migrations(conn: &mut Connection) {
+fn run_migrations(conn: &mut Connection, path: &Path) {
 	cfg_if::cfg_if! {
 		if #[cfg(doc)] {
 			// if these are what's run in doctests, could add a test struct here to scaffold one-liner tests
@@ -127,23 +123,31 @@ fn run_migrations(conn: &mut Connection) {
 
 	// execute migrations
 
-	applied_migrations.iter().zip_longest(&target_migrations).for_each(|item| match item {
-		Both(a, b) => {
-			if a != b {
-				panic!("Mismatch in Turbosql migrations! {:?} != {:?}", a, b)
+	let mut a = applied_migrations.iter();
+	let mut t = target_migrations.iter();
+
+	loop {
+		match (a.next(), t.next()) {
+			(Some(a), Some(t)) => {
+				if a != t {
+					panic!("Mismatch in Turbosql migrations! {:?} != {:?} {:?}", a, t, path)
+				}
 			}
-		}
-		Left(_) => panic!("More migrations are applied than target"),
-		Right(migration) => {
-			// eprintln!("insert -> {:#?}", migration);
-			if !migration.starts_with("--") {
-				conn.execute(migration, params![]).unwrap();
+			(Some(a), None) => {
+				panic!(
+					"Mismatch in Turbosql migrations! More migrations are applied than target. {:?} {:?}",
+					a, path
+				)
 			}
-			conn
-				.execute("INSERT INTO _turbosql_migrations(migration) VALUES(?)", params![migration])
-				.unwrap();
+			(None, Some(t)) => {
+				if !t.starts_with("--") {
+					conn.execute(t, params![]).unwrap();
+				}
+				conn.execute("INSERT INTO _turbosql_migrations(migration) VALUES(?)", params![t]).unwrap();
+			}
+			(None, None) => break,
 		}
-	});
+	}
 
 	// TODO: verify schema against output_generated_schema_for_your_information_do_not_edit
 
@@ -237,7 +241,7 @@ fn open_db() -> Connection {
 		.expect("Execute PRAGMAs");
 
 	if !db_path.opened {
-		run_migrations(&mut conn);
+		run_migrations(&mut conn, db_path.path.as_ref().unwrap());
 		db_path.opened = true;
 	}
 

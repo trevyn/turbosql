@@ -17,8 +17,8 @@ use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::{
-	parse_macro_input, parse_quote, Data, DeriveInput, Expr, Fields, FieldsNamed, Ident, LitStr, Meta,
-	Token, Type,
+	parse_macro_input, parse_quote, Data, DeriveInput, Expr, ExprLit, Fields, FieldsNamed, Ident, Lit,
+	LitStr, Meta, MetaNameValue, Token, Type,
 };
 
 #[cfg(not(feature = "test"))]
@@ -58,6 +58,7 @@ struct Column {
 	name: String,
 	rust_type: String,
 	sql_type: &'static str,
+	sql_default: Option<String>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -67,8 +68,10 @@ struct MiniColumn {
 	sql_type: String,
 }
 
-static U8_ARRAY_RE: Lazy<regex::Regex> =
+static OPTION_U8_ARRAY_RE: Lazy<regex::Regex> =
 	Lazy::new(|| regex::Regex::new(r"^Option < \[u8 ; \d+\] >$").unwrap());
+static U8_ARRAY_RE: Lazy<regex::Regex> =
+	Lazy::new(|| regex::Regex::new(r"^\[u8 ; \d+\]$").unwrap());
 
 #[derive(Debug)]
 struct SelectTokens {
@@ -489,7 +492,10 @@ fn do_parse_tokens(
 						Content::SingleColumn(col) => col.column == c.name,
 						_ => true,
 					} {
-						if c.sql_type == "TEXT" && c.rust_type != "Option < String >" {
+						if c.sql_type.starts_with("TEXT")
+							&& c.rust_type != "Option < String >"
+							&& c.rust_type != "String"
+						{
 							Some(format!("{} AS {}__serialized", c.name, c.name))
 						} else {
 							Some(c.name.clone())
@@ -600,7 +606,13 @@ fn do_parse_tokens(
 				.unwrap_or_else(|_| abort_call_site!("stmt_info.membersandcasters failed"));
 			let row_casters = m.row_casters;
 
-			handle_row = quote! { #content { #(#row_casters),* } };
+			handle_row = quote! {
+				#[allow(clippy::needless_update)]
+				#content {
+					#(#row_casters),*,
+					..Default::default()
+				}
+			};
 			content_ty = quote! { #content };
 		}
 		Content::SingleColumn(col) => {
@@ -769,18 +781,37 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
 		.named
 		.iter()
 		.filter_map(|f| {
-			// Skip (skip) fields
+			let mut sql_default = None;
 
 			for attr in &f.attrs {
 				if attr.path().is_ident("turbosql") {
 					for meta in attr.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated).unwrap() {
-						match meta {
+						match &meta {
 							Meta::Path(path) if path.is_ident("skip") => {
-								// TODO: For skipped fields, Handle derive(Default) requirement better
-								// require Option and manifest None values
 								return None;
 							}
-							_ => ()
+							Meta::NameValue(MetaNameValue { path, value: Expr::Lit(ExprLit { lit, .. }), .. })
+								if path.is_ident("sql_default") =>
+							{
+								match lit {
+									Lit::Bool(value) => sql_default = Some(value.value().to_string()),
+									Lit::Int(token) => sql_default = Some(token.to_string()),
+									Lit::Float(token) => sql_default = Some(token.to_string()),
+									Lit::Str(token) => sql_default = Some(format!("'{}'", token.value())),
+									Lit::ByteStr(token) => {
+										use std::fmt::Write;
+										sql_default = Some(format!(
+											"x'{}'",
+											token.value().iter().fold(String::new(), |mut o, b| {
+												let _ = write!(o, "{b:02x}");
+												o
+											})
+										))
+									}
+									_ => (),
+								}
+							}
+							_ => (),
 						}
 					}
 				}
@@ -792,43 +823,62 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
 			let ty = &f.ty;
 			let ty_str = quote!(#ty).to_string();
 
-			// TODO: have specific error messages or advice for other numeric types
-			// specifically, sqlite cannot represent u64 integers, would be coerced to float.
-			// https://sqlite.org/fileformat.html
-
-			let sql_type = match (
+			let (sql_type, default_example) = match (
 				name.as_str(),
-				if U8_ARRAY_RE.is_match(&ty_str) { "Option < [u8; _] >" } else { ty_str.as_str() },
+				if OPTION_U8_ARRAY_RE.is_match(&ty_str) {
+					"Option < [u8; _] >"
+				} else if U8_ARRAY_RE.is_match(&ty_str) {
+					"[u8; _]"
+				} else {
+					ty_str.as_str()
+				},
 			) {
-				("rowid", "Option < i64 >") => "INTEGER PRIMARY KEY",
-				(_, "Option < i8 >") => "INTEGER",
-				(_, "Option < u8 >") => "INTEGER",
-				(_, "Option < i16 >") => "INTEGER",
-				(_, "Option < u16 >") => "INTEGER",
-				(_, "Option < i32 >") => "INTEGER",
-				(_, "Option < u32 >") => "INTEGER",
-				(_, "Option < i64 >") => "INTEGER",
+				("rowid", "Option < i64 >") => ("INTEGER PRIMARY KEY", "NULL"),
+				(_, "Option < i8 >") => ("INTEGER", "0"),
+				(_, "i8") => ("INTEGER NOT NULL", "0"),
+				(_, "Option < u8 >") => ("INTEGER", "0"),
+				(_, "u8") => ("INTEGER NOT NULL", "0"),
+				(_, "Option < i16 >") => ("INTEGER", "0"),
+				(_, "i16") => ("INTEGER NOT NULL", "0"),
+				(_, "Option < u16 >") => ("INTEGER", "0"),
+				(_, "u16") => ("INTEGER NOT NULL", "0"),
+				(_, "Option < i32 >") => ("INTEGER", "0"),
+				(_, "i32") => ("INTEGER NOT NULL", "0"),
+				(_, "Option < u32 >") => ("INTEGER", "0"),
+				(_, "u32") => ("INTEGER NOT NULL", "0"),
+				(_, "Option < i64 >") => ("INTEGER", "0"),
+				(_, "i64") => ("INTEGER NOT NULL", "0"),
 				(_, "Option < u64 >") => abort!(ty, SQLITE_U64_ERROR),
-				(_, "Option < f64 >") => "REAL",
-				(_, "Option < f32 >") => "REAL",
-				(_, "Option < bool >") => "INTEGER",
-				(_, "Option < String >") => "TEXT",
+				(_, "u64") => abort!(ty, SQLITE_U64_ERROR),
+				(_, "Option < f64 >") => ("REAL", "0.0"),
+				(_, "f64") => ("REAL NOT NULL", "0.0"),
+				(_, "Option < f32 >") => ("REAL", "0.0"),
+				(_, "f32") => ("REAL NOT NULL", "0.0"),
+				(_, "Option < bool >") => ("INTEGER", "false"),
+				(_, "bool") => ("INTEGER NOT NULL", "false"),
+				(_, "Option < String >") => ("TEXT", "\"\""),
+				(_, "String") => ("TEXT NOT NULL", "''"),
 				// SELECT LENGTH(blob_column) ... will be null if blob is null
-				(_, "Option < Blob >") => "BLOB",
-				(_, "Option < Vec < u8 > >") => "BLOB",
-				(_, "Option < [u8; _] >") => "BLOB",
+				(_, "Option < Blob >") => ("BLOB", "b\"\""),
+				(_, "Blob") => ("BLOB NOT NULL", "''"),
+				(_, "Option < Vec < u8 > >") => ("BLOB", "b\"\""),
+				(_, "Vec < u8 >") => ("BLOB NOT NULL", "''"),
+				(_, "Option < [u8; _] >") => ("BLOB", "b\"\\x00\\x01\\xff\""),
+				(_, "[u8; _]") => ("BLOB NOT NULL", "''"),
 				_ => {
+					// JSON-serialized
 					if ty_str.starts_with("Option < ") {
-						"TEXT" // JSON-serialized
+						("TEXT", "\"\"")
 					} else {
-						abort!(
-							ty,
-							"Turbosql types must be wrapped in Option for forward/backward schema compatibility. Try: Option<{}>",
-							ty_str
-						)
+						("TEXT NOT NULL", "''")
 					}
 				}
 			};
+
+			if sql_default.is_none() && sql_type.ends_with("NOT NULL") {
+				sql_default = Some(default_example.into());
+				// abort!(f, "Field `{}` has no default value and is not nullable. Either add a default value with e.g. #[turbosql(sql_default = {default_example})] or make it Option<{ty_str}>.", name);
+			}
 
 			Some(Column {
 				ident: ident.clone().unwrap(),
@@ -836,6 +886,7 @@ fn extract_columns(fields: &FieldsNamed) -> Vec<Column> {
 				rust_type: ty_str,
 				name,
 				sql_type,
+				sql_default,
 			})
 		})
 		.collect::<Vec<_>>();
@@ -961,9 +1012,13 @@ fn make_migrations(table: &Table) -> Vec<String> {
 	let mut alters = table
 		.columns
 		.iter()
-		.filter_map(|c| match (c.name.as_str(), c.sql_type) {
-			("rowid", "INTEGER PRIMARY KEY") => None,
-			_ => Some(format!("ALTER TABLE {} ADD COLUMN {} {}", table.name, c.name, c.sql_type)),
+		.filter_map(|c| match (c.name.as_str(), c.sql_type, &c.sql_default) {
+			("rowid", "INTEGER PRIMARY KEY", _) => None,
+			(_, _, None) => Some(format!("ALTER TABLE {} ADD COLUMN {} {}", table.name, c.name, c.sql_type)),
+			(_, _, Some(sql_default)) => Some(format!(
+				"ALTER TABLE {} ADD COLUMN {} {} DEFAULT {}",
+				table.name, c.name, c.sql_type, sql_default
+			)),
 		})
 		.collect::<Vec<_>>();
 

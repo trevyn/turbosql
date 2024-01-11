@@ -16,7 +16,7 @@ pub(super) fn update(table: &Table) -> proc_macro2::TokenStream {
 	columns.rotate_left(1);
 	let columns = columns.iter().map(|c| {
 		let ident = &c.ident;
-		if c.sql_type == "TEXT" && c.rust_type != "Option < String >" {
+		if c.sql_type.starts_with("TEXT") && c.rust_type != "Option < String >" && c.rust_type != "String" {
 			quote_spanned!(c.span => &::turbosql::serde_json::to_string(&self.#ident)? as &dyn ::turbosql::ToSql)
 		} else {
 			quote_spanned!(c.span => &self.#ident as &dyn ::turbosql::ToSql)

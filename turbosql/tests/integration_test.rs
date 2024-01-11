@@ -27,6 +27,36 @@ struct PersonIntegrationTest {
 	field_vec_u8: Option<Vec<u8>>,
 	field_array_u8: Option<[u8; 99]>,
 	field_serialize: Option<Vec<i64>>,
+	#[turbosql(sql_default = "foo foo")]
+	field_string_not_null: String,
+	#[turbosql(sql_default = 6)]
+	field_i64_not_null: i64,
+	#[turbosql(sql_default = false)]
+	field_bool_not_null: bool,
+	#[turbosql(sql_default = 1.1)]
+	field_f64_not_null: f64,
+	#[turbosql(sql_default = "2.3")]
+	field_f32_not_null: f32,
+	#[turbosql(sql_default = -1.2)]
+	field_u8_not_null: u8,
+	#[turbosql(sql_default = 0)]
+	field_i8_not_null: i8,
+	#[turbosql(sql_default = r#"hello"#)]
+	field_u16_not_null: u16,
+	#[turbosql(sql_default = -1)]
+	field_i16_not_null: i16,
+	#[turbosql(sql_default = -1)]
+	field_u32_not_null: u32,
+	#[turbosql(sql_default = -1)]
+	field_i32_not_null: i32,
+	#[turbosql(sql_default = b"")]
+	field_blob_not_null: Blob,
+	#[turbosql(sql_default = b"0")]
+	field_vec_u8_not_null: Vec<u8>,
+	#[turbosql(sql_default = b"\x00\x01\xff")]
+	field_array_u8_not_null: [u8; 5],
+	#[turbosql(sql_default = "")]
+	field_serialize_not_null: Vec<i64>,
 }
 
 #[test]
@@ -87,13 +117,13 @@ fn integration_test() {
 
 	assert_eq!(select!(PersonIntegrationTest).unwrap(), row);
 	assert_eq!(
-		select!(PersonIntegrationTest "rowid, field_string, field_i64, field_bool, field_f64, field_f32, field_u8, field_i8, field_u16, field_i16, field_u32, field_i32, field_blob, field_vec_u8, field_array_u8, field_serialize AS field_serialize__serialized FROM personintegrationtest").unwrap(),
+		select!(PersonIntegrationTest "rowid, field_string, field_i64, field_bool, field_f64, field_f32, field_u8, field_i8, field_u16, field_i16, field_u32, field_i32, field_blob, field_vec_u8, field_array_u8, field_serialize AS field_serialize__serialized, field_string_not_null, field_i64_not_null, field_bool_not_null, field_f64_not_null, field_f32_not_null, field_u8_not_null, field_i8_not_null, field_u16_not_null, field_i16_not_null, field_u32_not_null, field_i32_not_null, field_blob_not_null, field_vec_u8_not_null, field_array_u8_not_null, field_serialize_not_null AS field_serialize_not_null__serialized FROM personintegrationtest").unwrap(),
 		row
 	);
 
 	// select! into struct without Turbosql derive
 
-	#[derive(Debug, Eq, PartialEq, Clone)]
+	#[derive(Debug, Eq, PartialEq, Clone, Default)]
 	struct NameAndAgeResult {
 		name: Option<String>,
 		age: Option<i64>,
@@ -299,7 +329,9 @@ fn integration_test() {
 	// let_select!(name: String, "age >= " adult_age " AS " adult: bool "FROM person")?;
 	// let result = select!(( "name AS" String, "age >= 18 AS" bool ) "FROM person")?;
 
-	execute!("INSERT INTO personintegrationtest(field_u8, field_i8) VALUES (" 1, 2 ")").unwrap();
+	assert!(
+		execute!("INSERT INTO personintegrationtest(field_u8, field_i8) VALUES (" 1, 2 ")").is_err() // NOT NULL constraint failed
+	);
 
 	update!("personintegrationtest SET field_u8 = " 0).unwrap();
 
