@@ -240,10 +240,14 @@ fn integration_test() {
 		&select!(Blob "field_blob from personintegrationtest").unwrap(),
 		row.field_blob.as_ref().unwrap()
 	);
-	// assert_eq!(
-	// 	&select!([u8; 99] "field_array_u8 from personintegrationtest").unwrap(),
-	// 	row.field_array_u8.as_ref().unwrap()
-	// );
+	assert_eq!(
+		&select!([u8; 99] "field_array_u8 from personintegrationtest").unwrap(),
+		row.field_array_u8.as_ref().unwrap()
+	);
+	assert_eq!(
+		select!(Vec<[u8; 99]> "field_array_u8 from personintegrationtest").unwrap(),
+		vec![row.field_array_u8.unwrap()]
+	);
 
 	assert_eq!(
 		select!(bool "field_string = ? FROM personintegrationtest", "Arthur Schopenhauer").unwrap(),

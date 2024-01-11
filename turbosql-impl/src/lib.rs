@@ -17,8 +17,9 @@ use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::{
-	parse_macro_input, parse_quote, Data, DeriveInput, Expr, ExprLit, Fields, FieldsNamed, Ident, Lit,
-	LitStr, Meta, MetaNameValue, Token, Type,
+	parse_macro_input, parse_quote, AngleBracketedGenericArguments, Data, DeriveInput, Expr, ExprLit,
+	Fields, FieldsNamed, GenericArgument, Ident, Lit, LitStr, Meta, MetaNameValue, PathArguments,
+	Token, Type, TypePath,
 };
 
 #[cfg(not(feature = "test"))]
@@ -96,25 +97,48 @@ struct SingleColumn {
 
 #[derive(Clone, Debug)]
 enum Content {
-	// Type(Type),
+	Type(Type),
 	Ident(Ident),
 	#[allow(dead_code)]
 	SingleColumn(SingleColumn),
 }
 
+impl ToTokens for Content {
+	fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+		match self {
+			Content::Type(ty) => ty.to_tokens(tokens),
+			Content::Ident(ident) => ident.to_tokens(tokens),
+			Content::SingleColumn(_) => unimplemented!(),
+		}
+	}
+}
+
 impl Content {
 	fn ty(&self) -> syn::Result<Type> {
 		match self {
-			// Content::Type(ty) => Ok(ty.clone()),
+			Content::Type(ty) => Ok(ty.clone()),
 			Content::Ident(ident) => syn::parse2(ident.to_token_stream()),
 			Content::SingleColumn(_) => unimplemented!(), //syn::parse_str(&c.rust_type),
 		}
 	}
+	fn is_primitive(&self) -> bool {
+		const PRIMITIVES: &[&str] =
+			&["f32", "f64", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "String", "bool", "Blob"];
+		match self {
+			Content::Type(Type::Path(TypePath { path, .. })) => {
+				PRIMITIVES.contains(&path.segments.last().unwrap().ident.to_string().as_str())
+			}
+			Content::Type(Type::Array(_)) => true,
+			Content::Ident(ident) => PRIMITIVES.contains(&ident.to_string().as_str()),
+			_ => abort_call_site!("Unsupported content type in is_primitive {:#?}", self),
+		}
+	}
 	fn table_ident(&self) -> &Ident {
 		match self {
-			// Content::Type(_) => unimplemented!(),
+			Content::Type(Type::Path(TypePath { path, .. })) => &path.segments.last().unwrap().ident,
 			Content::Ident(ident) => ident,
 			Content::SingleColumn(c) => &c.table,
+			_ => abort_call_site!("Unsupported content type in table_ident {:#?}", self),
 		}
 	}
 }
@@ -399,26 +423,44 @@ fn do_parse_tokens(
 
 	// Get result type and SQL
 
-	// let result_type = input.parse::<Type>().ok();
+	let result_type = if let Ok(ty) = input.parse::<Type>() {
+		match ty {
+			Type::Path(TypePath { qself: None, path }) => {
+				let path = path.segments.last().unwrap();
+				let mut container = None;
 
-	let result_type = if let Ok(mut ident) = input.parse::<Ident>() {
-		let container = if ident == "Vec" || ident == "Option" {
-			let container = Some(ident);
-			input.parse::<Token![<]>()?;
-			ident = input.parse::<Ident>()?;
-			input.parse::<Token![>]>()?;
-			container
-		} else {
-			None
-		};
+				let content = match &path.ident {
+					ident if ["Vec", "Option"].contains(&ident.to_string().as_str()) => {
+						container = Some(ident.clone());
+						match path.arguments {
+							PathArguments::AngleBracketed(AngleBracketedGenericArguments { ref args, .. }) => {
+								if args.len() != 1 {
+									abort!(args, "Expected 1 argument, found {}", args.len());
+								}
+								let ty = args.first().unwrap();
+								match ty {
+									GenericArgument::Type(ty) => Content::Type(ty.clone()),
+									_ => abort!(ty, "Expected type, found {:?}", ty),
+								}
+							}
+							_ => {
+								abort!(path.arguments, "Expected angle bracketed arguments, found {:?}", path.arguments)
+							}
+						}
+					}
+					_ => Content::Ident(path.ident.clone()),
+				};
 
-		let content = // if input.parse::<Token![.]>().is_ok() {
-		//  Content::SingleColumn(SingleColumn { table: ident, column: input.parse::<Ident>()? })
-		// } else {
-			Content::Ident(ident);
-		// };
-
-		Some(ResultType { container, content })
+				Some(ResultType { container, content })
+			}
+			Type::Array(array) => {
+				Some(ResultType { container: None, content: Content::Type(Type::Array(array)) })
+			}
+			_ => {
+				let x = format!("{:#?}", ty);
+				abort!("{}", x);
+			}
+		}
 	} else {
 		None
 	};
@@ -592,46 +634,42 @@ fn do_parse_tokens(
 	let handle_row;
 	let content_ty;
 
-	match content {
-		Content::Ident(content)
-			if ["f32", "f64", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "String", "bool", "Blob"]
-				.contains(&content.to_string().as_str()) =>
-		{
-			handle_row = quote! { row.get(0)? };
-			content_ty = quote! { #content };
-		}
-		Content::Ident(content) => {
-			let m = stmt_info
-				.membersandcasters()
-				.unwrap_or_else(|_| abort_call_site!("stmt_info.membersandcasters failed"));
-			let row_casters = m.row_casters;
+	if content.is_primitive() {
+		handle_row = quote! { row.get(0)? };
+		content_ty = quote! { #content };
+	} else {
+		let m = stmt_info
+			.membersandcasters()
+			.unwrap_or_else(|_| abort_call_site!("stmt_info.membersandcasters failed"));
+		let row_casters = m.row_casters;
 
-			handle_row = quote! {
-				#[allow(clippy::needless_update)]
-				#content {
-					#(#row_casters),*,
-					..Default::default()
-				}
-			};
-			content_ty = quote! { #content };
-		}
-		Content::SingleColumn(col) => {
-			handle_row = quote! { row.get(0)? };
-			let rust_ty: Type = syn::parse_str(
-				&read_migrations_toml()
-					.output_generated_tables_do_not_edit
-					.unwrap()
-					.get(&col.table.to_string().to_lowercase())
-					.unwrap()
-					.columns
-					.iter()
-					.find(|c| col.column == c.name)
-					.unwrap()
-					.rust_type,
-			)?;
-			content_ty = quote! { #rust_ty };
-		}
-	};
+		handle_row = quote! {
+			#[allow(clippy::needless_update)]
+			#content {
+				#(#row_casters),*,
+				..Default::default()
+			}
+		};
+		content_ty = quote! { #content };
+	}
+
+	// Content::SingleColumn(col) => {
+	// 	handle_row = quote! { row.get(0)? };
+	// 	let rust_ty: Type = syn::parse_str(
+	// 		&read_migrations_toml()
+	// 			.output_generated_tables_do_not_edit
+	// 			.unwrap()
+	// 			.get(&col.table.to_string().to_lowercase())
+	// 			.unwrap()
+	// 			.columns
+	// 			.iter()
+	// 			.find(|c| col.column == c.name)
+	// 			.unwrap()
+	// 			.rust_type,
+	// 	)?;
+	// 	content_ty = quote! { #rust_ty };
+	// }
+	// };
 
 	// Decide how to handle the iterator over rows depending on container.
 

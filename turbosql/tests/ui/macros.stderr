@@ -70,7 +70,7 @@ error: Table "nonexistenttable" not found. Does struct Nonexistenttable exist an
 37 |     select!(Nonexistenttable).unwrap();
    |             ^^^^^^^^^^^^^^^^
 
-error: expected `<`
+error: Expected angle bracketed arguments, found PathArguments::None
   --> tests/ui/macros.rs:38:2
    |
 38 |     select!(Vec).unwrap();
@@ -78,7 +78,7 @@ error: expected `<`
    |
    = note: this error originates in the macro `select` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: expected identifier
+error: Expected type, found GenericArgument::Const(Expr::Lit { attrs: [], lit: Lit::Str { token: "what" } })
   --> tests/ui/macros.rs:39:14
    |
 39 |     select!(Vec<"what">).unwrap();
