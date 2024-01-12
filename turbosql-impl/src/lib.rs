@@ -690,13 +690,13 @@ fn do_parse_tokens(
 
 impl Tokens {
 	fn parse_select(input: ParseStream) -> Result<Self> {
-		do_parse_tokens(input, Select).map(Tokens)
+		do_parse_tokens(input, Select).map(Self)
 	}
 	fn parse_execute(input: ParseStream) -> Result<Self> {
-		do_parse_tokens(input, Execute).map(Tokens)
+		do_parse_tokens(input, Execute).map(Self)
 	}
 	fn parse_update(input: ParseStream) -> Result<Self> {
-		do_parse_tokens(input, Update).map(Tokens)
+		do_parse_tokens(input, Update).map(Self)
 	}
 }
 
