@@ -148,13 +148,12 @@ impl Parse for ResultType {
 						match path.arguments {
 							PathArguments::AngleBracketed(AngleBracketedGenericArguments { ref args, .. }) => {
 								(args.len() != 1).then(|| abort!(args, "Expected 1 argument, found {}", args.len()));
-								let ty = args.first().unwrap();
-								match ty {
+								match args.first().unwrap() {
 									GenericArgument::Type(ty) => Content::Type(ty.clone()),
-									_ => abort!(ty, "Expected type, found {:?}", ty),
+									ty => abort!(ty, "Expected type, found {:?}", ty),
 								}
 							}
-							_ => abort!(path.arguments, "Expected angle bracketed args, found {:?}", path.arguments),
+							ref args => abort!(args, "Expected angle bracketed arguments, found {:?}", args),
 						}
 					}
 					_ => Content::Type(ty),
@@ -162,7 +161,7 @@ impl Parse for ResultType {
 				ResultType { container, content }
 			}
 			Type::Array(array) => ResultType { container: None, content: Content::Type(Type::Array(array)) },
-			_ => abort!(ty, "Unknown type {:?}", ty),
+			ty => abort!(ty, "Unknown type {:?}", ty),
 		})
 	}
 }
