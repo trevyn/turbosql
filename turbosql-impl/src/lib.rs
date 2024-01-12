@@ -71,19 +71,13 @@ static U8_ARRAY_RE: Lazy<regex::Regex> =
 	Lazy::new(|| regex::Regex::new(r"^\[u8 ; \d+\]$").unwrap());
 
 #[derive(Debug)]
-struct SelectTokens {
-	tokens: proc_macro2::TokenStream,
-}
+struct SelectTokens(proc_macro2::TokenStream);
 
 #[derive(Debug)]
-struct ExecuteTokens {
-	tokens: proc_macro2::TokenStream,
-}
+struct ExecuteTokens(proc_macro2::TokenStream);
 
 #[derive(Debug)]
-struct UpdateTokens {
-	tokens: proc_macro2::TokenStream,
-}
+struct UpdateTokens(proc_macro2::TokenStream);
 
 #[derive(Clone, Debug)]
 struct SingleColumn {
@@ -627,10 +621,9 @@ fn do_parse_tokens(
 		handle_row = quote! { row.get(0)? };
 		content_ty = quote! { #content };
 	} else {
-		let m = stmt_info
+		let MembersAndCasters { row_casters } = stmt_info
 			.membersandcasters()
 			.unwrap_or_else(|_| abort_call_site!("stmt_info.membersandcasters failed"));
-		let row_casters = m.row_casters;
 
 		handle_row = quote! {
 			#[allow(clippy::needless_update)]
@@ -698,19 +691,19 @@ fn do_parse_tokens(
 
 impl Parse for SelectTokens {
 	fn parse(input: ParseStream) -> Result<Self> {
-		Ok(SelectTokens { tokens: do_parse_tokens(input, Select)? })
+		Ok(SelectTokens(do_parse_tokens(input, Select)?))
 	}
 }
 
 impl Parse for ExecuteTokens {
 	fn parse(input: ParseStream) -> Result<Self> {
-		Ok(ExecuteTokens { tokens: do_parse_tokens(input, Execute)? })
+		Ok(ExecuteTokens(do_parse_tokens(input, Execute)?))
 	}
 }
 
 impl Parse for UpdateTokens {
 	fn parse(input: ParseStream) -> Result<Self> {
-		Ok(UpdateTokens { tokens: do_parse_tokens(input, Update)? })
+		Ok(UpdateTokens(do_parse_tokens(input, Update)?))
 	}
 }
 
@@ -718,24 +711,21 @@ impl Parse for UpdateTokens {
 #[proc_macro]
 #[proc_macro_error]
 pub fn execute(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-	let ExecuteTokens { tokens } = parse_macro_input!(input);
-	proc_macro::TokenStream::from(tokens)
+	parse_macro_input!(input as ExecuteTokens).0.into()
 }
 
 /// Executes a SQL SELECT statement with optionally automatic `SELECT` and `FROM` clauses.
 #[proc_macro]
 #[proc_macro_error]
 pub fn select(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-	let SelectTokens { tokens } = parse_macro_input!(input);
-	proc_macro::TokenStream::from(tokens)
+	parse_macro_input!(input as SelectTokens).0.into()
 }
 
 /// Executes a SQL statement with optionally automatic `UPDATE` clause. On success, returns the number of rows that were changed.
 #[proc_macro]
 #[proc_macro_error]
 pub fn update(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-	let UpdateTokens { tokens } = parse_macro_input!(input);
-	proc_macro::TokenStream::from(tokens)
+	parse_macro_input!(input as UpdateTokens).0.into()
 }
 
 /// Derive this on a `struct` to create a corresponding SQLite table and `Turbosql` trait methods.
