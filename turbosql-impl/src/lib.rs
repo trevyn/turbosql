@@ -16,11 +16,7 @@ use std::collections::BTreeMap;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
-use syn::{
-	parse_macro_input, parse_quote, AngleBracketedGenericArguments, Data, DeriveInput, Expr, ExprLit,
-	Fields, FieldsNamed, GenericArgument, Ident, Lit, LitStr, Meta, MetaNameValue, PathArguments,
-	Token, Type, TypePath,
-};
+use syn::*;
 
 #[cfg(not(feature = "test"))]
 const MIGRATIONS_FILENAME: &str = "migrations.toml";
@@ -114,11 +110,11 @@ impl ToTokens for Content {
 }
 
 impl Content {
-	fn ty(&self) -> syn::Result<Type> {
+	fn ty(&self) -> Result<Type> {
 		match self {
 			Content::Type(ty) => Ok(ty.clone()),
-			Content::Ident(ident) => syn::parse2(ident.to_token_stream()),
-			Content::SingleColumn(_) => unimplemented!(), //syn::parse_str(&c.rust_type),
+			Content::Ident(ident) => parse2(ident.to_token_stream()),
+			Content::SingleColumn(_) => unimplemented!(), // parse_str(&c.rust_type),
 		}
 	}
 	fn is_primitive(&self) -> bool {
@@ -150,7 +146,7 @@ struct ResultType {
 }
 
 impl ResultType {
-	fn ty(&self) -> syn::Result<Type> {
+	fn ty(&self) -> Result<Type> {
 		let content = self.content.ty()?;
 		match self.container {
 			Some(ref container) => Ok(parse_quote!(#container < #content >)),
@@ -160,8 +156,8 @@ impl ResultType {
 }
 
 // impl Parse for ResultType {
-//  fn parse(input: ParseStream) -> syn::Result<Self> {
-//   let path = input.parse::<syn::Path>();
+//  fn parse(input: ParseStream) -> Result<Self> {
+//   let path = input.parse::<Path>();
 //   eprintln!("{:#?}", path);
 //   Ok(ResultType {})
 //  }
@@ -216,7 +212,7 @@ fn _extract_explicit_members(columns: &[String]) -> Option<MembersAndCasters> {
 	println!("extractexplicitmembers: {:#?}", columns);
 
 	// MembersAndCasters::create(members);
-	// syn::parse_str::<Ident>
+	// parse_str::<Ident>
 
 	None
 }
@@ -274,14 +270,14 @@ struct StatementInfo {
 }
 
 impl StatementInfo {
-	fn membersandcasters(&self) -> syn::parse::Result<MembersAndCasters> {
+	fn membersandcasters(&self) -> Result<MembersAndCasters> {
 		Ok(MembersAndCasters::create(
 			self
 				.column_names
 				.iter()
 				.enumerate()
-				.map(|(i, col_name)| Ok((syn::parse_str::<Ident>(col_name)?, format_ident!("None"), i)))
-				.collect::<syn::parse::Result<Vec<_>>>()?,
+				.map(|(i, col_name)| Ok((parse_str::<Ident>(col_name)?, format_ident!("None"), i)))
+				.collect::<Result<Vec<_>>>()?,
 		))
 	}
 }
@@ -315,12 +311,12 @@ fn migrations_to_tempdb(migrations: &[String]) -> Connection {
 	tempdb
 }
 
-fn migrations_to_schema(migrations: &[String]) -> Result<String, rusqlite::Error> {
+fn migrations_to_schema(migrations: &[String]) -> rusqlite::Result<String> {
 	Ok(
 		migrations_to_tempdb(migrations)
 			.prepare("SELECT sql FROM sqlite_master WHERE type='table' ORDER BY sql")?
 			.query_map(params![], |row| row.get(0))?
-			.collect::<Result<Vec<String>, _>>()?
+			.collect::<rusqlite::Result<Vec<String>>>()?
 			.join("\n"),
 	)
 }
@@ -347,7 +343,7 @@ fn read_migrations_toml() -> MigrationsToml {
 	}
 }
 
-fn validate_sql<S: AsRef<str>>(sql: S) -> Result<StatementInfo, rusqlite::Error> {
+fn validate_sql<S: AsRef<str>>(sql: S) -> rusqlite::Result<StatementInfo> {
 	let tempdb = migrations_to_tempdb(&read_migrations_toml().migrations_append_only.unwrap());
 
 	let stmt = tempdb.prepare(sql.as_ref())?;
@@ -376,7 +372,7 @@ fn validate_sql_or_abort<S: AsRef<str> + std::fmt::Debug>(sql: S) -> StatementIn
 
 fn parse_interpolated_sql(
 	input: ParseStream,
-) -> syn::Result<(Option<String>, Punctuated<Expr, Token![,]>, proc_macro2::TokenStream)> {
+) -> Result<(Option<String>, Punctuated<Expr, Token![,]>, proc_macro2::TokenStream)> {
 	if input.is_empty() {
 		return Ok(Default::default());
 	}
@@ -418,7 +414,7 @@ fn parse_interpolated_sql(
 fn do_parse_tokens(
 	input: ParseStream,
 	statement_type: ParseStatementType,
-) -> syn::Result<proc_macro2::TokenStream> {
+) -> Result<proc_macro2::TokenStream> {
 	let span = input.span();
 
 	// Get result type and SQL
@@ -609,7 +605,7 @@ fn do_parse_tokens(
 
 		return Ok(quote! {
 		{
-			(|| -> Result<usize, ::turbosql::Error> {
+			(|| -> std::result::Result<usize, ::turbosql::Error> {
 				::turbosql::__TURBOSQL_DB.with(|db| {
 					let db = db.borrow_mut();
 					let mut stmt = db.prepare_cached(#sql)?;
@@ -654,7 +650,7 @@ fn do_parse_tokens(
 
 	// Content::SingleColumn(col) => {
 	// 	handle_row = quote! { row.get(0)? };
-	// 	let rust_ty: Type = syn::parse_str(
+	// 	let rust_ty: Type = parse_str(
 	// 		&read_migrations_toml()
 	// 			.output_generated_tables_do_not_edit
 	// 			.unwrap()
@@ -692,11 +688,11 @@ fn do_parse_tokens(
 
 	Ok(quote! {
 		{
-			(|| -> Result<#return_type, ::turbosql::Error> {
+			(|| -> std::result::Result<#return_type, ::turbosql::Error> {
 				::turbosql::__TURBOSQL_DB.with(|db| {
 					let db = db.borrow_mut();
 					let mut stmt = db.prepare_cached(#sql)?;
-					let mut result = stmt.query_and_then(#params, |row| -> Result<#content_ty, ::turbosql::Error> {
+					let mut result = stmt.query_and_then(#params, |row| -> std::result::Result<#content_ty, ::turbosql::Error> {
 						Ok(#handle_row)
 					})?.flatten();
 					Ok(#handle_result)
@@ -707,19 +703,19 @@ fn do_parse_tokens(
 }
 
 impl Parse for SelectTokens {
-	fn parse(input: ParseStream) -> syn::Result<Self> {
+	fn parse(input: ParseStream) -> Result<Self> {
 		Ok(SelectTokens { tokens: do_parse_tokens(input, Select)? })
 	}
 }
 
 impl Parse for ExecuteTokens {
-	fn parse(input: ParseStream) -> syn::Result<Self> {
+	fn parse(input: ParseStream) -> Result<Self> {
 		Ok(ExecuteTokens { tokens: do_parse_tokens(input, Execute)? })
 	}
 }
 
 impl Parse for UpdateTokens {
-	fn parse(input: ParseStream) -> syn::Result<Self> {
+	fn parse(input: ParseStream) -> Result<Self> {
 		Ok(UpdateTokens { tokens: do_parse_tokens(input, Update)? })
 	}
 }
