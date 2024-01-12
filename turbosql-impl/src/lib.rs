@@ -72,9 +72,7 @@ static OPTION_U8_ARRAY_RE: Lazy<regex::Regex> =
 static U8_ARRAY_RE: Lazy<regex::Regex> =
 	Lazy::new(|| regex::Regex::new(r"^\[u8 ; \d+\]$").unwrap());
 
-struct SelectTokens(proc_macro2::TokenStream);
-struct ExecuteTokens(proc_macro2::TokenStream);
-struct UpdateTokens(proc_macro2::TokenStream);
+struct Tokens(proc_macro2::TokenStream);
 
 #[derive(Clone, Debug)]
 struct SingleColumn {
@@ -686,21 +684,15 @@ fn do_parse_tokens(
 	})
 }
 
-impl Parse for SelectTokens {
-	fn parse(input: ParseStream) -> Result<Self> {
-		Ok(SelectTokens(do_parse_tokens(input, Select)?))
+impl Tokens {
+	fn parse_select(input: ParseStream) -> Result<Self> {
+		do_parse_tokens(input, Select).map(Tokens)
 	}
-}
-
-impl Parse for ExecuteTokens {
-	fn parse(input: ParseStream) -> Result<Self> {
-		Ok(ExecuteTokens(do_parse_tokens(input, Execute)?))
+	fn parse_execute(input: ParseStream) -> Result<Self> {
+		do_parse_tokens(input, Execute).map(Tokens)
 	}
-}
-
-impl Parse for UpdateTokens {
-	fn parse(input: ParseStream) -> Result<Self> {
-		Ok(UpdateTokens(do_parse_tokens(input, Update)?))
+	fn parse_update(input: ParseStream) -> Result<Self> {
+		do_parse_tokens(input, Update).map(Tokens)
 	}
 }
 
@@ -708,21 +700,21 @@ impl Parse for UpdateTokens {
 #[proc_macro]
 #[proc_macro_error]
 pub fn execute(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-	parse_macro_input!(input as ExecuteTokens).0.into()
+	parse_macro_input!(input with Tokens::parse_execute).0.into()
 }
 
 /// Executes a SQL SELECT statement with optionally automatic `SELECT` and `FROM` clauses.
 #[proc_macro]
 #[proc_macro_error]
 pub fn select(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-	parse_macro_input!(input as SelectTokens).0.into()
+	parse_macro_input!(input with Tokens::parse_select).0.into()
 }
 
 /// Executes a SQL statement with optionally automatic `UPDATE` clause. On success, returns the number of rows that were changed.
 #[proc_macro]
 #[proc_macro_error]
 pub fn update(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-	parse_macro_input!(input as UpdateTokens).0.into()
+	parse_macro_input!(input with Tokens::parse_update).0.into()
 }
 
 /// Derive this on a `struct` to create a corresponding SQLite table and `Turbosql` trait methods.
