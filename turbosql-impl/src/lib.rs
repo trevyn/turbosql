@@ -413,9 +413,6 @@ fn parse_interpolated_sql(
 
 fn do_parse_tokens<const T: usize>(input: ParseStream) -> Result<proc_macro2::TokenStream> {
 	let span = input.span();
-
-	// Get result type and SQL
-
 	let result_type = input.parse::<ResultType>().ok();
 	let (mut sql, params, sql_and_parameters_tokens) = parse_interpolated_sql(input)?;
 
@@ -432,6 +429,8 @@ fn do_parse_tokens<const T: usize>(input: ParseStream) -> Result<proc_macro2::To
 			stmt_info = Some(stmt_info_modified);
 		}
 	}
+
+	// rust-analyzer just gets the result type
 
 	if is_rust_analyzer() {
 		return Ok(if let Some(ty) = result_type {
@@ -450,10 +449,6 @@ fn do_parse_tokens<const T: usize>(input: ParseStream) -> Result<proc_macro2::To
 		(Some(ResultType { content, .. }), sql, None) => {
 			let table_type = content.table_ident().to_string();
 			let table_name = table_type.to_lowercase();
-			// let tables = TABLES.lock().unwrap();
-			// let table = match tables.get(&table_name) {
-			//  Some(t) => t.clone(),
-			//  None =>
 
 			let table = {
 				let t = match read_migrations_toml().output_generated_tables_do_not_edit {
@@ -508,18 +503,6 @@ fn do_parse_tokens<const T: usize>(input: ParseStream) -> Result<proc_macro2::To
 		_ => abort_call_site!("no predicate and no result type found"),
 	};
 
-	// eprintln!("{:?} {:?}, {:?}", &result_type, sql, stmt_info);
-
-	// try parse sql here with nom-sql
-
-	// eprintln!("NOM_SQL: {:#?}", nom_sql::parser::parse_query(&sql));
-
-	// pull explicit members from statement info
-
-	// let explicit_members = extract_explicit_members(&stmt_info.column_names);
-
-	// get query params and validate their count against what the statement is expecting
-
 	if !stmt_info.named_parameters.is_empty() {
 		abort_call_site!("SQLite named parameters not currently supported.");
 	}
@@ -549,7 +532,7 @@ fn do_parse_tokens<const T: usize>(input: ParseStream) -> Result<proc_macro2::To
 		quote! { ::turbosql::named_params![#(#param_quotes),*] }
 	};
 
-	// if we return no columns, this should be an execute
+	// if we return no columns, this should be an execute or update
 
 	if stmt_info.column_names.is_empty() {
 		if T == SELECT {
@@ -928,7 +911,6 @@ fn create(table: &Table, minitable: &MiniTable) {
 
 	let mut new_toml_str = String::new();
 	let serializer = toml::Serializer::pretty(&mut new_toml_str);
-	// serializer.pretty_array_indent(2);
 
 	MigrationsToml {
 		output_generated_schema_for_your_information_do_not_edit: Some(format!(
