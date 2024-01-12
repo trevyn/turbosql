@@ -13,10 +13,12 @@ use quote::{format_ident, quote, ToTokens};
 use rusqlite::{params, Connection, Statement};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use syn::parse::{Parse, ParseStream};
-use syn::punctuated::Punctuated;
-use syn::spanned::Spanned;
-use syn::*;
+use syn::{
+	parse::{Parse, ParseStream},
+	punctuated::Punctuated,
+	spanned::Spanned,
+	*,
+};
 
 #[cfg(not(feature = "test"))]
 const MIGRATIONS_FILENAME: &str = "migrations.toml";
@@ -70,13 +72,8 @@ static OPTION_U8_ARRAY_RE: Lazy<regex::Regex> =
 static U8_ARRAY_RE: Lazy<regex::Regex> =
 	Lazy::new(|| regex::Regex::new(r"^\[u8 ; \d+\]$").unwrap());
 
-#[derive(Debug)]
 struct SelectTokens(proc_macro2::TokenStream);
-
-#[derive(Debug)]
 struct ExecuteTokens(proc_macro2::TokenStream);
-
-#[derive(Debug)]
 struct UpdateTokens(proc_macro2::TokenStream);
 
 #[derive(Clone, Debug)]
