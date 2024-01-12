@@ -653,17 +653,21 @@ fn do_parse_tokens(
 	let return_type;
 	let handle_result;
 
-	if container.as_ref().is_some_and(|ident| ident == "Vec") {
-		return_type = quote! { Vec<#content_ty> };
-		handle_result = quote! { result.collect::<Vec<_>>() }
-	} else if container.as_ref().is_some_and(|ident| ident == "Option") {
-		return_type = quote! { Option<#content_ty> };
-		handle_result = quote! { result.next() }
-	} else if container.is_none() {
-		return_type = quote! { #content_ty };
-		handle_result = quote! { result.next().ok_or(::turbosql::rusqlite::Error::QueryReturnedNoRows)? };
-	} else {
-		unreachable!("No other container type is possible");
+	match container {
+		Some(ident) if ident == "Vec" => {
+			return_type = quote! { Vec<#content_ty> };
+			handle_result = quote! { result.collect::<Vec<_>>() };
+		}
+		Some(ident) if ident == "Option" => {
+			return_type = quote! { Option<#content_ty> };
+			handle_result = quote! { result.next() };
+		}
+		None => {
+			return_type = quote! { #content_ty };
+			handle_result =
+				quote! { result.next().ok_or(::turbosql::rusqlite::Error::QueryReturnedNoRows)? };
+		}
+		_ => unreachable!("No other container type is possible"),
 	}
 
 	// Put it all together
