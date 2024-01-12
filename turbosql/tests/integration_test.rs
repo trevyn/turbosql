@@ -84,6 +84,7 @@ fn integration_test() {
 	// assert_eq!(select!(Vec<i64> "1").unwrap(), vec![1]);
 	// assert_eq!(select!(Option<i64> "1").unwrap(), Some(1));
 	assert_eq!(select!(Vec<i64> "rowid FROM personintegrationtest").unwrap(), vec![1, 2]);
+	assert_eq!(select!(std::Vec<i64> "rowid FROM personintegrationtest").unwrap(), vec![1, 2]);
 	assert_eq!(
 		select!(Vec<String> "field_string FROM personintegrationtest").unwrap(),
 		vec!["Bob", "Bob"]
@@ -116,6 +117,7 @@ fn integration_test() {
 	// assert_eq!(select!(Option<i64> "SELECT 1").unwrap(), Some(1));
 
 	assert_eq!(select!(PersonIntegrationTest).unwrap(), row);
+	assert_eq!(select!(crate::PersonIntegrationTest).unwrap(), row);
 	assert_eq!(
 		select!(PersonIntegrationTest "rowid, field_string, field_i64, field_bool, field_f64, field_f32, field_u8, field_i8, field_u16, field_i16, field_u32, field_i32, field_blob, field_vec_u8, field_array_u8, field_serialize AS field_serialize__serialized, field_string_not_null, field_i64_not_null, field_bool_not_null, field_f64_not_null, field_f32_not_null, field_u8_not_null, field_i8_not_null, field_u16_not_null, field_i16_not_null, field_u32_not_null, field_i32_not_null, field_blob_not_null, field_vec_u8_not_null, field_array_u8_not_null, field_serialize_not_null AS field_serialize_not_null__serialized FROM personintegrationtest").unwrap(),
 		row
@@ -129,10 +131,27 @@ fn integration_test() {
 		age: Option<i64>,
 	}
 
+	mod test_mod {
+		#[derive(Debug, Eq, PartialEq, Clone, Default)]
+		pub struct OtherNameAndAgeResult {
+			pub name: Option<String>,
+			pub age: Option<i64>,
+		}
+	}
+
 	assert_eq!(
 		select!(NameAndAgeResult r#""Martin Luther" AS name, field_u8 AS age FROM personintegrationtest"#)
 			.unwrap(),
 		NameAndAgeResult {
+			name: Some("Martin Luther".into()),
+			age: Some(row.field_u8.unwrap().into())
+		}
+	);
+
+	assert_eq!(
+		select!(test_mod::OtherNameAndAgeResult r#""Martin Luther" AS name, field_u8 AS age FROM personintegrationtest"#)
+			.unwrap(),
+			test_mod::OtherNameAndAgeResult {
 			name: Some("Martin Luther".into()),
 			age: Some(row.field_u8.unwrap().into())
 		}

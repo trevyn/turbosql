@@ -425,7 +425,7 @@ fn do_parse_tokens(
 
 	let result_type = if let Ok(ty) = input.parse::<Type>() {
 		match ty {
-			Type::Path(TypePath { qself: None, path }) => {
+			Type::Path(TypePath { qself: None, ref path }) => {
 				let path = path.segments.last().unwrap();
 				let mut container = None;
 
@@ -448,7 +448,7 @@ fn do_parse_tokens(
 							}
 						}
 					}
-					_ => Content::Ident(path.ident.clone()),
+					_ => Content::Type(ty),
 				};
 
 				Some(ResultType { container, content })
@@ -457,8 +457,7 @@ fn do_parse_tokens(
 				Some(ResultType { container: None, content: Content::Type(Type::Array(array)) })
 			}
 			_ => {
-				let x = format!("{:#?}", ty);
-				abort!("{}", x);
+				abort!(ty, "Unknown type {:?}", ty);
 			}
 		}
 	} else {
