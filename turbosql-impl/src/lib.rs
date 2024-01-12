@@ -72,8 +72,6 @@ static OPTION_U8_ARRAY_RE: Lazy<regex::Regex> =
 static U8_ARRAY_RE: Lazy<regex::Regex> =
 	Lazy::new(|| regex::Regex::new(r"^\[u8 ; \d+\]$").unwrap());
 
-struct Tokens(proc_macro2::TokenStream);
-
 #[derive(Clone, Debug)]
 struct SingleColumn {
 	table: Ident,
@@ -688,37 +686,35 @@ fn do_parse_tokens(
 	})
 }
 
-impl Tokens {
-	fn parse_select(input: ParseStream) -> Result<Self> {
-		do_parse_tokens(input, Select).map(Self)
-	}
-	fn parse_execute(input: ParseStream) -> Result<Self> {
-		do_parse_tokens(input, Execute).map(Self)
-	}
-	fn parse_update(input: ParseStream) -> Result<Self> {
-		do_parse_tokens(input, Update).map(Self)
-	}
+fn parse_select(input: ParseStream) -> Result<proc_macro2::TokenStream> {
+	do_parse_tokens(input, Select)
+}
+fn parse_execute(input: ParseStream) -> Result<proc_macro2::TokenStream> {
+	do_parse_tokens(input, Execute)
+}
+fn parse_update(input: ParseStream) -> Result<proc_macro2::TokenStream> {
+	do_parse_tokens(input, Update)
 }
 
 /// Executes a SQL statement. On success, returns the number of rows that were changed or inserted or deleted.
 #[proc_macro]
 #[proc_macro_error]
 pub fn execute(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-	parse_macro_input!(input with Tokens::parse_execute).0.into()
+	parse_macro_input!(input with parse_execute).into()
 }
 
 /// Executes a SQL SELECT statement with optionally automatic `SELECT` and `FROM` clauses.
 #[proc_macro]
 #[proc_macro_error]
 pub fn select(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-	parse_macro_input!(input with Tokens::parse_select).0.into()
+	parse_macro_input!(input with parse_select).into()
 }
 
 /// Executes a SQL statement with optionally automatic `UPDATE` clause. On success, returns the number of rows that were changed.
 #[proc_macro]
 #[proc_macro_error]
 pub fn update(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-	parse_macro_input!(input with Tokens::parse_update).0.into()
+	parse_macro_input!(input with parse_update).into()
 }
 
 /// Derive this on a `struct` to create a corresponding SQLite table and `Turbosql` trait methods.
