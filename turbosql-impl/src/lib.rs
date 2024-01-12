@@ -398,35 +398,27 @@ fn do_parse_tokens<const T: usize>(input: ParseStream) -> Result<proc_macro2::To
 		Type::Path(TypePath { qself: None, ref path }) => {
 			let path = path.segments.last().unwrap();
 			let mut container = None;
-
 			let content = match &path.ident {
 				ident if ["Vec", "Option"].contains(&ident.to_string().as_str()) => {
 					container = Some(ident.clone());
 					match path.arguments {
 						PathArguments::AngleBracketed(AngleBracketedGenericArguments { ref args, .. }) => {
-							if args.len() != 1 {
-								abort!(args, "Expected 1 argument, found {}", args.len());
-							}
+							(args.len() != 1).then(|| abort!(args, "Expected 1 argument, found {}", args.len()));
 							let ty = args.first().unwrap();
 							match ty {
 								GenericArgument::Type(ty) => Content::Type(ty.clone()),
 								_ => abort!(ty, "Expected type, found {:?}", ty),
 							}
 						}
-						_ => {
-							abort!(path.arguments, "Expected angle bracketed arguments, found {:?}", path.arguments)
-						}
+						_ => abort!(path.arguments, "Expected angle bracketed arguments, found {:?}", path.arguments),
 					}
 				}
 				_ => Content::Type(ty),
 			};
-
 			ResultType { container, content }
 		}
 		Type::Array(array) => ResultType { container: None, content: Content::Type(Type::Array(array)) },
-		_ => {
-			abort!(ty, "Unknown type {:?}", ty);
-		}
+		_ => abort!(ty, "Unknown type {:?}", ty),
 	});
 
 	let (mut sql, params, sql_and_parameters_tokens) = parse_interpolated_sql(input)?;
