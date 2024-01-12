@@ -94,7 +94,6 @@ struct SingleColumn {
 #[derive(Clone, Debug)]
 enum Content {
 	Type(Type),
-	Ident(Ident),
 	#[allow(dead_code)]
 	SingleColumn(SingleColumn),
 }
@@ -103,7 +102,6 @@ impl ToTokens for Content {
 	fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
 		match self {
 			Content::Type(ty) => ty.to_tokens(tokens),
-			Content::Ident(ident) => ident.to_tokens(tokens),
 			Content::SingleColumn(_) => unimplemented!(),
 		}
 	}
@@ -113,26 +111,22 @@ impl Content {
 	fn ty(&self) -> Result<Type> {
 		match self {
 			Content::Type(ty) => Ok(ty.clone()),
-			Content::Ident(ident) => parse2(ident.to_token_stream()),
 			Content::SingleColumn(_) => unimplemented!(), // parse_str(&c.rust_type),
 		}
 	}
 	fn is_primitive(&self) -> bool {
-		const PRIMITIVES: &[&str] =
-			&["f32", "f64", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "String", "bool", "Blob"];
 		match self {
 			Content::Type(Type::Path(TypePath { path, .. })) => {
-				PRIMITIVES.contains(&path.segments.last().unwrap().ident.to_string().as_str())
+				["f32", "f64", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "String", "bool", "Blob"]
+					.contains(&path.segments.last().unwrap().ident.to_string().as_str())
 			}
 			Content::Type(Type::Array(_)) => true,
-			Content::Ident(ident) => PRIMITIVES.contains(&ident.to_string().as_str()),
 			_ => abort_call_site!("Unsupported content type in is_primitive {:#?}", self),
 		}
 	}
 	fn table_ident(&self) -> &Ident {
 		match self {
 			Content::Type(Type::Path(TypePath { path, .. })) => &path.segments.last().unwrap().ident,
-			Content::Ident(ident) => ident,
 			Content::SingleColumn(c) => &c.table,
 			_ => abort_call_site!("Unsupported content type in table_ident {:#?}", self),
 		}
