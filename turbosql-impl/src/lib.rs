@@ -236,12 +236,9 @@ fn _extract_stmt_members(stmt: &Statement, span: &Span) -> MembersAndCasters {
 	MembersAndCasters::create(members)
 }
 
-enum ParseStatementType {
-	Execute,
-	Select,
-	Update,
-}
-use ParseStatementType::{Execute, Select, Update};
+const SELECT: usize = 1;
+const EXECUTE: usize = 2;
+const UPDATE: usize = 3;
 
 #[derive(Debug)]
 struct StatementInfo {
@@ -392,10 +389,7 @@ fn parse_interpolated_sql(
 	Ok((Some(sql), params, Default::default()))
 }
 
-fn do_parse_tokens(
-	input: ParseStream,
-	statement_type: ParseStatementType,
-) -> Result<proc_macro2::TokenStream> {
+fn do_parse_tokens<const T: usize>(input: ParseStream) -> Result<proc_macro2::TokenStream> {
 	let span = input.span();
 
 	// Get result type and SQL
@@ -449,12 +443,8 @@ fn do_parse_tokens(
 
 	// Try adding SELECT or UPDATE if it didn't validate
 
-	if let (ty @ (Select | Update), Some(orig_sql), None) = (&statement_type, &sql, &stmt_info) {
-		let sql_modified = match ty {
-			Select => format!("SELECT {}", orig_sql),
-			Update => format!("UPDATE {}", orig_sql),
-			_ => unreachable!(),
-		};
+	if let (true, Some(orig_sql), None) = (T == SELECT || T == UPDATE, &sql, &stmt_info) {
+		let sql_modified = format!("{} {}", if T == SELECT { "SELECT" } else { "UPDATE" }, orig_sql);
 		if let Ok(stmt_info_modified) = validate_sql(&sql_modified) {
 			sql = Some(sql_modified);
 			stmt_info = Some(stmt_info_modified);
@@ -580,7 +570,7 @@ fn do_parse_tokens(
 	// if we return no columns, this should be an execute
 
 	if stmt_info.column_names.is_empty() {
-		if matches!(statement_type, Select) {
+		if T == SELECT {
 			abort_call_site!("No rows returned from SQL, use execute! instead.");
 		}
 
@@ -597,7 +587,7 @@ fn do_parse_tokens(
 		});
 	}
 
-	if !matches!(statement_type, Select) {
+	if T != SELECT {
 		abort_call_site!("Rows returned from SQL, use select! instead.");
 	}
 
@@ -686,35 +676,25 @@ fn do_parse_tokens(
 	})
 }
 
-fn parse_select(input: ParseStream) -> Result<proc_macro2::TokenStream> {
-	do_parse_tokens(input, Select)
-}
-fn parse_execute(input: ParseStream) -> Result<proc_macro2::TokenStream> {
-	do_parse_tokens(input, Execute)
-}
-fn parse_update(input: ParseStream) -> Result<proc_macro2::TokenStream> {
-	do_parse_tokens(input, Update)
-}
-
 /// Executes a SQL statement. On success, returns the number of rows that were changed or inserted or deleted.
 #[proc_macro]
 #[proc_macro_error]
 pub fn execute(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-	parse_macro_input!(input with parse_execute).into()
+	parse_macro_input!(input with do_parse_tokens::<EXECUTE>).into()
 }
 
 /// Executes a SQL SELECT statement with optionally automatic `SELECT` and `FROM` clauses.
 #[proc_macro]
 #[proc_macro_error]
 pub fn select(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-	parse_macro_input!(input with parse_select).into()
+	parse_macro_input!(input with do_parse_tokens::<SELECT>).into()
 }
 
 /// Executes a SQL statement with optionally automatic `UPDATE` clause. On success, returns the number of rows that were changed.
 #[proc_macro]
 #[proc_macro_error]
 pub fn update(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-	parse_macro_input!(input with parse_update).into()
+	parse_macro_input!(input with do_parse_tokens::<UPDATE>).into()
 }
 
 /// Derive this on a `struct` to create a corresponding SQLite table and `Turbosql` trait methods.
