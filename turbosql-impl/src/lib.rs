@@ -68,9 +68,9 @@ struct MiniColumn {
 }
 
 static OPTION_U8_ARRAY_RE: Lazy<regex::Regex> =
-	Lazy::new(|| regex::Regex::new(r"^Option < \[u8 ; \d+\] >$").unwrap());
+	Lazy::new(|| regex::Regex::new(r"^Option\s*<\s*\[\s*u8\s*;\s*\d+\s*\]\s*>$").unwrap());
 static U8_ARRAY_RE: Lazy<regex::Regex> =
-	Lazy::new(|| regex::Regex::new(r"^\[u8 ; \d+\]$").unwrap());
+	Lazy::new(|| regex::Regex::new(r"^\[\s*u8\s*;\s*\d+\s*\]$").unwrap());
 
 #[derive(Clone, Debug)]
 struct SingleColumn {

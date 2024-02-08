@@ -203,7 +203,7 @@ sql_type = "BLOB"
 
 [[output_generated_tables_do_not_edit.personintegrationtest.columns]]
 name = "field_array_u8"
-rust_type = "Option < [u8 ; 99] >"
+rust_type = "Option < [u8; 99] >"
 sql_type = "BLOB"
 
 [[output_generated_tables_do_not_edit.personintegrationtest.columns]]
@@ -278,7 +278,7 @@ sql_type = "BLOB NOT NULL"
 
 [[output_generated_tables_do_not_edit.personintegrationtest.columns]]
 name = "field_array_u8_not_null"
-rust_type = "[u8 ; 5]"
+rust_type = "[u8; 5]"
 sql_type = "BLOB NOT NULL"
 
 [[output_generated_tables_do_not_edit.personintegrationtest.columns]]
