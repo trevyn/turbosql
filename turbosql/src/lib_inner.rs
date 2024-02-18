@@ -26,20 +26,26 @@ pub type Blob = Vec<u8>;
 pub trait Turbosql {
 	/// Inserts this row into the database. `rowid` must be `None`. On success, returns the new `rowid`.
 	fn insert(&self) -> Result<i64, Error>;
+	/// Inserts all rows in the slice into the database. All `rowid`s must be `None`. On success, returns `Ok(())`.
 	fn insert_batch<T: AsRef<Self>>(rows: &[T]) -> Result<(), Error>;
 	/// Updates this existing row in the database, based on `rowid`, which must be `Some`. All fields are overwritten in the database. On success, returns the number of rows updated, which should be 1.
 	fn update(&self) -> Result<usize, Error>;
+	/// Updates all rows in the slice in the database, based on `rowid`, which must be `Some`. All fields are overwritten in the database. On success, returns `Ok(())`.
 	fn update_batch<T: AsRef<Self>>(rows: &[T]) -> Result<(), Error>;
 	/// Deletes this existing row in the database, based on `rowid`, which must be `Some`. On success, returns the number of rows deleted, which should be 1.
 	fn delete(&self) -> Result<usize, Error>;
 }
 
+/// Error type returned by Turbosql.
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
+	/// Passthrough [`rusqlite::Error`]
 	#[error(transparent)]
 	Rusqlite(#[from] rusqlite::Error),
+	/// Passthrough [`serde_json::Error`]
 	#[error(transparent)]
 	SerdeJson(#[from] serde_json::Error),
+	/// Turbosql-specific error
 	#[error("Turbosql Error: {0}")]
 	OtherError(&'static str),
 }
@@ -170,6 +176,7 @@ fn run_migrations(conn: &mut Connection, path: &Path) {
 	conn.execute("COMMIT", params![]).unwrap();
 }
 
+/// Result of a [`checkpoint`].
 #[derive(Debug)]
 pub struct CheckpointResult {
 	/// Should always be 0. (Checkpoint is run in PASSIVE mode.)

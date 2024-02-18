@@ -1,4 +1,5 @@
 #![forbid(unsafe_code)]
+#![warn(missing_docs)]
 #![doc = include_str!("../README.md")]
 
 #[cfg(all(not(feature = "test"), any(test, doctest)))]
