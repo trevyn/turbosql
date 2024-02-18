@@ -75,9 +75,10 @@ pub fn now_us() -> i64 {
 	std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_micros() as i64
 }
 
-/// Returns the path to the database, if it has been set or opened.
-pub fn db_path() -> Option<PathBuf> {
-	__DB_PATH.lock().unwrap().path.clone()
+/// Returns the path to the database.
+pub fn db_path() -> PathBuf {
+	__TURBOSQL_DB.with(|_| {});
+	__DB_PATH.lock().unwrap().path.clone().unwrap()
 }
 
 fn run_migrations(conn: &mut Connection, path: &Path) {
@@ -191,6 +192,7 @@ pub struct CheckpointResult {
 /// If no other threads have open connections, this will clean up the `-wal` and `-shm` files as well.
 pub fn checkpoint() -> Result<CheckpointResult, Error> {
 	let start = std::time::Instant::now();
+	__TURBOSQL_DB.with(|_| {});
 	let db_path = __DB_PATH.lock().unwrap();
 
 	let conn = Connection::open_with_flags(
