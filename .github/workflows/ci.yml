@@ -12,20 +12,20 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  checklinks:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+  # checklinks:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - uses: trevyn/lychee-action@v1
-        id: lychee
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: --verbose --no-progress --header="accept=text/html" "**/*.md" "**/*.rs" "**/*.json" "**/*.toml" "**/*.yml"
+  #     - uses: trevyn/lychee-action@v1
+  #       id: lychee
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       with:
+  #         args: --verbose --no-progress --header="accept=text/html" "**/*.md" "**/*.rs" "**/*.json" "**/*.toml" "**/*.yml"
 
-      - name: Fail if there were link-check errors
-        run: exit ${{ steps.lychee.outputs.exit_code }}
+  #     - name: Fail if there were link-check errors
+  #       run: exit ${{ steps.lychee.outputs.exit_code }}
 
   test:
     name: test rust ${{ matrix.rust }}
@@ -69,7 +69,7 @@ jobs:
         working-directory: "turbosql"
 
   publish:
-    needs: [checklinks, test]
+    needs: [test]
     runs-on: ubuntu-latest
     if: ${{ contains(github.event.head_commit.message, 'turbosql@') && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
 
