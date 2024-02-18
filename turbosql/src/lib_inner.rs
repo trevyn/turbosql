@@ -71,7 +71,7 @@ pub fn now_ms() -> i64 {
 }
 
 /// Convenience function that returns the current time as microseconds since UNIX epoch.
-pub fn now_us() -> i64 {
+pub fn now_µs() -> i64 {
 	std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_micros() as i64
 }
 
