@@ -82,16 +82,16 @@ pub fn db_path() -> PathBuf {
 }
 
 fn run_migrations(conn: &mut Connection, path: &Path) {
-	cfg_if::cfg_if! {
-		if #[cfg(doc)] {
-			// if these are what's run in doctests, could add a test struct here to scaffold one-liner tests
-			let toml_decoded: MigrationsToml = MigrationsToml::default();
-		} else if #[cfg(feature = "test")] {
-			let toml_decoded: MigrationsToml = toml::from_str(include_str!("../../test.migrations.toml")).unwrap();
-		} else {
-			let toml_decoded: MigrationsToml = toml::from_str(include_str!(concat!(env!("OUT_DIR"), "/migrations.toml"))).expect("Unable to decode embedded migrations.toml");
-		}
-	};
+	#[cfg(doc)]
+	// if these are what's run in doctests, could add a test struct here to scaffold one-liner tests
+	let toml_decoded: MigrationsToml = MigrationsToml::default();
+	#[cfg(all(not(doc), feature = "test"))]
+	let toml_decoded: MigrationsToml =
+		toml::from_str(include_str!("../../test.migrations.toml")).unwrap();
+	#[cfg(all(not(doc), not(feature = "test")))]
+	let toml_decoded: MigrationsToml =
+		toml::from_str(include_str!(concat!(env!("OUT_DIR"), "/migrations.toml")))
+			.expect("Unable to decode embedded migrations.toml");
 
 	let target_migrations = toml_decoded.migrations_append_only.unwrap_or_default();
 
