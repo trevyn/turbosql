@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.10.0 - 2024-02-25
+
+### Bumped
+
+- Bumped `rusqlite` to 0.31 (sqlite 3.45.0)
+
+### Added
+
+- Added `.delete()` method ([#36](https://github.com/trevyn/turbosql/pull/36), thanks @PedroTurik!)
+- Added an `update!` macro
+- Parse result type in `select!` as a Type instead of Ident, allowing for more flexibility.
+- Added support for non-Option, `NOT NULL` types via SQL defaults.
+- Added `now_µs` and `db_path` functions
+
+### Changed
+
+- MSRV is now Rust 1.72
+
+### Fixed
+
+- Fixed incompatibility with array types and upcoming Rust 1.77
+
 ## 0.9.0 - 2023-11-15
 
 ### Bumped
