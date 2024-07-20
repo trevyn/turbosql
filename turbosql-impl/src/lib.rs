@@ -934,6 +934,10 @@ fn create(table: &Table, minitable: &MiniTable) {
 	// this keeps file mod date clean so cargo doesn't pathologically rebuild
 
 	if old_toml_str != new_toml_str {
+		#[cfg(not(feature = "test"))]
+		if std::env::var("CI").is_ok() || std::env::var("TURBOSQL_LOCKED_MODE").is_ok() {
+			abort_call_site!("Change in `{}` detected with CI or TURBOSQL_LOCKED_MODE environment variable set. Make sure your `migrations.toml` file is up-to-date.", migrations_toml_path_lossy);
+		};
 		fs::write(&migrations_toml_path, new_toml_str)
 			.unwrap_or_else(|e| abort_call_site!("Unable to write {}: {:?}", migrations_toml_path_lossy, e));
 	}
