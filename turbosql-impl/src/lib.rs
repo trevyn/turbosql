@@ -666,23 +666,29 @@ pub fn update(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(Turbosql, attributes(turbosql))]
 #[proc_macro_error]
 pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-	if is_rust_analyzer() {
-		return quote!().into();
-	}
-
-	// parse tokenstream and set up table struct
-
 	let input = parse_macro_input!(input as DeriveInput);
 	let table_span = input.span();
 	let table_ident = input.ident;
 	let table_name = table_ident.to_string().to_lowercase();
 
-	let fields = match input.data {
-		Data::Struct(ref data) => match data.fields {
-			Fields::Named(ref fields) => fields,
-			Fields::Unnamed(_) | Fields::Unit => unimplemented!(),
-		},
-		Data::Enum(_) | Data::Union(_) => unimplemented!(),
+	let dummy_impl = quote! {
+		impl ::turbosql::Turbosql for #table_ident {
+			fn insert(&self) -> Result<i64, ::turbosql::Error> { unimplemented!() }
+			fn insert_batch<T: AsRef<Self>>(rows: &[T]) -> Result<(), ::turbosql::Error> { unimplemented!() }
+			fn update(&self) -> Result<usize, ::turbosql::Error> { unimplemented!() }
+			fn update_batch<T: AsRef<Self>>(rows: &[T]) -> Result<(), ::turbosql::Error> { unimplemented!() }
+			fn delete(&self) -> Result<usize, ::turbosql::Error> { unimplemented!() }
+		}
+	};
+
+	if is_rust_analyzer() {
+		return dummy_impl.into();
+	}
+
+	proc_macro_error::set_dummy(dummy_impl);
+
+	let Data::Struct(DataStruct { fields: Fields::Named(ref fields), .. }) = input.data else {
+		abort_call_site!("The Turbosql derive macro only supports structs with named fields");
 	};
 
 	let table = Table {
