@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0 OR CC0-1.0"
 name = "turbosql"
 readme = "README.md"
 repository = "https://github.com/trevyn/turbosql"
-rust-version = "1.72"
+rust-version = "1.77"
 version = "0.10.0"
 
 [dependencies]
