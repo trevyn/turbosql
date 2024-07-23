@@ -84,6 +84,7 @@ fn integration_test() {
 
 	row2.insert_mut().unwrap();
 	assert_eq!(row2.rowid, Some(3));
+	execute!("DELETE FROM personintegrationtest WHERE rowid=3").unwrap();
 
 	assert_eq!(select!(i64 "1").unwrap(), 1);
 	// assert_eq!(select!(Vec<i64> "1").unwrap(), vec![1]);

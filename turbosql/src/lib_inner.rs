@@ -26,6 +26,8 @@ pub type Blob = Vec<u8>;
 pub trait Turbosql {
 	/// Inserts this row into the database. `rowid` must be `None`. On success, returns the new `rowid`.
 	fn insert(&self) -> Result<i64, Error>;
+	/// Inserts this row into the database, and updates the `rowid` of the struct to match the rowid newly inserted into the database. `rowid` must be `None`. On success, returns the new `rowid`.
+	fn insert_mut(&mut self) -> Result<i64, Error>;
 	/// Inserts all rows in the slice into the database. All `rowid`s must be `None`. On success, returns `Ok(())`.
 	fn insert_batch<T: AsRef<Self>>(rows: &[T]) -> Result<(), Error>;
 	/// Updates this existing row in the database, based on `rowid`, which must be `Some`. All fields are overwritten in the database. On success, returns the number of rows updated, which should be 1.
