@@ -74,11 +74,16 @@ fn integration_test() {
 		..Default::default()
 	};
 
+	let mut row2 = row.clone();
+
 	assert_eq!(row.insert().unwrap(), 1);
 	assert_eq!(row.insert().unwrap(), 2);
 	row.rowid = Some(1);
 	row.field_u8 = Some(84);
 	assert_eq!(row.update().unwrap(), 1);
+
+	row2.insert_mut().unwrap();
+	assert_eq!(row2.rowid, Some(3));
 
 	assert_eq!(select!(i64 "1").unwrap(), 1);
 	// assert_eq!(select!(Vec<i64> "1").unwrap(), vec![1]);
