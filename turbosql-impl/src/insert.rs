@@ -27,6 +27,17 @@ pub(super) fn insert(table: &Table) -> proc_macro2::TokenStream {
 			})
 		}
 
+		fn insert_mut(&mut self) -> Result<i64, ::turbosql::Error> {
+			assert!(self.rowid.is_none());
+			::turbosql::__TURBOSQL_DB.with(|db| {
+				let db = db.borrow_mut();
+				let mut stmt = db.prepare_cached(#sql)?;
+				let result = stmt.insert(&[#( #columns ),*] as &[&dyn ::turbosql::ToSql])?;
+				self.rowid = Some(result);
+				Ok(result)
+			})
+		}
+
 		fn insert_batch<T: AsRef<#table>>(rows: &[T]) -> Result<(), ::turbosql::Error> {
 			for row in rows {
 				row.as_ref().insert()?;

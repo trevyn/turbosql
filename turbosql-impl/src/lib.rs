@@ -674,6 +674,7 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
 	let dummy_impl = quote! {
 		impl ::turbosql::Turbosql for #table_ident {
 			fn insert(&self) -> Result<i64, ::turbosql::Error> { unimplemented!() }
+			fn insert_mut(&mut self) -> Result<i64, ::turbosql::Error> { unimplemented!() }
 			fn insert_batch<T: AsRef<Self>>(rows: &[T]) -> Result<(), ::turbosql::Error> { unimplemented!() }
 			fn update(&self) -> Result<usize, ::turbosql::Error> { unimplemented!() }
 			fn update_batch<T: AsRef<Self>>(rows: &[T]) -> Result<(), ::turbosql::Error> { unimplemented!() }
@@ -942,7 +943,7 @@ fn create(table: &Table, minitable: &MiniTable) {
 	if old_toml_str.replace("\r\n", "\n") != new_toml_str {
 		#[cfg(not(feature = "test"))]
 		if std::env::var("CI").is_ok() || std::env::var("TURBOSQL_LOCKED_MODE").is_ok() {
-			abort_call_site!("Change in `{}` detected with CI or TURBOSQL_LOCKED_MODE environment variable set. Make sure your `migrations.toml` file is up-to-date.", migrations_toml_path_lossy);
+			abort_call_site!("Change in `{}` detected with CI or TURBOSQL_LOCKED_MODE environment variable set. Make sure your `migrations.toml` file is committed and up-to-date.", migrations_toml_path_lossy);
 		};
 		fs::write(&migrations_toml_path, new_toml_str)
 			.unwrap_or_else(|e| abort_call_site!("Unable to write {}: {:?}", migrations_toml_path_lossy, e));
