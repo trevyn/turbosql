@@ -674,6 +674,7 @@ pub fn turbosql_derive_macro(input: proc_macro::TokenStream) -> proc_macro::Toke
 	let dummy_impl = quote! {
 		impl ::turbosql::Turbosql for #table_ident {
 			fn insert(&self) -> Result<i64, ::turbosql::Error> { unimplemented!() }
+			fn insert_mut(&mut self) -> Result<i64, ::turbosql::Error> { unimplemented!() }
 			fn insert_batch<T: AsRef<Self>>(rows: &[T]) -> Result<(), ::turbosql::Error> { unimplemented!() }
 			fn update(&self) -> Result<usize, ::turbosql::Error> { unimplemented!() }
 			fn update_batch<T: AsRef<Self>>(rows: &[T]) -> Result<(), ::turbosql::Error> { unimplemented!() }
