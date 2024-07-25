@@ -15,19 +15,20 @@ version = "0.10.0"
 turbosql-impl = {path = "../turbosql-impl", version = "=0.10.0"}
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-directories-next = "2"
-log = "0.4"
-once_cell = "1"
-rusqlite = {version = "0.32", features = ["bundled", "blob"]}
-serde = {version = "1", features = ["derive"]}
-serde_json = "1"
-thiserror = "1"
-toml = "0.8"
+ahash = "0.8.7"
+directories-next = "2.0.0"
+log = "0.4.4"
+once_cell = "1.18.0"
+rusqlite = {version = "0.32.0", features = ["bundled", "blob"]}
+serde = {version = "1.0.145", features = ["derive"]}
+serde_json = "1.0.0"
+thiserror = "1.0.7"
+toml = "0.8.0"
 
 [dev-dependencies]
-rustversion = "1"
+rustversion = "1.0.0"
 tokio = {version = "1.23.1", features = ["rt-multi-thread", "macros"]}
-trybuild = {version = "1", features = ["diff"]}
+trybuild = {version = "1.0.58", features = ["diff"]}
 
 [features]
 sqlite-compat-no-strict-tables = ["turbosql-impl/sqlite-compat-no-strict-tables"]
