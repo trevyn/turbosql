@@ -70,8 +70,24 @@ jobs:
         run: cargo test --features "test" -- --nocapture --test-threads=1 --skip ui
         working-directory: "turbosql"
 
+  minimal-versions:
+    name: test minimal-versions
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: rustup default nightly && rustup update nightly
+
+      - uses: taiki-e/install-action@cargo-hack
+      - uses: taiki-e/install-action@cargo-minimal-versions
+
+      - run: cargo minimal-versions check --direct
+      - run: cargo minimal-versions test --direct --features test -- --test-threads=1
+      - run: cargo minimal-versions doc --direct --no-deps
+
   publish:
-    needs: [test]
+    needs: [test, minimal-versions]
     runs-on: ubuntu-latest
     if: ${{ contains(github.event.head_commit.message, 'turbosql@') && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
 
