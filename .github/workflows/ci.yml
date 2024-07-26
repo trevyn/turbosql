@@ -78,6 +78,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - run: rustup default nightly && rustup update nightly
+      - run: cargo update
 
       - uses: taiki-e/install-action@cargo-hack
       - uses: taiki-e/install-action@cargo-minimal-versions
