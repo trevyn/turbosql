@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.11.0 - 2024-07-28
+
+### Bumped
+
+- Bumped `rusqlite` to 0.32.1 (sqlite 3.46.0)
+
+### Added
+
+- Added an `.insert_mut()` method that automatically updates the `rowid`.
+- Added a `migrations.toml` locked mode for CI, thanks @antifuchs in [#40](https://github.com/trevyn/turbosql/issues/40) for the idea!
+
+### Changed
+
+- MSRV is now Rust 1.77
+
+### Fixed
+
+- Improved compatibility with `rust-analyzer` and improved error messages.
+- Correctly specify minimum dependency versions
+
 ## 0.10.0 - 2024-02-25
 
 ### Bumped
