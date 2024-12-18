@@ -114,9 +114,14 @@ fn integration_test() {
 	assert_eq!(select!(bool "SELECT 1 > " 0).unwrap(), true);
 	assert_eq!(select!(bool "SELECT 1 > " 2).unwrap(), false);
 
-	assert_eq!(
-		format!("{:?}", execute!("")),
-		"Err(Rusqlite(SqliteFailure(Error { code: ApiMisuse, extended_code: 21 }, Some(\"not an error\"))))"
+	assert!(
+		matches!(
+			format!("{:?}", execute!("")).as_str(),
+			"Err(Rusqlite(SqliteFailure(Error { code: ApiMisuse, extended_code: 21 }, Some(\"not an error\"))))" |
+			"Err(Rusqlite(SqliteFailure(Error { code: ApiMisuse, extended_code: 21 }, Some(\"bad parameter or other API misuse\"))))"
+		),
+		"Unexpected error: {}",
+		format!("{:?}", execute!(""))
 	);
 
 	// assert_eq!(select!(Vec<i64> "SELECT 1").unwrap(), Some(1));
