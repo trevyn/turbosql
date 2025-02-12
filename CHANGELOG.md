@@ -1,5 +1,11 @@
 # Changelog
 
+
+## 0.12.0 - 2025-02-12
+
+- Bumped `rusqlite` to 0.33 (sqlite 3.48.0)
+- MSRV is now Rust 1.82
+
 ## 0.11.0 - 2024-07-28
 
 ### Bumped
