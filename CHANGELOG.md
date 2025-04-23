@@ -1,6 +1,10 @@
 # Changelog
 
 
+## 0.13.0 - 2025-04-23
+
+- Bumped `rusqlite` to 0.35 (sqlite 3.49.1)
+
 ## 0.12.0 - 2025-02-12
 
 - Bumped `rusqlite` to 0.33 (sqlite 3.48.0)
