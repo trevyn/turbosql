@@ -18,7 +18,7 @@ proc-macro2 = "1.0.74"
 quote = "1.0.36"
 regex = "1.5.5"
 rusqlite = {version = "0.35.0", features = ["bundled", "blob", "column_decltype"]}
-serde = {version = "1.0.145", features = ["derive"]}
+serde = {version = "1.0.203", features = ["derive"]}
 syn = {version = "2.0.31", features = ["extra-traits", "full"]}
 toml = "0.8.0"
 
