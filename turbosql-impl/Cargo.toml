@@ -14,7 +14,7 @@ proc-macro = true
 fs2 = "0.4.0"
 once_cell = "1.18.0"
 proc-macro-error = "1.0.0"
-proc-macro2 = "1.0.74"
+proc-macro2 = "1.0.83"
 quote = "1.0.36"
 regex = "1.5.5"
 rusqlite = {version = "0.35.0", features = ["bundled", "blob", "column_decltype"]}
