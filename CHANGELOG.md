@@ -1,6 +1,11 @@
 # Changelog
 
 
+## 0.14.0 - 2025-08-14
+
+- Bumped `rusqlite` to 0.37 (sqlite 3.50.2)
+- Added ability to pass through rusqlite cargo features, thanks @antifuchs
+
 ## 0.13.0 - 2025-04-23
 
 - Bumped `rusqlite` to 0.35 (sqlite 3.49.1)

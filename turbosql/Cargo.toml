@@ -9,10 +9,10 @@ name = "turbosql"
 readme = "README.md"
 repository = "https://github.com/trevyn/turbosql"
 rust-version = "1.82"
-version = "0.13.0"
+version = "0.14.0"
 
 [dependencies]
-turbosql-impl = {path = "../turbosql-impl", version = "=0.13.0"}
+turbosql-impl = {path = "../turbosql-impl", version = "=0.14.0"}
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 directories-next = "2.0.0"
